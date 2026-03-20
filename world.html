@@ -112,6 +112,85 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 /* ── ENCOUNTER FLASH ── */
 #encounter-flash{position:absolute;inset:0;background:#ffffff;opacity:0;pointer-events:none;z-index:90;transition:opacity 0.1s;}
 
+/* ── BATTLE SCENE ── */
+#battle-scene{
+  width:100%;max-width:520px;height:200px;
+  position:relative;display:flex;
+  align-items:stretch;gap:0;
+  border:2px solid #440088;border-radius:6px;overflow:hidden;
+}
+#battle-arena-bg{border-radius:4px;}
+.battle-side{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding:6px;gap:4px;position:relative;z-index:2;
+}
+.battle-art-frame{
+  width:100%;flex:1;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;border-radius:4px;
+  background:rgba(0,0,0,0.2);
+}
+.battle-art-img{
+  width:100%;height:100%;
+  object-fit:contain;
+  object-position:center bottom;
+  image-rendering:pixelated;
+  display:block;
+}
+.enemy-img{transform:scaleX(-1);}
+.battle-sprite-canvas{
+  image-rendering:pixelated;
+  width:96px;height:96px;
+  display:block;
+}
+.enemy-canvas{transform:scaleX(-1);}
+.battle-art-overlay{
+  position:absolute;inset:0;pointer-events:none;
+}
+.player-overlay{
+  background:linear-gradient(to right,rgba(0,40,120,0.3) 0%,transparent 60%);
+}
+.enemy-overlay{
+  background:linear-gradient(to left,rgba(120,0,0,0.3) 0%,transparent 60%);
+}
+.battle-hit-flash{
+  position:absolute;inset:0;background:#ffffff;
+  opacity:0;pointer-events:none;
+  border-radius:4px;
+  transition:opacity 0.05s;
+}
+.vs-badge{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  font-family:'Press Start 2P',monospace;
+  font-size:12px;color:#cc44ff;
+  text-shadow:0 0 12px rgba(200,50,255,0.8),0 0 24px rgba(200,50,255,0.4);
+  z-index:10;
+  background:rgba(8,0,20,0.7);
+  padding:4px 8px;border-radius:4px;
+  border:1px solid #440088;
+}
+.battle-name-plate{
+  width:100%;display:flex;justify-content:space-between;
+  align-items:center;padding:2px 4px;
+  background:rgba(0,0,0,0.6);border-radius:3px;
+  border:1px solid rgba(100,50,150,0.4);
+}
+.player-plate{border-color:rgba(50,100,200,0.5);}
+.enemy-plate{border-color:rgba(200,50,50,0.5);}
+.b-name{font-size:6px;color:#eeccff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;}
+.b-level{font-size:5px;color:#8866aa;}
+.b-elem{font-size:6px;color:#cc88ff;}
+.b-bars{width:100%;display:flex;flex-direction:column;gap:3px;}
+.b-bar-row{display:flex;align-items:center;gap:3px;}
+.b-bar-label{font-size:5px;color:#664488;width:12px;flex-shrink:0;}
+.b-bar-track{flex:1;height:7px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.b-bar-fill{height:100%;border-radius:1px;transition:width 0.3s;}
+.b-hp{background:linear-gradient(90deg,#22cc44,#44ff88);}
+.b-en{background:linear-gradient(90deg,#cc8800,#ffcc00);}
+.b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
+
 /* ── MINIMAP ── */
 #minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
 #minimap canvas{display:block;image-rendering:pixelated;}
@@ -227,37 +306,63 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
     </div>
 
     <div id="battle-overlay">
-      <div id="battle-arena">
-        <canvas id="battle-arena-bg" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;"></canvas>
-        <div id="battle-arena-floor"></div>
-        <div class="arena-fighter player-pos">
-          <canvas id="player-sprite" class="arena-sprite" width="32" height="32" style="width:64px;height:64px;"></canvas>
-          <div class="arena-shadow"></div>
+
+      <!-- BATTLE SCENE — full art panels side by side -->
+      <div id="battle-scene">
+        <canvas id="battle-arena-bg" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;"></canvas>
+
+        <!-- PLAYER side -->
+        <div class="battle-side player-side-panel" id="player-panel">
+          <div class="battle-art-frame player-art-frame">
+            <canvas id="player-sprite" width="48" height="48" style="display:none"></canvas>
+            <img id="player-art-img" class="battle-art-img" src="" alt="" style="display:none"/>
+            <canvas id="player-sprite-fallback" class="battle-sprite-canvas" width="48" height="48"></canvas>
+            <div class="battle-art-overlay player-overlay"></div>
+            <div class="battle-hit-flash" id="player-flash"></div>
+          </div>
+          <div class="battle-name-plate player-plate">
+            <span class="b-name" id="b-player-name">YOUR CREATURE</span>
+            <span class="b-level" id="b-player-level">Lv1</span>
+          </div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <span class="b-bar-label">HP</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-player-hp" style="width:100%"></div></div>
+              <span class="b-bar-val" id="b-player-hp-txt">100/100</span>
+            </div>
+            <div class="b-bar-row">
+              <span class="b-bar-label">⚡</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-en" id="b-player-en" style="width:0%"></div></div>
+              <span class="b-bar-val" id="b-player-en-txt">0</span>
+            </div>
+          </div>
         </div>
-        <div class="arena-fighter enemy-pos">
-          <canvas id="enemy-sprite" class="arena-sprite" width="32" height="32" style="width:64px;height:64px;"></canvas>
-          <div class="arena-shadow"></div>
+
+        <!-- VS badge -->
+        <div class="vs-badge">VS</div>
+
+        <!-- ENEMY side -->
+        <div class="battle-side enemy-side-panel" id="enemy-panel">
+          <div class="battle-art-frame enemy-art-frame">
+            <img id="enemy-art-img" class="battle-art-img enemy-img" src="" alt="" style="display:none"/>
+            <canvas id="enemy-sprite-fallback" class="battle-sprite-canvas enemy-canvas" width="48" height="48"></canvas>
+            <div class="battle-art-overlay enemy-overlay"></div>
+            <div class="battle-hit-flash" id="enemy-flash"></div>
+          </div>
+          <div class="battle-name-plate enemy-plate">
+            <span class="b-name" id="b-enemy-name">WILD CREATURE</span>
+            <span class="b-elem" id="b-enemy-elem">—</span>
+          </div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <span class="b-bar-label">HP</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-enemy-hp" style="width:100%"></div></div>
+              <span class="b-bar-val" id="b-enemy-hp-txt">100/100</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="battle-fighters">
-        <div class="fighter-box player-side">
-          <div class="fighter-name player-name" id="b-player-name">YOUR CREATURE</div>
-          <div class="stat-label">HP</div>
-          <div class="stat-bar-wrap"><div class="stat-bar-fill hp-color" id="b-player-hp" style="width:100%"></div></div>
-          <div class="stat-label" id="b-player-hp-txt">100/100</div>
-          <div class="stat-label">ENERGY</div>
-          <div class="stat-bar-wrap"><div class="stat-bar-fill en-color" id="b-player-en" style="width:0%"></div></div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:14px;color:#cc44ff;">VS</div>
-        <div class="fighter-box enemy-side">
-          <div class="fighter-name enemy-name" id="b-enemy-name">WILD CREATURE</div>
-          <div class="stat-label">HP</div>
-          <div class="stat-bar-wrap"><div class="stat-bar-fill hp-color" id="b-enemy-hp" style="width:100%"></div></div>
-          <div class="stat-label" id="b-enemy-hp-txt">100/100</div>
-          <div class="stat-label">ELEMENT</div>
-          <div class="stat-label" id="b-enemy-elem" style="color:#cc88ff">—</div>
-        </div>
-      </div>
+
       <div class="dice-display" id="dice-display"></div>
       <div class="battle-log" id="battle-log"></div>
       <div class="battle-moves" id="battle-moves"></div>
@@ -265,10 +370,16 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
   </div>
 
   <div id="hud">
-    <div class="hud-box">
-      <div class="hud-label">ACTIVE CREATURE</div>
-      <div class="hud-val" id="hud-creature">— none —</div>
-      <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
     </div>
     <div class="hud-box">
       <div class="hud-label">ENERGY</div>
@@ -465,6 +576,26 @@ const REGIONS = {
     ],
   },
 };
+
+
+// ═══════════════════════════════════════════════════════════
+//  CREATURE ART REGISTRY
+//  Add image paths here as art is created.
+//  Key = creature id, value = image URL or path.
+//  Falls back to procedural sprite if not found.
+// ═══════════════════════════════════════════════════════════
+const CREATURE_ART = {
+  'inkfox':              'art_inkfox.png',
+  'marsh_lurker':        null,
+  'emberback_rumbler':   null,
+  'glacierfang':         null,
+  // Add more as art is generated:
+  // 'creature_id': 'art_creature_id.png',
+};
+
+function getArt(creatureId) {
+  return CREATURE_ART[creatureId] || null;
+}
 
 // ── MAP GENERATOR ────────────────────────────────────────
 const MAP_W = 128;
@@ -946,10 +1077,12 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
 
   updateBattleUI();
   buildMoveButtons();
-  // Draw creature sprites in arena
+
+  // Load creature art — image if available, sprite fallback if not
+  loadBattleArt('player', playerCreature);
+  loadBattleArt('enemy',  wildCreature);
+
   renderBattleArena();
-  drawCreatureSprite('player-sprite', playerCreature.element, false);
-  drawCreatureSprite('enemy-sprite',  wildCreature.element,   true);
   startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
@@ -978,11 +1111,26 @@ function blogLog(msg, cls='') {
 function updateBattleUI() {
   if (!battleData) return;
   const p = battleData.player, e = battleData.enemy;
-  document.getElementById('b-player-hp').style.width = Math.max(0,(p.currentHp/p.maxHp)*100)+'%';
-  document.getElementById('b-player-hp-txt').textContent = `${p.currentHp}/${p.maxHp}`;
-  document.getElementById('b-player-en').style.width = (p.energy)+'%';
-  document.getElementById('b-enemy-hp').style.width  = Math.max(0,(e.currentHp/e.maxHp)*100)+'%';
-  document.getElementById('b-enemy-hp-txt').textContent = `${e.currentHp}/${e.maxHp}`;
+  const pPct = Math.max(0,(p.currentHp/p.maxHp)*100);
+  const hpEl = document.getElementById('b-player-hp');
+  if (hpEl) {
+    hpEl.style.width = pPct+'%';
+    hpEl.style.background = pPct<25?'#ff3333':pPct<50?'linear-gradient(90deg,#aa4400,#ff8800)':'linear-gradient(90deg,#22cc44,#44ff88)';
+  }
+  const hpTxt = document.getElementById('b-player-hp-txt');
+  if (hpTxt) hpTxt.textContent = `${p.currentHp}/${p.maxHp}`;
+  const enEl = document.getElementById('b-player-en');
+  if (enEl) enEl.style.width = (p.energy||0)+'%';
+  const enTxt = document.getElementById('b-player-en-txt');
+  if (enTxt) enTxt.textContent = p.energy||0;
+  const ePct = Math.max(0,(e.currentHp/e.maxHp)*100);
+  const eHp = document.getElementById('b-enemy-hp');
+  if (eHp) {
+    eHp.style.width = ePct+'%';
+    eHp.style.background = ePct<25?'#ff3333':ePct<50?'linear-gradient(90deg,#aa4400,#ff8800)':'linear-gradient(90deg,#22cc44,#44ff88)';
+  }
+  const eHpTxt = document.getElementById('b-enemy-hp-txt');
+  if (eHpTxt) eHpTxt.textContent = `${e.currentHp}/${e.maxHp}`;
 }
 
 function buildMoveButtons() {
@@ -1065,6 +1213,7 @@ async function playerAction(actionId) {
     const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost));
 
     e.currentHp = Math.max(0, e.currentHp - dmg);
+    flashHit('enemy');
     blogLog(`${p.name} deals ${dmg} damage!`, 'log-hit');
 
     // Energy gain
@@ -1110,6 +1259,7 @@ async function enemyTurn() {
     if (typeMult > 1) blogLog('Super effective!', 'log-crit');
     const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
     p.currentHp = Math.max(0, p.currentHp - dmg);
+    flashHit('player');
 
     // Update stored creature HP
     if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
@@ -1151,6 +1301,45 @@ function showDice(roll, label) {
 
 function disableMoveButtons(disabled) {
   document.querySelectorAll('.move-btn').forEach(b => b.disabled = disabled);
+}
+
+// ── BATTLE ART LOADER ────────────────────────────────────
+function loadBattleArt(side, creature) {
+  const artPath = getArt(creature.id);
+  const imgEl   = document.getElementById(`${side}-art-img`);
+  const canvas  = document.getElementById(`${side}-sprite-fallback`);
+
+  if (artPath && imgEl) {
+    imgEl.src   = artPath;
+    imgEl.alt   = creature.name;
+    imgEl.style.display = 'block';
+    canvas.style.display = 'none';
+    imgEl.onerror = () => {
+      imgEl.style.display = 'none';
+      canvas.style.display = 'block';
+      drawCreatureSprite(`${side}-sprite-fallback`, creature.element, side==='enemy');
+    };
+  } else {
+    if (imgEl) imgEl.style.display = 'none';
+    if (canvas) {
+      canvas.style.display = 'block';
+      drawCreatureSprite(`${side}-sprite-fallback`, creature.element, side==='enemy');
+    }
+  }
+
+  // Update level display
+  const lvEl = document.getElementById(`b-${side}-level`);
+  if (lvEl) lvEl.textContent = `Lv${creature.level||1}`;
+}
+
+// ── HIT FLASH EFFECT ─────────────────────────────────────
+function flashHit(side) {
+  const el = document.getElementById(`${side}-flash`);
+  if (!el) return;
+  el.style.opacity = '0.6';
+  setTimeout(()=>{ el.style.opacity='0'; }, 80);
+  setTimeout(()=>{ el.style.opacity='0.3'; }, 120);
+  setTimeout(()=>{ el.style.opacity='0'; }, 180);
 }
 
 // ── BATTLE ARENA RENDERING ────────────────────────────────
@@ -1429,7 +1618,7 @@ function showCreatureMenu() {
     return;
   }
   const opts = state.creatures.map((c, i) => ({
-    label: `${c.name} Lv${c.level || 1} [${c.element}] HP:${c.currentHp||c.hp}/${c.hp}`,
+    label: `${getArt(c.id)?'[ART] ':''}${c.name} Lv${c.level || 1} [${c.element.toUpperCase()}] HP:${c.currentHp||c.hp}/${c.hp}`,
     fn: () => { state.activeCreatureIdx = i; closeDialog(); updateHUD(); }
   }));
   opts.push({ label: 'Cancel', fn: closeDialog });
@@ -1532,6 +1721,23 @@ function updateTimeWeather(dt) {
 function updateHUD() {
   const pc = state.activeCreatureIdx >= 0 ? state.creatures[state.activeCreatureIdx] : null;
   document.getElementById('hud-creature').textContent = pc ? `${pc.name} Lv${pc.level||1}` : '— none —';
+  // Portrait
+  const portImg  = document.getElementById('hud-portrait-img');
+  const portIcon = document.getElementById('hud-portrait-icon');
+  if (pc && portImg && portIcon) {
+    const art = getArt(pc.id);
+    if (art) {
+      portImg.src = art;
+      portImg.style.display = 'block';
+      portIcon.style.display = 'none';
+      portImg.onerror = ()=>{ portImg.style.display='none'; portIcon.style.display='block'; };
+    } else {
+      portImg.style.display = 'none';
+      portIcon.style.display = 'block';
+      const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
+      portIcon.textContent = ELEM_ICONS[pc.element] || '❓';
+    }
+  }
   const hpPct = pc ? Math.max(0, (pc.currentHp / pc.hp) * 100) : 0;
   document.getElementById('hud-hp').style.width = hpPct + '%';
   document.getElementById('hud-hp').style.background = hpPct < 25 ? '#ff4444' : hpPct < 50 ? '#ffaa00' : '#44ff88';
