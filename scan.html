@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>WORLDHATCH — Scan Card</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+  :root {
+    --bg:       #0d0d1a;
+    --panel:    #12122a;
+    --gold:     #f7c948;
+    --green:    #5dfc8a;
+    --red:      #ff6b6b;
+    --blue:     #5aafff;
+    --dim:      #444466;
+    --border:   #2a2a4a;
+    --text:     #e8e8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    gap: 20px;
+  }
+
+  /* pixel grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(247,201,72,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(247,201,72,0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+  }
+
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(10px, 4vw, 16px);
+    color: var(--gold);
+    text-shadow: 0 0 16px rgba(247,201,72,0.5), 2px 2px 0 #7a5a00;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: var(--dim);
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  /* ── Card Result Panel ── */
+  #result-panel {
+    width: 100%;
+    max-width: 400px;
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  #result-panel.show { display: flex; }
+
+  #result-panel.success { border-color: var(--green); }
+  #result-panel.error   { border-color: var(--red); }
+  #result-panel.claimed { border-color: var(--dim); }
+
+  .result-icon {
+    font-size: 48px;
+    text-align: center;
+  }
+
+  .result-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .result-title.success { color: var(--green); }
+  .result-title.error   { color: var(--red); }
+  .result-title.claimed { color: var(--dim); }
+
+  .result-body {
+    font-size: 20px;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .card-details {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+  }
+
+  .card-detail-row .label { color: var(--dim); }
+  .card-detail-row .value { color: var(--gold); }
+
+  .rarity-common    { color: #aaaacc; }
+  .rarity-uncommon  { color: var(--blue); }
+  .rarity-rare      { color: #cc44ff; }
+  .rarity-legendary { color: #ff9944; }
+
+  .effects-list {
+    font-size: 17px;
+    color: var(--green);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  /* ── Manual Input ── */
+  #manual-section {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 1px;
+  }
+
+  #serial-input {
+    width: 100%;
+    background: var(--panel);
+    border: 2px solid var(--border);
+    color: var(--gold);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    padding: 12px 14px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    outline: none;
+    text-transform: uppercase;
+  }
+
+  #serial-input:focus { border-color: var(--gold); }
+  #serial-input::placeholder { color: var(--dim); }
+
+  #player-input {
+    width: 100%;
+    background: var(--panel);
+    border: 2px solid var(--border);
+    color: var(--blue);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    padding: 12px 14px;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  #player-input:focus { border-color: var(--blue); }
+  #player-input::placeholder { color: var(--dim); }
+
+  #redeem-btn {
+    width: 100%;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    background: transparent;
+    color: var(--gold);
+    border: 2px solid var(--gold);
+    padding: 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  #redeem-btn:hover, #redeem-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  #redeem-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── How It Works ── */
+  .how-it-works {
+    width: 100%;
+    max-width: 400px;
+    font-size: 18px;
+    color: var(--dim);
+    line-height: 1.8;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .how-it-works span { color: var(--gold); }
+
+  /* ── Loading ── */
+  #loading {
+    display: none;
+    font-size: 22px;
+    color: var(--gold);
+    text-align: center;
+    animation: blink 0.8s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #scan-again-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    background: transparent;
+    color: var(--dim);
+    border: 1px solid var(--dim);
+    padding: 10px 16px;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    transition: color 0.15s, border-color 0.15s;
+    align-self: center;
+  }
+
+  #scan-again-btn:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<h1>WORLDHATCH</h1>
+<div class="subtitle">⬡ CARD REDEMPTION ⬡</div>
+
+<!-- Result panel (shown after redemption) -->
+<div id="result-panel">
+  <div class="result-icon" id="result-icon">🃏</div>
+  <div class="result-title" id="result-title">RESULT</div>
+  <div class="result-body"  id="result-body"></div>
+  <div class="card-details" id="card-details" style="display:none"></div>
+  <div class="effects-list" id="effects-list"></div>
+  <button id="scan-again-btn" onclick="resetPage()">↺ Scan Another Card</button>
+</div>
+
+<!-- Loading indicator -->
+<div id="loading">⟳ REDEEMING CARD...</div>
+
+<!-- Manual entry / auto-fill from QR scan -->
+<div id="manual-section">
+  <div class="section-label">PLAYER ID</div>
+  <input id="player-input" type="text"
+         placeholder="Enter your player ID"
+         autocomplete="off" autocorrect="off" autocapitalize="off"/>
+
+  <div class="section-label">CARD SERIAL (auto-filled from QR scan)</div>
+  <input id="serial-input" type="text"
+         placeholder="WORLDHATCH-S1-EMBERGEN-00042"
+         autocomplete="off" autocorrect="off" autocapitalize="characters"/>
+
+  <button id="redeem-btn" onclick="redeemCard()">⬡ REDEEM CARD</button>
+</div>
+
+<div class="how-it-works">
+  <span>HOW TO USE</span><br/>
+  1. Scan the QR code on your physical card<br/>
+  2. Enter your Player ID<br/>
+  3. Hit REDEEM — card is yours forever<br/>
+  4. Apply it to a creature in-game
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  WORLDHATCH Card Scan Page
+//  This page is opened when a player scans a QR code.
+//  The serial is auto-filled from the URL ?code= parameter.
+//  Players enter their ID and hit redeem.
+//
+//  In production: redeemCard() calls your backend API.
+//  For now: shows a demo response so you can test the UI.
+// ═══════════════════════════════════════════════
+
+const RARITY_COLORS = {
+  common:    "rarity-common",
+  uncommon:  "rarity-uncommon",
+  rare:      "rarity-rare",
+  legendary: "rarity-legendary",
+};
+
+// ── Auto-fill serial from URL param ──────────
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const code   = params.get("code");
+  if (code) {
+    document.getElementById("serial-input").value = code.toUpperCase();
+  }
+});
+
+// ── Redeem Card ───────────────────────────────
+async function redeemCard() {
+  const serial   = document.getElementById("serial-input").value.trim().toUpperCase();
+  const playerId = document.getElementById("player-input").value.trim();
+
+  if (!serial) {
+    showError("Please enter a card serial number.");
+    return;
+  }
+  if (!playerId) {
+    showError("Please enter your Player ID.");
+    return;
+  }
+
+  // Basic format check
+  if (!serial.startsWith("WORLDHATCH-")) {
+    showError("Invalid card serial. Make sure you scanned a WORLDHATCH card.");
+    return;
+  }
+
+  document.getElementById("redeem-btn").disabled = true;
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("manual-section").style.display = "none";
+
+  try {
+    // ── API CALL ─────────────────────────────
+    // In production, replace this with a real fetch to your backend:
+    //
+    // const response = await fetch("/api/redeem", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ serial, player_id: playerId })
+    // });
+    // const result = await response.json();
+
+    // ── DEMO MOCK (remove when backend is live) ──
+    const result = await mockRedemption(serial, playerId);
+    // ─────────────────────────────────────────
+
+    document.getElementById("loading").style.display = "none";
+
+    if (result.success) {
+      showSuccess(result);
+    } else {
+      showClaimed(result.message);
+    }
+
+  } catch (err) {
+    document.getElementById("loading").style.display = "none";
+    showError("Connection error. Please try again.");
+    document.getElementById("redeem-btn").disabled = false;
+    document.getElementById("manual-section").style.display = "flex";
+  }
+}
+
+// ── Display Helpers ───────────────────────────
+
+function showSuccess(result) {
+  const panel = document.getElementById("result-panel");
+  panel.className = "show success";
+
+  document.getElementById("result-icon").textContent  = "✅";
+  document.getElementById("result-title").textContent = "CARD REDEEMED!";
+  document.getElementById("result-title").className   = "result-title success";
+  document.getElementById("result-body").textContent  =
+    `${result.card_id.replace(/_/g," ").toUpperCase()} added to your collection!`;
+
+  // Card details block
+  const details = document.getElementById("card-details");
+  details.style.display = "flex";
+  details.innerHTML = `
+    <div class="card-detail-row">
+      <span class="label">SERIAL</span>
+      <span class="value" style="font-size:14px">${result.serial}</span>
+    </div>
+    <div class="card-detail-row">
+      <span class="label">SERIES</span>
+      <span class="value">${result.series}</span>
+    </div>
+    <div class="card-detail-row">
+      <span class="label">RARITY</span>
+      <span class="value ${RARITY_COLORS[result.rarity] || ''}">
+        ${result.rarity.toUpperCase()}
+      </span>
+    </div>
+  `;
+
+  // Effects
+  if (result.effects && result.effects.length > 0) {
+    document.getElementById("effects-list").innerHTML =
+      result.effects.map(e => `⬡ ${e}`).join("<br/>");
+  }
+}
+
+function showClaimed(message) {
+  const panel = document.getElementById("result-panel");
+  panel.className = "show claimed";
+  document.getElementById("result-icon").textContent  = "🔒";
+  document.getElementById("result-title").textContent = "ALREADY CLAIMED";
+  document.getElementById("result-title").className   = "result-title claimed";
+  document.getElementById("result-body").textContent  = message;
+}
+
+function showError(message) {
+  const panel = document.getElementById("result-panel");
+  panel.className = "show error";
+  document.getElementById("result-icon").textContent  = "❌";
+  document.getElementById("result-title").textContent = "ERROR";
+  document.getElementById("result-title").className   = "result-title error";
+  document.getElementById("result-body").textContent  = message;
+  document.getElementById("redeem-btn").disabled = false;
+  document.getElementById("manual-section").style.display = "flex";
+}
+
+function resetPage() {
+  document.getElementById("result-panel").className   = "";
+  document.getElementById("result-panel").style.display = "none";
+  document.getElementById("card-details").style.display = "none";
+  document.getElementById("effects-list").innerHTML   = "";
+  document.getElementById("serial-input").value       = "";
+  document.getElementById("redeem-btn").disabled      = false;
+  document.getElementById("manual-section").style.display = "flex";
+}
+
+// ── DEMO MOCK — remove when backend is live ──
+// Simulates a backend response for UI testing.
+async function mockRedemption(serial, playerId) {
+  await new Promise(r => setTimeout(r, 1200)); // fake network delay
+
+  const parts = serial.split("-");
+  if (parts.length !== 4) {
+    return { success: false, message: "Malformed serial number." };
+  }
+
+  // Simulate already-claimed (serials ending in 00001 are "taken" in demo)
+  if (parts[3] === "00001") {
+    return { success: false, message: "This card was already claimed by another player." };
+  }
+
+  const cardMap = {
+    "EMBERGEN":   { card_id: "ember_gene",        rarity: "common"    },
+    "FROSTGEN":   { card_id: "frost_gene",         rarity: "common"    },
+    "VERDGEN":    { card_id: "verdant_gene",        rarity: "common"    },
+    "SHADOWGEN":  { card_id: "shadow_gene",         rarity: "uncommon"  },
+    "VITALSHARD": { card_id: "vitality_shard",      rarity: "common"    },
+    "POWERFRAG":  { card_id: "power_fragment",      rarity: "uncommon"  },
+    "SCORCHWAVE": { card_id: "scorchwave_card",     rarity: "uncommon"  },
+    "GLACSLAM":   { card_id: "glacial_slam_card",   rarity: "uncommon"  },
+    "ROOTBIND":   { card_id: "root_bind_card",      rarity: "common"    },
+    "BLAZEPATH":  { card_id: "blaze_path_card",     rarity: "rare"      },
+    "ANCIFORM":   { card_id: "ancient_form_card",   rarity: "legendary" },
+  };
+
+  const card = cardMap[parts[2]] || { card_id: parts[2].toLowerCase(), rarity: "common" };
+
+  return {
+    success:  true,
+    serial:   serial,
+    series:   parts[1],
+    card_id:  card.card_id,
+    rarity:   card.rarity,
+    effects:  [
+      `${card.card_id.replace(/_/g," ")} added to collection`,
+      "Apply to any creature from your inventory",
+    ],
+  };
+}
+</script>
+</body>
+</html>
