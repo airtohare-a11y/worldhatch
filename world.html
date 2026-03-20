@@ -416,6 +416,73 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════
+     OPENING MENU — wired entirely in JS after load
+══════════════════════════════════════════════ -->
+<div id="menu-overlay">
+  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
+  <!-- SCREEN 0: TITLE -->
+  <div id="menu-title">
+    <div class="menu-logo">WORLDHATCH</div>
+    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
+    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
+    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+  </div>
+
+  <!-- SCREEN 1: REGION SELECT -->
+  <div id="menu-regions">
+    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
+    <div class="menu-regions-grid" id="menu-regions-grid"></div>
+    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
+  </div>
+
+  <!-- SCREEN 2: DICE ROLL -->
+  <div id="menu-dice">
+    <div class="dice-title">YOUR STARTER EGG</div>
+    <div class="dice-region-name" id="dice-region-label"></div>
+    <div class="egg-stage" id="egg-stage">
+      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
+        <defs>
+          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
+            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
+            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
+          </radialGradient>
+          <filter id="eggGlow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+        <!-- Speckles -->
+        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
+        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
+        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
+      </svg>
+      <div class="egg-glow" id="egg-glow"></div>
+    </div>
+    <div class="dice-roll-display" id="dice-roll-display"></div>
+    <div class="creature-reveal" id="creature-reveal">
+      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
+      <div class="cr-info">
+        <div class="cr-name" id="cr-name"></div>
+        <div class="cr-elem" id="cr-elem"></div>
+        <div class="cr-rarity" id="cr-rarity"></div>
+        <div class="cr-desc" id="cr-desc"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
+      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+    </div>
+  </div>
+</div>
+
+
 <div id="game-wrap">
   <div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
@@ -3480,70 +3547,5 @@ function init() {
 init();
 </script>
 
-<!-- ══════════════════════════════════════════════
-     OPENING MENU — wired entirely in JS after load
-══════════════════════════════════════════════ -->
-<div id="menu-overlay">
-  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
-  <!-- SCREEN 0: TITLE -->
-  <div id="menu-title">
-    <div class="menu-logo">WORLDHATCH</div>
-    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
-    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
-    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
-  </div>
-
-  <!-- SCREEN 1: REGION SELECT -->
-  <div id="menu-regions">
-    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
-    <div class="menu-regions-grid" id="menu-regions-grid"></div>
-    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
-  </div>
-
-  <!-- SCREEN 2: DICE ROLL -->
-  <div id="menu-dice">
-    <div class="dice-title">YOUR STARTER EGG</div>
-    <div class="dice-region-name" id="dice-region-label"></div>
-    <div class="egg-stage" id="egg-stage">
-      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
-        <defs>
-          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
-            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
-            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
-            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
-          </radialGradient>
-          <filter id="eggGlow">
-            <feGaussianBlur stdDeviation="4" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-        <!-- Speckles -->
-        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
-        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
-        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
-      </svg>
-      <div class="egg-glow" id="egg-glow"></div>
-    </div>
-    <div class="dice-roll-display" id="dice-roll-display"></div>
-    <div class="creature-reveal" id="creature-reveal">
-      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
-      <div class="cr-info">
-        <div class="cr-name" id="cr-name"></div>
-        <div class="cr-elem" id="cr-elem"></div>
-        <div class="cr-rarity" id="cr-rarity"></div>
-        <div class="cr-desc" id="cr-desc"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
-      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
