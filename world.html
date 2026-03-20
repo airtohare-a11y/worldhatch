@@ -1524,7 +1524,7 @@ function getTypeMult(atkElem, defElem) {
 function rollD20() { return Math.floor(Math.random() * 20) + 1; }
 
 function getOutcome(roll) {
-  if (roll === 1)  return {label:'CRITICAL FAIL!', mult:0,    energy:-15, cls:'log-miss'};
+  if (roll === 1)  return {label:'CRITICAL FAIL!', mult:0,    energy:0,   cls:'log-miss'};
   if (roll <= 5)   return {label:'Weak Hit',        mult:0.25, energy:5,   cls:'log-info'};
   if (roll <= 10)  return {label:'Hit',             mult:0.75, energy:10,  cls:'log-info'};
   if (roll <= 15)  return {label:'Strong Hit!',     mult:1.0,  energy:15,  cls:'log-hit'};
@@ -1785,12 +1785,15 @@ async function enemyTurn() {
     p.currentHp = Math.max(0, p.currentHp - dmg);
     flashHit('player');
 
-    // Update stored creature HP
+    // Taking hits builds special bar — harder hits give more energy
+    const hitEnergyGain = Math.min(25, Math.max(8, Math.floor(dmg / 4)));
+    p.energy = Math.min(100, p.energy + hitEnergyGain);
     if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
       state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
+      state.creatures[state.activeCreatureIdx].energy    = p.energy;
     }
 
-    blogLog(`${e.name} deals ${dmg} damage!`, 'log-hit');
+    blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
   }
 
   updateBattleUI();
