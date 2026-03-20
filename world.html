@@ -1559,7 +1559,6 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
   loadBattleArt('enemy',  wildCreature);
 
   renderBattleArena();
-  startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
 
@@ -1632,7 +1631,7 @@ function buildMoveButtons() {
 }
 
 async function playerAction(actionId) {
-  if (battleData.turn !== 'player' || battleData.over) return;
+  if (!battleData || battleData.turn !== 'player' || battleData.over) return;
   disableMoveButtons(true);
 
   if (actionId === 'run') {
@@ -1770,7 +1769,7 @@ async function playerAction(actionId) {
 }
 
 async function enemyTurn() {
-  if (battleData.over) return;
+  if (!battleData || battleData.over) return;
   const e = battleData.enemy;
   const p = battleData.player;
 
@@ -2046,6 +2045,7 @@ function drawCreatureSprite(canvasId, element, isEnemy) {
 
 
 function endBattle(won, caught) {
+  if (!battleData) return;
   battleData.over = true;
   state.inBattle  = false;
 
