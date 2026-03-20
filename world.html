@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WORLDHATCH — World Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;}
+
+/* ── LAYOUT ── */
+#game-wrap{position:relative;width:100vw;max-width:800px;}
+#top-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#0d001a;border-bottom:2px solid #440088;}
+#top-bar .player-info{font-size:7px;color:#cc88ff;}
+#top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
+#top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
+#game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
+
+/* ── HUD ── */
+#hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
+.hud-box{background:#12002a;border:1px solid #330055;border-radius:3px;padding:5px 8px;font-size:6px;}
+.hud-label{color:#664488;margin-bottom:3px;}
+.hud-val{color:#cc88ff;}
+.hp-bar-wrap,.en-bar-wrap{height:6px;background:#1a0030;border-radius:2px;width:80px;margin-top:3px;overflow:hidden;}
+.hp-fill{height:100%;background:#44ff88;border-radius:2px;transition:width 0.2s;}
+.en-fill{height:100%;background:#ffcc00;border-radius:2px;transition:width 0.2s;}
+
+/* ── DIALOG ── */
+#dialog{position:absolute;bottom:0;left:0;right:0;background:rgba(8,0,20,0.97);border-top:3px solid #cc44ff;padding:12px 16px;min-height:90px;display:none;z-index:50;}
+#dialog-name{font-size:8px;color:#ff88ff;margin-bottom:8px;}
+#dialog-text{font-size:7px;color:#e0d0ff;line-height:1.8;margin-bottom:10px;}
+#dialog-options{display:flex;gap:8px;flex-wrap:wrap;}
+.d-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#cc88ff;border:1px solid #660099;padding:5px 10px;cursor:pointer;border-radius:2px;}
+.d-btn:hover{background:#330055;color:#ff88ff;}
+.d-btn.primary{border-color:#cc44ff;color:#ff88ff;}
+
+/* ── BATTLE OVERLAY ── */
+#battle-overlay{position:absolute;inset:0;background:rgba(4,0,12,0.97);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;}
+#battle-overlay.show{display:flex;}
+.battle-fighters{display:flex;justify-content:space-between;width:100%;max-width:500px;gap:8px;}
+.fighter-box{background:#12002a;border:2px solid #440088;border-radius:4px;padding:10px;flex:1;}
+.fighter-box.player-side{border-color:#4488ff;}
+.fighter-box.enemy-side{border-color:#ff4444;}
+.fighter-name{font-size:7px;color:#cc88ff;margin-bottom:6px;}
+.fighter-name.player-name{color:#88aaff;}
+.fighter-name.enemy-name{color:#ff8888;}
+.stat-bar-wrap{height:8px;background:#1a0030;border-radius:2px;margin:3px 0;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:2px;transition:width 0.4s;}
+.hp-color{background:#44ff88;}
+.en-color{background:#ffcc00;}
+.stat-label{font-size:6px;color:#664488;margin-bottom:2px;}
+.battle-log{width:100%;max-width:500px;background:#0a0018;border:1px solid #330055;border-radius:3px;padding:8px;height:80px;overflow-y:auto;font-size:6px;color:#aa88cc;line-height:2;}
+.log-hit{color:#ffcc44;}
+.log-crit{color:#44ff88;}
+.log-miss{color:#ff6644;}
+.log-info{color:#8866aa;}
+.battle-moves{display:flex;gap:6px;flex-wrap:wrap;width:100%;max-width:500px;justify-content:center;}
+.move-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#cc88ff;border:2px solid #440088;padding:8px 12px;cursor:pointer;border-radius:3px;min-width:100px;text-align:center;}
+.move-btn:hover:not(:disabled){background:#2a0050;border-color:#cc44ff;}
+.move-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.move-btn.special{border-color:#ffcc00;color:#ffcc00;}
+.dice-display{font-size:14px;color:#ffcc44;text-align:center;min-height:24px;}
+
+/* ── ENCOUNTER FLASH ── */
+#encounter-flash{position:absolute;inset:0;background:#ffffff;opacity:0;pointer-events:none;z-index:90;transition:opacity 0.1s;}
+
+/* ── MINIMAP ── */
+#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
+#minimap canvas{display:block;image-rendering:pixelated;}
+</style>
+</head>
+<body>
+<div id="game-wrap">
+  <div id="top-bar">
+    <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
+    <div class="region-name" id="top-region">Suncrest Expanse</div>
+    <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
+  </div>
+
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
+    <div id="minimap"><canvas id="mm" width="60" height="60"></canvas></div>
+    <div id="encounter-flash"></div>
+
+    <div id="dialog">
+      <div id="dialog-name"></div>
+      <div id="dialog-text"></div>
+      <div id="dialog-options"></div>
+    </div>
+
+    <div id="battle-overlay">
+      <div class="battle-fighters">
+        <div class="fighter-box player-side">
+          <div class="fighter-name player-name" id="b-player-name">YOUR CREATURE</div>
+          <div class="stat-label">HP</div>
+          <div class="stat-bar-wrap"><div class="stat-bar-fill hp-color" id="b-player-hp" style="width:100%"></div></div>
+          <div class="stat-label" id="b-player-hp-txt">100/100</div>
+          <div class="stat-label">ENERGY</div>
+          <div class="stat-bar-wrap"><div class="stat-bar-fill en-color" id="b-player-en" style="width:0%"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:14px;color:#cc44ff;">VS</div>
+        <div class="fighter-box enemy-side">
+          <div class="fighter-name enemy-name" id="b-enemy-name">WILD CREATURE</div>
+          <div class="stat-label">HP</div>
+          <div class="stat-bar-wrap"><div class="stat-bar-fill hp-color" id="b-enemy-hp" style="width:100%"></div></div>
+          <div class="stat-label" id="b-enemy-hp-txt">100/100</div>
+          <div class="stat-label">ELEMENT</div>
+          <div class="stat-label" id="b-enemy-elem" style="color:#cc88ff">—</div>
+        </div>
+      </div>
+      <div class="dice-display" id="dice-display"></div>
+      <div class="battle-log" id="battle-log"></div>
+      <div class="battle-moves" id="battle-moves"></div>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div class="hud-box">
+      <div class="hud-label">ACTIVE CREATURE</div>
+      <div class="hud-val" id="hud-creature">— none —</div>
+      <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:140px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD / ARROWS — move &nbsp; E — interact &nbsp; ESC — menu</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  WORLDHATCH — Browser Top-Down Explorer
+//  Pixel art tile engine, encounter system, battle engine
+//  All self-contained — no server required.
+// ═══════════════════════════════════════════════════════════
+
+const TILE  = 16;   // pixels per tile (native)
+const SCALE = 3;    // render scale
+const TS    = TILE * SCALE;  // 48px on screen
+const VIEW_W = 15;  // tiles visible horizontally
+const VIEW_H = 11;  // tiles visible vertically
+
+// ── TILE TYPES ────────────────────────────────────────────
+const T = {
+  GROUND:  0,
+  GRASS:   1,   // tall grass — triggers encounters
+  WALL:    2,
+  WATER:   3,
+  SAND:    4,
+  PATH:    5,
+  TREE:    6,
+  FLOWER:  7,
+  CAVE:    8,   // point of interest
+  SHRINE:  9,   // point of interest
+  RUIN:    10,  // point of interest
+  NEST:    11,  // egg nest
+  NPC:     12,
+  CHEST:   13,
+};
+
+// ── TILE COLORS (pixel art palette) ──────────────────────
+const TILE_COLORS = {
+  [T.GROUND]: ['#2a4a1a','#2e5020','#264416'],
+  [T.GRASS]:  ['#1a6010','#1e6814','#226e18','#187010'],
+  [T.WALL]:   ['#443322','#3a2a18','#4a3828'],
+  [T.WATER]:  ['#1a3888','#1e3e90','#1630aa'],
+  [T.SAND]:   ['#aa8833','#bb9944','#cc9938'],
+  [T.PATH]:   ['#5a4a2a','#5e4e2e','#624e28'],
+  [T.TREE]:   ['#1a5510','#1e5c14','#164c0e'],
+  [T.FLOWER]: ['#2a4a1a','#cc4488','#ff66aa'],
+  [T.CAVE]:   ['#221122','#1a0a22','#2a1a32'],
+  [T.SHRINE]: ['#442200','#553300','#664400'],
+  [T.RUIN]:   ['#333333','#3a3a3a','#2a2a2a'],
+  [T.NEST]:   ['#3a2800','#4a3800','#cc9900'],
+  [T.NPC]:    ['#2a4a1a','#2255cc','#4477ff'],
+  [T.CHEST]:  ['#2a4a1a','#aa8800','#ffcc00'],
+};
+
+// ── REGION DEFINITIONS ───────────────────────────────────
+const REGIONS = {
+  suncrest_expanse: {
+    name: 'Suncrest Expanse',
+    element: 'fire',
+    areas: ['Canyon Ridge','Coastal Cliffs','Ember Valley'],
+    palette: { ground:'#3a3010', grass:'#557720', path:'#665522', water:'#2244aa' },
+    creatures: [
+      {id:'emberback_rumbler',name:'Emberback Rumbler',element:'fire',  hp:90, atk:23,def:20,spd:11,rarity:'common'},
+      {id:'dustfin_drifter',  name:'Dustfin Drifter',  element:'fire',  hp:65, atk:16,def:9, spd:22,rarity:'common'},
+      {id:'tidewatcher',      name:'Tidewatcher',       element:'water', hp:75, atk:17,def:17,spd:16,rarity:'common'},
+      {id:'fogcrawler',       name:'Fogcrawler',        element:'spirit',hp:68, atk:15,def:9, spd:25,rarity:'common'},
+      {id:'cinderclaw',       name:'Cinderclaw',        element:'fire',  hp:81, atk:28,def:12,spd:21,rarity:'uncommon'},
+      {id:'stormhawk',        name:'Stormhawk',         element:'storm', hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'sunshell_crawler', name:'Sunshell Crawler',  element:'fire',  hp:149,atk:32,def:41,spd:8, rarity:'rare'},
+      {id:'darkwood_stalker', name:'Darkwood Stalker',  element:'dark',  hp:95, atk:30,def:16,spd:24,rarity:'rare'},
+      {id:'solarcrown_wyrm',  name:'Solarcrown Wyrm',   element:'magma', hp:184,atk:60,def:40,spd:16,rarity:'legendary'},
+    ],
+  },
+  sakurami_highlands: {
+    name: 'Sakurami Highlands',
+    element: 'spirit',
+    areas: ['Cherry Grove','Mountain Shrine','Deep Trench'],
+    palette: { ground:'#2a3a18', grass:'#446610', path:'#554428', water:'#1a2a88' },
+    creatures: [
+      {id:'misthare',    name:'Misthare',    element:'spirit', hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'blossomwing', name:'Blossomwing', element:'spirit', hp:67, atk:16,def:10,spd:25,rarity:'common'},
+      {id:'inkfox',      name:'Inkfox',      element:'dark',   hp:81, atk:31,def:12,spd:32,rarity:'uncommon'},
+      {id:'thunderkoi',  name:'Thunderkoi',  element:'storm',  hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'ashveil_crane',name:'Ashveil Crane',element:'fire', hp:114,atk:27,def:14,spd:19,rarity:'rare'},
+      {id:'frostpetal_oni',name:'Frostpetal Oni',element:'ice',hp:115,atk:24,def:22,spd:15,rarity:'rare'},
+      {id:'ryujin_serpent',name:'Ryujin Serpent',element:'spirit',hp:107,atk:23,def:13,spd:36,rarity:'legendary'},
+    ],
+  },
+  frostspire_reach: {
+    name: 'Frostspire Reach',
+    element: 'ice',
+    areas: ['Frozen Fjord','Ice Caves','Aurora Peaks'],
+    palette: { ground:'#1a2a3a', grass:'#2a4055', path:'#443a28', water:'#0a1a44' },
+    creatures: [
+      {id:'glacierfang',    name:'Glacierfang',     element:'ice',   hp:102,atk:35,def:15,spd:13,rarity:'common'},
+      {id:'rimewolve',      name:'Rimewolve',        element:'ice',   hp:86, atk:23,def:12,spd:21,rarity:'common'},
+      {id:'aurorawing',     name:'Aurorawing',       element:'spirit',hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'coldcrest_raptor',name:'Coldcrest Raptor',element:'ice',  hp:88, atk:30,def:9, spd:28,rarity:'uncommon'},
+      {id:'stormtusk_boar', name:'Stormtusk Boar',   element:'storm', hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'avalanche_golem',name:'Avalanche Golem',  element:'ice',  hp:203,atk:38,def:47,spd:4, rarity:'rare'},
+      {id:'jormunveil',     name:'Jormunveil',        element:'ice',  hp:157,atk:47,def:33,spd:18,rarity:'legendary'},
+    ],
+  },
+  shadowmere_hollows: {
+    name: 'Shadowmere Hollows',
+    element: 'dark',
+    areas: ['Dark Marsh','Ancient Castle','Moonlit Plains'],
+    palette: { ground:'#1a1428', grass:'#22183a', path:'#2a2030', water:'#0a0820' },
+    creatures: [
+      {id:'marsh_lurker',  name:'Marsh Lurker',   element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'mirecat',       name:'Mirecat',         element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'hollowbat',     name:'Hollowbat',        element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'moonveil_moth', name:'Moonveil Moth',   element:'spirit',hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'bog_golem',     name:'Bog Golem',        element:'nature',hp:109,atk:18,def:21,spd:10,rarity:'uncommon'},
+      {id:'frostshade_wolf',name:'Frostshade Wolf',element:'ice',   hp:86, atk:23,def:12,spd:21,rarity:'uncommon'},
+      {id:'castle_wraith', name:'Castle Wraith',   element:'dark',  hp:95, atk:30,def:16,spd:24,rarity:'rare'},
+      {id:'void_sovereign',name:'Void Sovereign',  element:'dark',  hp:131,atk:64,def:29,spd:41,rarity:'legendary'},
+    ],
+  },
+};
+
+// ── MAP GENERATOR ────────────────────────────────────────
+const MAP_W = 48;
+const MAP_H = 48;
+
+function generateMap(regionId) {
+  const map    = [];
+  const region = REGIONS[regionId] || REGIONS.suncrest_expanse;
+
+  // Fill base
+  for (let y = 0; y < MAP_H; y++) {
+    map[y] = [];
+    for (let x = 0; x < MAP_W; x++) {
+      const n = noise(x * 0.15, y * 0.15);
+      if (n > 0.6)      map[y][x] = T.WALL;
+      else if (n > 0.4) map[y][x] = T.GRASS;
+      else              map[y][x] = T.GROUND;
+    }
+  }
+
+  // Carve a path through the middle
+  for (let x = 4; x < MAP_W - 4; x++) map[Math.floor(MAP_H/2)][x] = T.PATH;
+  for (let y = 4; y < MAP_H - 4; y++) map[y][Math.floor(MAP_W/2)] = T.PATH;
+
+  // Water body
+  for (let y = 8; y < 14; y++)
+    for (let x = 36; x < 44; x++)
+      map[y][x] = T.WATER;
+
+  // Trees cluster
+  for (let y = 30; y < 38; y++)
+    for (let x = 6; x < 16; x++)
+      if (noise(x * 0.4, y * 0.4) > 0.5) map[y][x] = T.TREE;
+
+  // Points of interest
+  placePoI(map, T.CAVE,   10, 10);
+  placePoI(map, T.SHRINE, 38, 36);
+  placePoI(map, T.RUIN,   14, 38);
+
+  // Egg nests (4 hidden in tall grass)
+  const nestSpots = [[8,6],[40,20],[20,40],[6,34]];
+  nestSpots.forEach(([x,y]) => {
+    if (map[y][x] === T.GRASS || map[y][x] === T.GROUND)
+      map[y][x] = T.NEST;
+  });
+
+  // Flowers scattered
+  for (let i = 0; i < 30; i++) {
+    const x = 2 + Math.floor(Math.random() * (MAP_W - 4));
+    const y = 2 + Math.floor(Math.random() * (MAP_H - 4));
+    if (map[y][x] === T.GROUND) map[y][x] = T.FLOWER;
+  }
+
+  // Border walls
+  for (let x = 0; x < MAP_W; x++) { map[0][x] = T.WALL; map[MAP_H-1][x] = T.WALL; }
+  for (let y = 0; y < MAP_H; y++) { map[y][0] = T.WALL; map[y][MAP_W-1] = T.WALL; }
+
+  return map;
+}
+
+function placePoI(map, type, cx, cy) {
+  for (let dy = -1; dy <= 1; dy++)
+    for (let dx = -1; dx <= 1; dx++)
+      if (cy+dy >= 0 && cy+dy < MAP_H && cx+dx >= 0 && cx+dx < MAP_W)
+        map[cy+dy][cx+dx] = (dx===0&&dy===0) ? type : T.GROUND;
+}
+
+// Simple deterministic noise
+function noise(x, y) {
+  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+// ── GAME STATE ────────────────────────────────────────────
+const state = {
+  // Player
+  playerName:  'Trainer',
+  homeRegion:  'suncrest_expanse',
+  px: 24, py: 24,   // player tile position
+  playerDir: 'down',
+  moving: false,
+  stepCount: 0,
+
+  // World
+  currentRegion: 'suncrest_expanse',
+  map: [],
+  visitedNests: new Set(),
+  visitedPoI:   new Set(),
+
+  // Time & weather
+  time: 8,           // 0-23 hours
+  timeSpeed: 0.002,  // hours per frame
+  weather: 'clear',  // clear, rain, fog, storm
+  weatherTimer: 0,
+
+  // Collection
+  eggs:      [],
+  creatures: [],
+  coins:     200,
+  activeCreatureIdx: -1,
+
+  // Battle
+  inBattle:   false,
+  battleState: null,
+
+  // Dialog
+  inDialog:   false,
+
+  // Input
+  keys: {},
+
+  // Camera
+  camX: 0, camY: 0,
+};
+
+// ── CANVAS SETUP ──────────────────────────────────────────
+const canvas  = document.getElementById('world');
+const ctx     = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const mmCanvas = document.getElementById('mm');
+const mmCtx    = mmCanvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = document.getElementById('game-canvas-wrap');
+  const w    = Math.min(800, window.innerWidth);
+  canvas.width  = VIEW_W * TILE;
+  canvas.height = VIEW_H * TILE;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = (w * VIEW_H / VIEW_W) + 'px';
+  wrap.style.height   = (w * VIEW_H / VIEW_W) + 'px';
+}
+
+// ── INPUT ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  state.keys[e.key.toLowerCase()] = true;
+  if (e.key === 'e' || e.key === 'E') handleInteract();
+  if (e.key === 'Escape') handleEsc();
+  e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  state.keys[e.key.toLowerCase()] = false;
+});
+
+// Mobile D-pad (touch)
+function addTouch(id, key) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('touchstart', e => { state.keys[key] = true; e.preventDefault(); });
+  el.addEventListener('touchend',   e => { state.keys[key] = false; e.preventDefault(); });
+}
+
+// ── MOVEMENT ──────────────────────────────────────────────
+let moveTimer = 0;
+const MOVE_DELAY = 150; // ms between steps
+
+function handleMovement(dt) {
+  if (state.inBattle || state.inDialog) return;
+  moveTimer += dt;
+  if (moveTimer < MOVE_DELAY) return;
+
+  let dx = 0, dy = 0;
+  const k = state.keys;
+  if (k['arrowleft']  || k['a']) { dx = -1; state.playerDir = 'left';  }
+  if (k['arrowright'] || k['d']) { dx =  1; state.playerDir = 'right'; }
+  if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
+  if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
+
+  if (dx === 0 && dy === 0) return;
+  moveTimer = 0;
+
+  const nx = state.px + dx;
+  const ny = state.py + dy;
+
+  if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) return;
+  const tile = state.map[ny]?.[nx];
+  if (tile === undefined) return;
+
+  // Solid tiles
+  if (tile === T.WALL || tile === T.TREE || tile === T.WATER) return;
+
+  state.px = nx;
+  state.py = ny;
+  state.stepCount++;
+
+  // Update camera
+  state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
+  state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
+
+  // Grass encounter check
+  if (tile === T.GRASS && Math.random() < 0.12) {
+    triggerEncounter();
+    return;
+  }
+
+  // Nest check
+  if (tile === T.NEST) {
+    const nestKey = `${nx},${ny}`;
+    if (!state.visitedNests.has(nestKey)) {
+      state.visitedNests.add(nestKey);
+      triggerEggFind();
+    }
+  }
+
+  // PoI check
+  if (tile === T.CAVE || tile === T.SHRINE || tile === T.RUIN) {
+    const poiKey = `${nx},${ny}`;
+    if (!state.visitedPoI.has(poiKey)) {
+      triggerPoI(tile);
+    }
+  }
+
+  updateHUD();
+}
+
+// ── ENCOUNTER SYSTEM ─────────────────────────────────────
+function triggerEncounter() {
+  const region   = REGIONS[state.currentRegion];
+  const pool     = region.creatures;
+  // Weighted by rarity
+  const weights  = pool.map(c => c.rarity === 'common' ? 50 : c.rarity === 'uncommon' ? 20 : c.rarity === 'rare' ? 6 : 1);
+  const total    = weights.reduce((a,b) => a+b, 0);
+  let r          = Math.random() * total;
+  let wildTemplate = pool[0];
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { wildTemplate = pool[i]; break; }
+  }
+
+  // Scale wild creature level
+  const wildLevel  = Math.max(1, Math.floor(state.creatures.length * 2) + Math.floor(Math.random() * 4));
+  const wildMult   = 1 + (wildLevel - 1) * 0.08;
+  const wild = {
+    ...wildTemplate,
+    level:      wildLevel,
+    currentHp:  Math.round(wildTemplate.hp * wildMult),
+    maxHp:      Math.round(wildTemplate.hp * wildMult),
+    attack:     Math.round(wildTemplate.atk * wildMult),
+    defense:    Math.round(wildTemplate.def * wildMult),
+    energy:     0,
+    status:     null,
+  };
+
+  // Flash
+  const flash = document.getElementById('encounter-flash');
+  flash.style.opacity = '1';
+  setTimeout(() => { flash.style.opacity = '0'; }, 120);
+  setTimeout(() => { flash.style.opacity = '0.8'; }, 200);
+  setTimeout(() => { flash.style.opacity = '0'; }, 280);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    startBattle(state.creatures[state.activeCreatureIdx], wild, false);
+  } else {
+    showDialog(
+      `Wild ${wild.name} appeared!`,
+      `A wild ${wild.name} (Lv${wild.level}) leapt from the grass!\nYou have no active creature to battle with.`,
+      [
+        { label: 'Run away', fn: closeDialog },
+      ]
+    );
+  }
+}
+
+function triggerEggFind() {
+  const region   = REGIONS[state.currentRegion];
+  const pool     = region.creatures;
+  const weights  = pool.map(c => c.rarity === 'common' ? 50 : c.rarity === 'uncommon' ? 15 : c.rarity === 'rare' ? 4 : 1);
+  const total    = weights.reduce((a,b) => a+b, 0);
+  let r          = Math.random() * total;
+  let species    = pool[0];
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { species = pool[i]; break; }
+  }
+
+  const egg = {
+    id:       Date.now(),
+    speciesId: species.id,
+    name:      `${species.name} Egg`,
+    element:   species.element,
+    rarity:    species.rarity,
+    region:    state.currentRegion,
+    cards:     [],
+  };
+  state.eggs.push(egg);
+
+  // Replace nest tile with ground
+  state.map[state.py][state.px] = T.GROUND;
+
+  showDialog(
+    '🥚 EGG FOUND!',
+    `You discovered a ${species.name} Egg!\nRarity: ${species.rarity.toUpperCase()}\nElement: ${species.element.toUpperCase()}\n\nAdded to your collection.`,
+    [{ label: 'Great!', fn: closeDialog }]
+  );
+  updateHUD();
+}
+
+function triggerPoI(tileType) {
+  const names  = { [T.CAVE]:'Dark Cave', [T.SHRINE]:'Ancient Shrine', [T.RUIN]:'Old Ruins' };
+  const msgs   = {
+    [T.CAVE]:   'The cave entrance is cool and dark.\nYou sense powerful creatures lurk inside.',
+    [T.SHRINE]: 'An ancient shrine glows faintly.\nYou feel your creatures grow stronger.\n\n+50 XP to all creatures!',
+    [T.RUIN]:   'Crumbling ruins of an old civilization.\nYou find a coin pouch in the rubble.\n\n+30 coins!',
+  };
+  const key = `${state.px},${state.py}`;
+
+  if (tileType === T.SHRINE) {
+    state.creatures.forEach(c => {
+      c.xp = (c.xp || 0) + 50;
+      c.level = Math.max(1, Math.floor(c.xp / 100) + 1);
+    });
+  }
+  if (tileType === T.RUIN) {
+    state.coins += 30;
+  }
+
+  state.visitedPoI.add(key);
+  showDialog(names[tileType] || 'Location', msgs[tileType] || 'Nothing here.',
+    [{ label: 'Leave', fn: closeDialog }]);
+  updateHUD();
+}
+
+function handleInteract() {
+  if (state.inDialog) {
+    closeDialog();
+    return;
+  }
+  // Check adjacent tiles for NPCs/chests
+  const dirs = [{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
+  for (const {dx, dy} of dirs) {
+    const tx = state.px + dx, ty = state.py + dy;
+    const tile = state.map[ty]?.[tx];
+    if (tile === T.CHEST) {
+      const reward = 10 + Math.floor(Math.random() * 40);
+      state.coins += reward;
+      state.map[ty][tx] = T.GROUND;
+      showDialog('TREASURE CHEST', `You found ${reward} coins!`, [{label:'Take it!', fn:closeDialog}]);
+      updateHUD();
+      return;
+    }
+  }
+}
+
+function handleEsc() {
+  if (state.inBattle || state.inDialog) return;
+  showMainMenu();
+}
+
+// ── BATTLE SYSTEM ─────────────────────────────────────────
+
+// Element circle: each beats the next, weak to previous
+const ELEM_CIRCLE = ['fire','nature','ice','storm','spirit','dark','water','sand','magma','crystal'];
+
+function getTypeMult(atkElem, defElem) {
+  const ai = ELEM_CIRCLE.indexOf(atkElem);
+  const di = ELEM_CIRCLE.indexOf(defElem);
+  if (ai < 0 || di < 0) return 1.0;
+  const len = ELEM_CIRCLE.length;
+  if ((ai + 1) % len === di) return 1.5;
+  if ((ai - 1 + len) % len === di) return 0.5;
+  return 1.0;
+}
+
+function rollD20() { return Math.floor(Math.random() * 20) + 1; }
+
+function getOutcome(roll) {
+  if (roll === 1)  return {label:'CRITICAL FAIL!', mult:0,    energy:-15, cls:'log-miss'};
+  if (roll <= 5)   return {label:'Weak Hit',        mult:0.25, energy:5,   cls:'log-info'};
+  if (roll <= 10)  return {label:'Hit',             mult:0.75, energy:10,  cls:'log-info'};
+  if (roll <= 15)  return {label:'Strong Hit!',     mult:1.0,  energy:15,  cls:'log-hit'};
+  if (roll <= 19)  return {label:'Heavy Hit!!',     mult:1.25, energy:20,  cls:'log-hit'};
+  return                  {label:'CRITICAL HIT!!!', mult:2.0,  energy:35,  cls:'log-crit'};
+}
+
+let battleData = null;
+
+function startBattle(playerCreature, wildCreature, isSurrender) {
+  battleData = {
+    player:  { ...playerCreature, energy: playerCreature.energy || 0, currentHp: playerCreature.currentHp || playerCreature.hp, maxHp: playerCreature.hp },
+    enemy:   { ...wildCreature },
+    turn:    'player',
+    over:    false,
+    canCatch: true,
+  };
+
+  state.inBattle = true;
+  const overlay = document.getElementById('battle-overlay');
+  overlay.classList.add('show');
+
+  document.getElementById('b-player-name').textContent = playerCreature.name.toUpperCase();
+  document.getElementById('b-enemy-name').textContent  = `WILD ${wildCreature.name.toUpperCase()}`;
+  document.getElementById('b-enemy-elem').textContent  = wildCreature.element.toUpperCase();
+
+  updateBattleUI();
+  buildMoveButtons();
+  blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
+  blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
+
+  // Initiative roll
+  const pRoll = rollD20(), eRoll = rollD20();
+  blogLog(`Initiative — You: ${pRoll} | Enemy: ${eRoll}`, 'log-info');
+  if (eRoll > pRoll) {
+    battleData.turn = 'enemy';
+    blogLog(`${wildCreature.name} goes first!`, 'log-info');
+    setTimeout(enemyTurn, 1200);
+  } else {
+    blogLog(`${playerCreature.name} goes first!`, 'log-info');
+  }
+}
+
+function blogLog(msg, cls='') {
+  const log = document.getElementById('battle-log');
+  const line = document.createElement('div');
+  line.className = cls;
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function updateBattleUI() {
+  if (!battleData) return;
+  const p = battleData.player, e = battleData.enemy;
+  document.getElementById('b-player-hp').style.width = Math.max(0,(p.currentHp/p.maxHp)*100)+'%';
+  document.getElementById('b-player-hp-txt').textContent = `${p.currentHp}/${p.maxHp}`;
+  document.getElementById('b-player-en').style.width = (p.energy)+'%';
+  document.getElementById('b-enemy-hp').style.width  = Math.max(0,(e.currentHp/e.maxHp)*100)+'%';
+  document.getElementById('b-enemy-hp-txt').textContent = `${e.currentHp}/${e.maxHp}`;
+}
+
+function buildMoveButtons() {
+  const wrap = document.getElementById('battle-moves');
+  wrap.innerHTML = '';
+
+  const moves = [
+    { label: 'BASE ATTACK',   id: 'base', special: false },
+    { label: 'POWER STRIKE',  id: 'power', special: false },
+    { label: '⚡ SPECIAL',    id: 'special', special: true },
+    { label: 'CATCH EGG 🥚', id: 'catch', special: false },
+    { label: 'RUN AWAY',     id: 'run', special: false },
+  ];
+
+  moves.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className   = 'move-btn' + (m.special ? ' special' : '');
+    btn.textContent = m.label;
+    btn.disabled    = m.special && battleData.player.energy < 100;
+    btn.onclick     = () => playerAction(m.id);
+    wrap.appendChild(btn);
+  });
+}
+
+async function playerAction(actionId) {
+  if (battleData.turn !== 'player' || battleData.over) return;
+  disableMoveButtons(true);
+
+  if (actionId === 'run') {
+    blogLog('You ran away!', 'log-info');
+    endBattle(false, false);
+    return;
+  }
+
+  if (actionId === 'catch') {
+    const catchRoll = rollD20();
+    await showDice(catchRoll, 'CATCH ATTEMPT');
+    const hpFactor = battleData.enemy.currentHp / battleData.enemy.maxHp;
+    const chance   = (1 - hpFactor) * 0.7 + 0.1;
+    if (Math.random() < chance) {
+      blogLog(`Caught ${battleData.enemy.name}!`, 'log-crit');
+      // Add as egg/creature
+      const caught = {
+        ...battleData.enemy,
+        name:      battleData.enemy.name,
+        currentHp: battleData.enemy.maxHp,
+        xp:        0,
+        level:     battleData.enemy.level,
+        energy:    0,
+        status:    null,
+      };
+      state.creatures.push(caught);
+      if (state.activeCreatureIdx < 0) state.activeCreatureIdx = 0;
+      blogLog(`${caught.name} joined your team!`, 'log-crit');
+      endBattle(true, true);
+    } else {
+      blogLog(`${battleData.enemy.name} broke free!`, 'log-miss');
+      blogLog(`Tip: weaken it first for better catch odds.`, 'log-info');
+      battleData.turn = 'enemy';
+      setTimeout(enemyTurn, 800);
+    }
+    return;
+  }
+
+  // Attack
+  const roll    = rollD20();
+  await showDice(roll, 'YOUR ATTACK');
+  const outcome = getOutcome(roll);
+  blogLog(`Roll: ${roll} — ${outcome.label}`, outcome.cls);
+
+  if (outcome.mult > 0) {
+    const p        = battleData.player;
+    const e        = battleData.enemy;
+    const typeMult = getTypeMult(p.element, e.element);
+    if (typeMult > 1) blogLog('Super effective!', 'log-crit');
+    if (typeMult < 1) blogLog('Not very effective...', 'log-info');
+
+    const powerBoost = actionId === 'power' ? 1.5 : actionId === 'special' ? 2.5 : 1.0;
+    const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost));
+
+    e.currentHp = Math.max(0, e.currentHp - dmg);
+    blogLog(`${p.name} deals ${dmg} damage!`, 'log-hit');
+
+    // Energy gain
+    p.energy = Math.min(100, p.energy + outcome.energy);
+    if (actionId === 'special') p.energy = 0;
+  }
+
+  updateBattleUI();
+
+  if (battleData.enemy.currentHp <= 0) {
+    blogLog(`${battleData.enemy.name} fainted!`, 'log-crit');
+    const xpGain = battleData.enemy.level * 12;
+    const pc = state.creatures[state.activeCreatureIdx];
+    if (pc) {
+      pc.xp    = (pc.xp || 0) + xpGain;
+      pc.level = Math.max(1, Math.floor(pc.xp / 100) + 1);
+      blogLog(`${pc.name} gained ${xpGain} XP! (Lv${pc.level})`, 'log-crit');
+    }
+    state.coins += Math.floor(battleData.enemy.level * 3);
+    endBattle(true, false);
+    return;
+  }
+
+  battleData.turn = 'enemy';
+  setTimeout(enemyTurn, 800);
+}
+
+async function enemyTurn() {
+  if (battleData.over) return;
+  const e = battleData.enemy;
+  const p = battleData.player;
+
+  const roll    = rollD20();
+  await showDice(roll, `${e.name} ATTACKS`);
+  const outcome = getOutcome(roll);
+  blogLog(`${e.name} roll: ${roll} — ${outcome.label}`, outcome.cls);
+
+  if (outcome.mult > 0) {
+    const typeMult = getTypeMult(e.element, p.element);
+    if (typeMult > 1) blogLog('Super effective!', 'log-crit');
+    const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
+    p.currentHp = Math.max(0, p.currentHp - dmg);
+
+    // Update stored creature HP
+    if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+      state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
+    }
+
+    blogLog(`${e.name} deals ${dmg} damage!`, 'log-hit');
+  }
+
+  updateBattleUI();
+  updateHUD();
+
+  if (p.currentHp <= 0) {
+    blogLog(`${p.name} fainted!`, 'log-miss');
+    endBattle(false, false);
+    return;
+  }
+
+  battleData.turn = 'player';
+  disableMoveButtons(false);
+  buildMoveButtons();
+}
+
+function showDice(roll, label) {
+  return new Promise(resolve => {
+    const el = document.getElementById('dice-display');
+    let i = 0;
+    const interval = setInterval(() => {
+      el.textContent = `${label}: [${Math.floor(Math.random()*20)+1}]`;
+      i++;
+      if (i > 10) {
+        clearInterval(interval);
+        el.textContent = `${label}: [${roll}] — ${getOutcome(roll).label}`;
+        resolve();
+      }
+    }, 70);
+  });
+}
+
+function disableMoveButtons(disabled) {
+  document.querySelectorAll('.move-btn').forEach(b => b.disabled = disabled);
+}
+
+function endBattle(won, caught) {
+  battleData.over = true;
+  state.inBattle  = false;
+
+  setTimeout(() => {
+    document.getElementById('battle-overlay').classList.remove('show');
+    document.getElementById('battle-log').innerHTML = '';
+    document.getElementById('dice-display').textContent = '';
+    battleData = null;
+
+    if (!won && !caught) {
+      // Heal to 30% if fainted
+      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+        const c = state.creatures[state.activeCreatureIdx];
+        c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
+      }
+    }
+    updateHUD();
+  }, 1500);
+}
+
+// ── DIALOG SYSTEM ─────────────────────────────────────────
+function showDialog(name, text, options) {
+  state.inDialog = true;
+  document.getElementById('dialog').style.display = 'block';
+  document.getElementById('dialog-name').textContent = name;
+  document.getElementById('dialog-text').textContent = text;
+  const optWrap = document.getElementById('dialog-options');
+  optWrap.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className   = 'primary d-btn';
+    btn.textContent = opt.label;
+    btn.onclick     = opt.fn;
+    optWrap.appendChild(btn);
+  });
+}
+
+function closeDialog() {
+  state.inDialog = false;
+  document.getElementById('dialog').style.display = 'none';
+}
+
+// ── MAIN MENU DIALOG ──────────────────────────────────────
+function showMainMenu() {
+  const pc = state.creatures[state.activeCreatureIdx];
+  showDialog(
+    'WORLDHATCH MENU',
+    `Eggs: ${state.eggs.length}  |  Creatures: ${state.creatures.length}  |  Coins: ${state.coins}\nActive: ${pc ? pc.name + ' Lv' + pc.level : 'none'}`,
+    [
+      { label: 'Switch Region',   fn: showRegionMenu },
+      { label: 'Switch Creature', fn: showCreatureMenu },
+      { label: 'Hatch Egg',       fn: showHatchMenu },
+      { label: 'Close',           fn: closeDialog },
+    ]
+  );
+}
+
+function showRegionMenu() {
+  closeDialog();
+  const regionIds = Object.keys(REGIONS);
+  const opts = regionIds.map(rid => ({
+    label: REGIONS[rid].name,
+    fn: () => { switchRegion(rid); closeDialog(); }
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('TRAVEL TO REGION', 'Choose a region to explore:', opts);
+}
+
+function switchRegion(regionId) {
+  state.currentRegion = regionId;
+  state.map           = generateMap(regionId);
+  state.px = 24; state.py = 24;
+  state.camX = 14; state.camY = 14;
+  state.visitedNests  = new Set();
+  state.visitedPoI    = new Set();
+  document.getElementById('top-region').textContent = REGIONS[regionId].name;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[regionId].name.toUpperCase()}`;
+}
+
+function showCreatureMenu() {
+  closeDialog();
+  if (!state.creatures.length) {
+    showDialog('CREATURES', 'No creatures yet!\nCatch some in battle or hatch eggs.', [{label:'OK', fn:closeDialog}]);
+    return;
+  }
+  const opts = state.creatures.map((c, i) => ({
+    label: `${c.name} Lv${c.level || 1} [${c.element}] HP:${c.currentHp||c.hp}/${c.hp}`,
+    fn: () => { state.activeCreatureIdx = i; closeDialog(); updateHUD(); }
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('CHOOSE ACTIVE CREATURE', 'Pick your battle companion:', opts);
+}
+
+function showHatchMenu() {
+  closeDialog();
+  if (!state.eggs.length) {
+    showDialog('EGGS', 'No eggs!\nFind egg nests marked with golden tiles on the map.', [{label:'OK', fn:closeDialog}]);
+    return;
+  }
+  const opts = state.eggs.map((egg, i) => ({
+    label: `${egg.name} [${egg.rarity.toUpperCase()}]`,
+    fn: () => hatchEgg(i)
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('HATCH AN EGG', 'Choose an egg to hatch:', opts);
+}
+
+function hatchEgg(idx) {
+  const egg = state.eggs[idx];
+  if (!egg) return;
+
+  // D20 stat rolls
+  const region  = REGIONS[egg.region] || REGIONS.suncrest_expanse;
+  const species = region.creatures.find(c => c.id === egg.speciesId) ||
+                  region.creatures[0];
+
+  const rollStat = (base) => {
+    const r = rollD20();
+    const m = r === 1 ? 0.5 : r <= 5 ? 0.75 : r <= 10 ? 0.9 : r <= 15 ? 1.0 : r <= 19 ? 1.15 : 1.5;
+    return { final: Math.max(1, Math.round(base * m)), roll: r };
+  };
+
+  const hpRoll  = rollStat(species.hp);
+  const atkRoll = rollStat(species.atk);
+  const defRoll = rollStat(species.def);
+  const spdRoll = rollStat(species.spd);
+
+  const creature = {
+    ...species,
+    hp:        hpRoll.final,
+    atk:       atkRoll.final,
+    attack:    atkRoll.final,
+    defense:   defRoll.final,
+    speed:     spdRoll.final,
+    currentHp: hpRoll.final,
+    maxHp:     hpRoll.final,
+    xp:        0,
+    level:     1,
+    energy:    0,
+    status:    null,
+    hatchedIn: egg.region,
+    id:        Date.now(),
+  };
+
+  state.eggs.splice(idx, 1);
+  state.creatures.push(creature);
+  if (state.activeCreatureIdx < 0) state.activeCreatureIdx = state.creatures.length - 1;
+
+  const mutations = [];
+  if (hpRoll.roll === 20)  mutations.push('Perfect HP!');
+  if (atkRoll.roll === 20) mutations.push('Perfect ATK!');
+  if (Math.random() < 0.15) mutations.push('Shadow Stripe mutation!');
+
+  const mutTxt = mutations.length ? `\nMutations: ${mutations.join(', ')}` : '';
+  showDialog(
+    `✨ ${creature.name} HATCHED!`,
+    `HP:  ${creature.hp} (rolled ${hpRoll.roll})\n` +
+    `ATK: ${creature.attack} (rolled ${atkRoll.roll})\n` +
+    `DEF: ${creature.defense} (rolled ${defRoll.roll})\n` +
+    `SPD: ${creature.speed} (rolled ${spdRoll.roll})${mutTxt}`,
+    [{ label: 'Amazing!', fn: closeDialog }]
+  );
+  updateHUD();
+}
+
+// ── TIME & WEATHER ────────────────────────────────────────
+function updateTimeWeather(dt) {
+  state.time = (state.time + state.timeSpeed * dt) % 24;
+  state.weatherTimer -= dt;
+
+  if (state.weatherTimer <= 0) {
+    const weathers = ['clear','clear','clear','rain','fog','storm'];
+    state.weather  = weathers[Math.floor(Math.random() * weathers.length)];
+    state.weatherTimer = 30000 + Math.random() * 60000;
+  }
+
+  const hour  = Math.floor(state.time);
+  const isDay = hour >= 6 && hour < 20;
+  const timeStr = `${String(hour).padStart(2,'0')}:00`;
+  const icon  = isDay ? '☀' : '🌙';
+  const wIcon = state.weather === 'clear' ? '' : state.weather === 'rain' ? '🌧' : state.weather === 'fog' ? '🌫' : '⛈';
+  document.getElementById('top-time').textContent = `${timeStr} ${icon} ${state.weather.toUpperCase()} ${wIcon}`;
+}
+
+// ── HUD UPDATE ────────────────────────────────────────────
+function updateHUD() {
+  const pc = state.activeCreatureIdx >= 0 ? state.creatures[state.activeCreatureIdx] : null;
+  document.getElementById('hud-creature').textContent = pc ? `${pc.name} Lv${pc.level||1}` : '— none —';
+  const hpPct = pc ? Math.max(0, (pc.currentHp / pc.hp) * 100) : 0;
+  document.getElementById('hud-hp').style.width = hpPct + '%';
+  document.getElementById('hud-hp').style.background = hpPct < 25 ? '#ff4444' : hpPct < 50 ? '#ffaa00' : '#44ff88';
+  document.getElementById('hud-energy').textContent = pc ? `${pc.energy || 0}/100` : '0/100';
+  document.getElementById('hud-en').style.width = pc ? (pc.energy || 0) + '%' : '0%';
+  document.getElementById('hud-eggs').textContent     = state.eggs.length;
+  document.getElementById('hud-creatures').textContent = state.creatures.length;
+  document.getElementById('hud-coins').textContent     = state.coins;
+}
+
+// ── RENDERER ──────────────────────────────────────────────
+let animFrame = 0;
+
+function render() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const hour  = Math.floor(state.time);
+  const isDay = hour >= 6 && hour < 20;
+  const nightAlpha = isDay ? 0 : Math.min(0.6, (hour < 6 ? (6 - hour) / 6 : (hour - 20) / 4) * 0.6);
+
+  for (let ty = 0; ty < VIEW_H; ty++) {
+    for (let tx = 0; tx < VIEW_W; tx++) {
+      const mx = state.camX + tx;
+      const my = state.camY + ty;
+      if (mx < 0 || my < 0 || mx >= MAP_W || my >= MAP_H) continue;
+      const tile = state.map[my]?.[mx];
+      if (tile === undefined) continue;
+
+      const px = tx * TILE;
+      const py = ty * TILE;
+      const colors = TILE_COLORS[tile] || TILE_COLORS[T.GROUND];
+      const colorIdx = ((mx + my) % colors.length);
+      ctx.fillStyle = colors[colorIdx];
+      ctx.fillRect(px, py, TILE, TILE);
+
+      // Tile decorations
+      drawTileDetail(ctx, tile, px, py, mx, my);
+    }
+  }
+
+  // Night overlay
+  if (nightAlpha > 0) {
+    ctx.fillStyle = `rgba(0,0,20,${nightAlpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Weather overlay
+  if (state.weather === 'fog') {
+    ctx.fillStyle = 'rgba(180,180,220,0.18)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Player
+  drawPlayer(ctx);
+
+  // Minimap
+  drawMinimap();
+
+  animFrame++;
+}
+
+function drawTileDetail(ctx, tile, px, py, mx, my) {
+  if (tile === T.GRASS) {
+    ctx.fillStyle = '#22880a';
+    ctx.fillRect(px + 2, py + 1, 2, 4);
+    ctx.fillRect(px + 7, py + 2, 2, 5);
+    ctx.fillRect(px + 12, py + 1, 2, 4);
+  }
+  if (tile === T.TREE) {
+    ctx.fillStyle = '#0f3a08';
+    ctx.fillRect(px + 3, py + 2, 10, 9);
+    ctx.fillStyle = '#1a5510';
+    ctx.fillRect(px + 5, py + 1, 6, 3);
+    ctx.fillStyle = '#3a2a10';
+    ctx.fillRect(px + 6, py + 11, 4, 5);
+  }
+  if (tile === T.WATER) {
+    const wave = Math.floor(animFrame * 0.05 + mx * 0.3) % 2;
+    ctx.fillStyle = wave ? '#2255cc' : '#1a44aa';
+    ctx.fillRect(px + 1, py + 6, 14, 3);
+  }
+  if (tile === T.CAVE) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(px + 4, py + 5, 8, 9);
+    ctx.fillStyle = '#330022';
+    ctx.fillRect(px + 5, py + 6, 6, 7);
+  }
+  if (tile === T.SHRINE) {
+    ctx.fillStyle = '#884400';
+    ctx.fillRect(px + 5, py + 4, 6, 10);
+    ctx.fillStyle = '#cc6600';
+    ctx.fillRect(px + 4, py + 3, 8, 3);
+    const glow = Math.sin(animFrame * 0.08) * 0.3 + 0.5;
+    ctx.fillStyle = `rgba(255,200,50,${glow})`;
+    ctx.fillRect(px + 6, py + 6, 4, 4);
+  }
+  if (tile === T.RUIN) {
+    ctx.fillStyle = '#555';
+    ctx.fillRect(px + 2, py + 8, 5, 6);
+    ctx.fillRect(px + 9, py + 6, 5, 8);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(px + 4, py + 10, 2, 4);
+  }
+  if (tile === T.NEST) {
+    const pulse = Math.sin(animFrame * 0.1) * 0.4 + 0.6;
+    ctx.fillStyle = `rgba(220,170,0,${pulse})`;
+    ctx.fillRect(px + 4, py + 4, 8, 8);
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(px + 6, py + 6, 4, 4);
+  }
+  if (tile === T.FLOWER) {
+    ctx.fillStyle = '#cc4488';
+    ctx.fillRect(px + 6, py + 4, 4, 4);
+    ctx.fillStyle = '#ffaacc';
+    ctx.fillRect(px + 7, py + 5, 2, 2);
+  }
+}
+
+function drawPlayer(ctx) {
+  const sx = (state.px - state.camX) * TILE;
+  const sy = (state.py - state.camY) * TILE;
+  if (sx < 0 || sy < 0 || sx >= VIEW_W * TILE || sy >= VIEW_H * TILE) return;
+
+  const bob = Math.sin(animFrame * 0.15) * 1;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(sx + 3, sy + 14, 10, 3);
+
+  // Body
+  ctx.fillStyle = '#3366ff';
+  ctx.fillRect(sx + 4, sy + 4 + bob, 8, 8);
+
+  // Head
+  ctx.fillStyle = '#ffccaa';
+  ctx.fillRect(sx + 5, sy + 1 + bob, 6, 5);
+
+  // Eyes
+  ctx.fillStyle = '#000';
+  if (state.playerDir === 'down' || state.playerDir === 'right') {
+    ctx.fillRect(sx + 7, sy + 2 + bob, 1, 2);
+    ctx.fillRect(sx + 9, sy + 2 + bob, 1, 2);
+  } else {
+    ctx.fillRect(sx + 6, sy + 2 + bob, 1, 2);
+    ctx.fillRect(sx + 8, sy + 2 + bob, 1, 2);
+  }
+
+  // Legs
+  const legOff = Math.floor(animFrame * 0.12) % 2;
+  ctx.fillStyle = '#224499';
+  ctx.fillRect(sx + 4, sy + 12 + (legOff ? 1 : 0), 3, 4);
+  ctx.fillRect(sx + 9, sy + 12 + (legOff ? 0 : 1), 3, 4);
+
+  // Hat
+  ctx.fillStyle = '#ffcc00';
+  ctx.fillRect(sx + 5, sy - 1 + bob, 6, 3);
+  ctx.fillStyle = '#ffdd44';
+  ctx.fillRect(sx + 6, sy - 2 + bob, 4, 2);
+}
+
+function drawMinimap() {
+  const s  = 1;
+  mmCtx.fillStyle = '#0a0018';
+  mmCtx.fillRect(0, 0, 60, 60);
+
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      const tile = state.map[y]?.[x];
+      let color = '#1a3010';
+      if (tile === T.WALL || tile === T.TREE) color = '#2a1a0a';
+      if (tile === T.WATER)  color = '#1a2a66';
+      if (tile === T.GRASS)  color = '#1a5010';
+      if (tile === T.PATH)   color = '#443322';
+      if (tile === T.CAVE)   color = '#220022';
+      if (tile === T.SHRINE) color = '#664400';
+      if (tile === T.RUIN)   color = '#333333';
+      if (tile === T.NEST)   color = '#aa8800';
+      mmCtx.fillStyle = color;
+      mmCtx.fillRect(x * s + 6, y * s + 6, s, s);
+    }
+  }
+
+  // Player dot
+  mmCtx.fillStyle = '#ff4444';
+  mmCtx.fillRect(state.px * s + 6 - 1, state.py * s + 6 - 1, 3, 3);
+
+  // View rect
+  mmCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+  mmCtx.lineWidth   = 1;
+  mmCtx.strokeRect(state.camX * s + 6, state.camY * s + 6, VIEW_W * s, VIEW_H * s);
+}
+
+// ── MAIN LOOP ─────────────────────────────────────────────
+let lastTime = 0;
+
+function gameLoop(timestamp) {
+  const dt = timestamp - lastTime;
+  lastTime  = timestamp;
+
+  if (!state.inBattle && !state.inDialog) {
+    handleMovement(dt);
+  }
+  updateTimeWeather(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Generate starting map
+  state.map  = generateMap(state.currentRegion);
+  state.camX = state.px - Math.floor(VIEW_W / 2);
+  state.camY = state.py - Math.floor(VIEW_H / 2);
+
+  document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
+
+  // Give starter creature
+  const starter = { ...REGIONS.suncrest_expanse.creatures[0] };
+  starter.currentHp = starter.hp;
+  starter.maxHp     = starter.hp;
+  starter.attack    = starter.atk;
+  starter.defense   = starter.def;
+  starter.speed     = starter.spd;
+  starter.xp        = 0;
+  starter.level     = 1;
+  starter.energy    = 0;
+  starter.status    = null;
+  starter.id        = Date.now();
+  state.creatures.push(starter);
+  state.activeCreatureIdx = 0;
+
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+
+  // Welcome
+  setTimeout(() => {
+    showDialog(
+      'WELCOME TO WORLDHATCH',
+      'You start in the Suncrest Expanse.\n\n' +
+      'WASD or Arrow keys to move.\n' +
+      'Walk in tall grass for battles.\n' +
+      'Golden tiles are egg nests!\n' +
+      'Press ESC for the menu.\n' +
+      'Press E to interact.',
+      [{ label: 'START!', fn: closeDialog }]
+    );
+  }, 500);
+}
+
+init();
+</script>
+</body>
+</html>
