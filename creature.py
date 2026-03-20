@@ -151,6 +151,234 @@ CREATURE_REGISTRY = {
         "base_hatch_time":     25,
     },
 
+    # ══ Suncrest Expanse extras (Fire) ════════
+
+    "cinderclaw": {
+        "display_name":    "Cinderclaw",
+        "home_region":     "suncrest_expanse",
+        "element":         "fire",
+        "rarity":          "uncommon",
+        "description":     "A quick predator whose claws smolder with residual heat from volcanic rock.",
+        "base_stats": {
+            "hp":       70, "attack": 20, "defense": 10,
+            "speed":    15, "fire_power": 12, "ice_power": 0,
+        },
+        "base_traits":         ["ember_core", "territorial"],
+        "starter_abilities":   ["ember_bite"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "inferno_stalker", "min_level": 10, "conditions": []},
+        },
+        "possible_mutations":  ["inferno_crest", "shadow_stripe"],
+        "base_hatch_time":     30,
+    },
+
+    "sunshell_crawler": {
+        "display_name":    "Sunshell Crawler",
+        "home_region":     "suncrest_expanse",
+        "element":         "fire",
+        "rarity":          "rare",
+        "description":     "A slow, heavily armored creature whose shell reflects sunlight to blind foes.",
+        "base_stats": {
+            "hp":       100, "attack": 10, "defense": 25,
+            "speed":    3,   "fire_power": 8, "ice_power": 0,
+        },
+        "base_traits":         ["tough_hide", "ember_core"],
+        "starter_abilities":   ["root_bind"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "solaris_fortress", "min_level": 12, "conditions": []},
+        },
+        "possible_mutations":  ["inferno_crest"],
+        "base_hatch_time":     40,
+    },
+
+    # ══ Frostspire Reach extras (Ice) ═════════
+
+    "rimewolve": {
+        "display_name":    "Rimewolve",
+        "home_region":     "frostspire_reach",
+        "element":         "ice",
+        "rarity":          "common",
+        "description":     "A pack predator whose howl can drop local temperatures several degrees.",
+        "base_stats": {
+            "hp":       75, "attack": 18, "defense": 10,
+            "speed":    16, "fire_power": 0, "ice_power": 14,
+        },
+        "base_traits":         ["pack_instinct", "frost_veins"],
+        "starter_abilities":   ["glacial_slam"],
+        "learnable_abilities": ["shadow_dash"],
+        "evolution_paths": {
+            "default": {"to": "blizzard_alpha", "min_level": 10, "conditions": []},
+        },
+        "possible_mutations":  ["glacial_mantle", "shadow_stripe"],
+        "base_hatch_time":     50,
+    },
+
+    "coldcrest_raptor": {
+        "display_name":    "Coldcrest Raptor",
+        "home_region":     "frostspire_reach",
+        "element":         "ice",
+        "rarity":          "uncommon",
+        "description":     "A swift bipedal hunter with a crest of jagged ice that grows as it ages.",
+        "base_stats": {
+            "hp":       65, "attack": 22, "defense": 8,
+            "speed":    20, "fire_power": 0, "ice_power": 16,
+        },
+        "base_traits":         ["hollow_bones", "frost_veins"],
+        "starter_abilities":   ["glacial_slam"],
+        "learnable_abilities": ["shadow_dash"],
+        "evolution_paths": {
+            "default": {"to": "glacewing_hunter", "min_level": 10, "conditions": []},
+        },
+        "possible_mutations":  ["glacial_mantle"],
+        "base_hatch_time":     45,
+    },
+
+    "avalanche_golem": {
+        "display_name":    "Avalanche Golem",
+        "home_region":     "frostspire_reach",
+        "element":         "ice",
+        "rarity":          "rare",
+        "description":     "A towering construct of compacted snow and ancient glacier ice.",
+        "base_stats": {
+            "hp":       150, "attack": 25, "defense": 30,
+            "speed":    2,   "fire_power": 0, "ice_power": 20,
+        },
+        "base_traits":         ["tough_hide", "frost_veins", "worldborn"],
+        "starter_abilities":   ["glacial_slam", "root_bind"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "permafrost_titan", "min_level": 15, "conditions": []},
+        },
+        "possible_mutations":  ["glacial_mantle"],
+        "base_hatch_time":     90,
+    },
+
+    # ══ Verdeluna Jungle extras (Nature) ═══════
+
+    "mosswhisper": {
+        "display_name":    "Mosswhisper",
+        "home_region":     "verdeluna_jungle",
+        "element":         "nature",
+        "rarity":          "common",
+        "description":     "A small camouflaged creature that blends seamlessly into jungle undergrowth.",
+        "base_stats": {
+            "hp":       60, "attack": 12, "defense": 14,
+            "speed":    12, "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["verdant_soul", "lone_wanderer"],
+        "starter_abilities":   ["root_bind"],
+        "learnable_abilities": ["shadow_dash"],
+        "evolution_paths": {
+            "default": {"to": "verdant_phantom", "min_level": 9, "conditions": []},
+        },
+        "possible_mutations":  ["verdant_bloom", "shadow_stripe"],
+        "base_hatch_time":     35,
+    },
+
+    "venomcap_toad": {
+        "display_name":    "Venomcap Toad",
+        "home_region":     "verdeluna_jungle",
+        "element":         "nature",
+        "rarity":          "uncommon",
+        "description":     "A bloated amphibian whose toxic skin secretions can paralyze predators.",
+        "base_stats": {
+            "hp":       90, "attack": 15, "defense": 18,
+            "speed":    6,  "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["tough_hide", "verdant_soul"],
+        "starter_abilities":   ["root_bind"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "plaguemantle_titan", "min_level": 11, "conditions": []},
+        },
+        "possible_mutations":  ["verdant_bloom"],
+        "base_hatch_time":     50,
+    },
+
+    "luminleaf_sprite": {
+        "display_name":    "Luminleaf Sprite",
+        "home_region":     "verdeluna_jungle",
+        "element":         "nature",
+        "rarity":          "rare",
+        "description":     "A luminescent fairy-like creature whose wings are formed from giant tropical leaves.",
+        "base_stats": {
+            "hp":       50, "attack": 10, "defense": 8,
+            "speed":    22, "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["hollow_bones", "verdant_soul", "worldborn"],
+        "starter_abilities":   ["root_bind", "shadow_dash"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "radiant_canopy_lord", "min_level": 10, "conditions": []},
+        },
+        "possible_mutations":  ["verdant_bloom", "shadow_stripe"],
+        "base_hatch_time":     55,
+    },
+
+    # ══ Sakurami Highlands extras (Spirit) ═════
+
+    "blossomwing": {
+        "display_name":    "Blossomwing",
+        "home_region":     "sakurami_highlands",
+        "element":         "spirit",
+        "rarity":          "common",
+        "description":     "A graceful winged creature whose wings scatter glowing petal-like scales.",
+        "base_stats": {
+            "hp":       58, "attack": 11, "defense": 9,
+            "speed":    22, "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["hollow_bones", "lone_wanderer"],
+        "starter_abilities":   ["shadow_dash"],
+        "learnable_abilities": ["root_bind"],
+        "evolution_paths": {
+            "default": {"to": "sakura_seraphim", "min_level": 9, "conditions": []},
+        },
+        "possible_mutations":  ["shadow_stripe"],
+        "base_hatch_time":     25,
+    },
+
+    "inkfox": {
+        "display_name":    "Inkfox",
+        "home_region":     "sakurami_highlands",
+        "element":         "spirit",
+        "rarity":          "uncommon",
+        "description":     "A fox-like creature that leaves trails of inky darkness when it moves at speed.",
+        "base_stats": {
+            "hp":       62, "attack": 16, "defense": 8,
+            "speed":    20, "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["lone_wanderer", "mimic_scale"],
+        "starter_abilities":   ["shadow_dash"],
+        "learnable_abilities": ["root_bind"],
+        "evolution_paths": {
+            "default": {"to": "voidtail_phantom", "min_level": 10, "conditions": []},
+        },
+        "possible_mutations":  ["shadow_stripe"],
+        "base_hatch_time":     30,
+    },
+
+    "stonepetal_wyrm": {
+        "display_name":    "Stonepetal Wyrm",
+        "home_region":     "sakurami_highlands",
+        "element":         "spirit",
+        "rarity":          "rare",
+        "description":     "An ancient serpentine spirit rumored to have grown from a sacred mountain spring.",
+        "base_stats": {
+            "hp":       95, "attack": 18, "defense": 20,
+            "speed":    10, "fire_power": 0, "ice_power": 0,
+        },
+        "base_traits":         ["tough_hide", "worldborn"],
+        "starter_abilities":   ["root_bind", "shadow_dash"],
+        "learnable_abilities": ["scorchwave"],
+        "evolution_paths": {
+            "default": {"to": "jade_celestial", "min_level": 14, "conditions": []},
+        },
+        "possible_mutations":  ["shadow_stripe", "verdant_bloom"],
+        "base_hatch_time":     70,
+    },
+
     # ── Add more species here ──────────────────
     # Pattern: copy a block above and change the values.
     # The class logic never needs to change.
