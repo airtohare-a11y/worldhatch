@@ -16,18 +16,16 @@ TO ADD A NEW CREATURE SPECIES:
 
 import uuid
 import random
-from traits   import (apply_trait_modifiers, check_mutation_conditions,
-                       roll_mutation, MUTATIONS)
-from regions  import get_home_bonus, get_mutation_modifier
+from traits            import (apply_trait_modifiers, check_mutation_conditions,
+                                roll_mutation, MUTATIONS)
+from regions           import get_home_bonus, get_mutation_modifier
+from creature_registry import CREATURE_REGISTRY  # all 100 creatures
 
+# CREATURE_REGISTRY is now imported from creature_registry.py
+# which auto-builds all 100 entries from roster.py.
+# Do not add creatures here — add them to roster.py instead.
 
-# ─────────────────────────────────────────────
-#  CREATURE SPECIES REGISTRY
-#  This is the master list of all species.
-#  Instances (Creature objects) are created FROM these templates.
-# ─────────────────────────────────────────────
-
-CREATURE_REGISTRY = {
+_LEGACY_REGISTRY_START = {
 
     # ══ Suncrest Expanse (Fire) ═══════════════
 
@@ -468,10 +466,12 @@ CREATURE_REGISTRY = {
         "base_hatch_time":     70,
     },
 
-    # ── Add more species here ──────────────────
-    # Pattern: copy a block above and change the values.
-    # The class logic never needs to change.
 }
+
+# Merge legacy hand-crafted entries into the auto-built registry.
+# Legacy entries WIN on conflict — they have richer hand-tuned data.
+for _k, _v in _LEGACY_REGISTRY_START.items():
+    CREATURE_REGISTRY[_k] = _v
 
 
 # ─────────────────────────────────────────────
