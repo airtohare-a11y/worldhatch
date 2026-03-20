@@ -115,6 +115,75 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 /* ── MINIMAP ── */
 #minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
 #minimap canvas{display:block;image-rendering:pixelated;}
+
+/* ── SKILL & REST PANEL ── */
+#skill-panel{
+  position:absolute;inset:0;z-index:110;display:none;
+  flex-direction:column;align-items:center;
+  background:linear-gradient(160deg,#060014 0%,#0c0022 100%);
+  overflow-y:auto;padding:12px;gap:10px;
+}
+#skill-panel.show{display:flex;}
+.sp-header{width:100%;max-width:520px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #440088;padding-bottom:8px;}
+.sp-title{font-size:9px;color:#cc88ff;letter-spacing:2px;}
+.sp-close{font-family:'Press Start 2P',monospace;font-size:7px;background:#1a0030;color:#ff6666;border:1px solid #aa2222;padding:5px 9px;cursor:pointer;border-radius:2px;}
+.sp-close:hover{background:#330000;}
+.sp-creature-row{width:100%;max-width:520px;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;}
+.sp-creature-select{display:flex;flex-direction:column;gap:4px;min-width:120px;}
+.sp-c-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#0e0022;color:#8866aa;border:1px solid #330055;padding:6px 8px;cursor:pointer;border-radius:2px;text-align:left;}
+.sp-c-btn.active{background:#1a0040;color:#cc88ff;border-color:#8833cc;}
+.sp-c-btn:hover{background:#150030;}
+.sp-main{flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px;}
+.sp-card{background:#0e0022;border:2px solid #330055;border-radius:4px;padding:10px;}
+.sp-card-title{font-size:7px;color:#ffcc44;margin-bottom:8px;letter-spacing:1px;}
+.sp-stat-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.sp-stat-name{font-size:6px;color:#664488;width:52px;flex-shrink:0;}
+.sp-stat-bar-wrap{flex:1;height:8px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.sp-stat-bar{height:100%;border-radius:1px;transition:width 0.3s;}
+.sp-stat-val{font-size:6px;color:#cc88ff;width:28px;text-align:right;flex-shrink:0;}
+.sp-stat-up-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0040;color:#ffcc00;border:1px solid #664400;padding:3px 6px;cursor:pointer;border-radius:2px;flex-shrink:0;}
+.sp-stat-up-btn:hover:not(:disabled){background:#2a0060;border-color:#cc8800;}
+.sp-stat-up-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.sp-sp-display{font-size:7px;color:#ffcc44;text-align:center;padding:6px;background:#0a0018;border:1px solid #332200;border-radius:3px;}
+.sp-xp-bar-wrap{height:10px;background:#0a0018;border:1px solid #220044;border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.sp-xp-bar{height:100%;background:linear-gradient(90deg,#4400cc,#8822ff);border-radius:2px;transition:width 0.4s;}
+.sp-xp-label{font-size:6px;color:#553377;text-align:center;}
+
+/* Skill Tree */
+.skill-tree{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0;}
+.skill-node{
+  background:#0a0018;border:2px solid #330055;border-radius:3px;
+  padding:6px 8px;cursor:pointer;min-width:90px;text-align:center;
+  transition:all 0.15s;position:relative;
+}
+.skill-node:hover:not(.locked):not(.maxed){background:#150030;border-color:#6622aa;}
+.skill-node.unlocked{border-color:#4488ff;background:#0a0028;}
+.skill-node.maxed{border-color:#ffcc00;background:#0e0820;}
+.skill-node.locked{opacity:0.4;cursor:not-allowed;}
+.skill-node-name{font-size:6px;color:#cc88ff;display:block;margin-bottom:3px;}
+.skill-node.unlocked .skill-node-name{color:#88bbff;}
+.skill-node.maxed .skill-node-name{color:#ffcc00;}
+.skill-node-rank{font-size:6px;color:#443366;}
+.skill-node.unlocked .skill-node-rank{color:#4466aa;}
+.skill-node.maxed .skill-node-rank{color:#aa8800;}
+.skill-node-cost{font-size:5px;color:#553377;display:block;margin-top:2px;}
+
+/* Rest panel */
+.rest-panel{background:#06000e;border:2px solid #220044;border-radius:4px;padding:10px;width:100%;max-width:520px;}
+.rest-title{font-size:7px;color:#88ffcc;margin-bottom:8px;}
+.rest-options{display:flex;gap:8px;flex-wrap:wrap;}
+.rest-btn{
+  font-family:'Press Start 2P',monospace;font-size:6px;
+  padding:8px 12px;cursor:pointer;border-radius:3px;
+  border:2px solid;transition:all 0.15s;
+}
+.rest-btn.camp{background:#0a1a10;color:#44ff88;border-color:#228844;}
+.rest-btn.camp:hover{background:#0e2818;box-shadow:0 0 8px rgba(50,200,100,0.3);}
+.rest-btn.inn{background:#0a0a1a;color:#88aaff;border-color:#224488;}
+.rest-btn.inn:hover{background:#0e0e28;box-shadow:0 0 8px rgba(80,120,255,0.3);}
+.rest-btn.item{background:#1a0a00;color:#ffaa44;border-color:#884400;}
+.rest-btn.item:hover{background:#281200;box-shadow:0 0 8px rgba(200,120,0,0.3);}
+.rest-info{font-size:6px;color:#443366;margin-top:6px;line-height:1.8;}
 </style>
 </head>
 <body>
@@ -129,6 +198,27 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
     <canvas id="world"></canvas>
     <div id="minimap"><canvas id="mm" width="60" height="60"></canvas></div>
     <div id="encounter-flash"></div>
+
+    <!-- SKILL & REST PANEL -->
+    <div id="skill-panel">
+      <div class="sp-header">
+        <div class="sp-title">CREATURE SKILLS</div>
+        <button class="sp-close" onclick="closeSkillPanel()">X CLOSE</button>
+      </div>
+      <div class="sp-creature-row">
+        <div class="sp-creature-select" id="sp-creature-list"></div>
+        <div class="sp-main" id="sp-main-content"></div>
+      </div>
+      <div class="rest-panel">
+        <div class="rest-title">REST & HEAL</div>
+        <div class="rest-options">
+          <button class="rest-btn camp" onclick="doRest('camp')">CAMP (FREE)<br><span style="font-size:5px;color:#226633">50% HP heal</span></button>
+          <button class="rest-btn inn" onclick="doRest('inn')">INN (30c)<br><span style="font-size:5px;color:#224466">Full HP + status clear</span></button>
+          <button class="rest-btn item" onclick="doRest('potion')">POTION (20c)<br><span style="font-size:5px;color:#664400">30 HP to active only</span></button>
+        </div>
+        <div class="rest-info" id="rest-info">Choose how to restore your creatures.</div>
+      </div>
+    </div>
 
     <div id="dialog">
       <div id="dialog-name"></div>
@@ -197,9 +287,13 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
       <div class="hud-label">COINS</div>
       <div class="hud-val" id="hud-coins">200</div>
     </div>
-    <div class="hud-box" style="flex:1;min-width:140px;">
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
       <div class="hud-label">CONTROLS</div>
-      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD / ARROWS — move &nbsp; E — interact &nbsp; ESC — menu</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
     </div>
   </div>
 </div>
@@ -801,6 +895,7 @@ async function playerAction(actionId) {
         energy:    0,
         status:    null,
       };
+      initCreatureSkills(caught);
       state.creatures.push(caught);
       if (state.activeCreatureIdx < 0) state.activeCreatureIdx = 0;
       blogLog(`${caught.name} joined your team!`, 'log-crit');
@@ -845,9 +940,12 @@ async function playerAction(actionId) {
     const xpGain = battleData.enemy.level * 12;
     const pc = state.creatures[state.activeCreatureIdx];
     if (pc) {
-      pc.xp    = (pc.xp || 0) + xpGain;
-      pc.level = Math.max(1, Math.floor(pc.xp / 100) + 1);
+      initCreatureSkills(pc);
+      const leveled = grantXP(pc, xpGain);
       blogLog(`${pc.name} gained ${xpGain} XP! (Lv${pc.level})`, 'log-crit');
+      if (leveled) {
+        blogLog(`LEVEL UP! Lv${pc.level} — +2 Skill Points!`, 'log-crit');
+      }
     }
     state.coins += Math.floor(battleData.enemy.level * 3);
     endBattle(true, false);
@@ -1151,8 +1249,9 @@ function showMainMenu() {
   const pc = state.creatures[state.activeCreatureIdx];
   showDialog(
     'WORLDHATCH MENU',
-    `Eggs: ${state.eggs.length}  |  Creatures: ${state.creatures.length}  |  Coins: ${state.coins}\nActive: ${pc ? pc.name + ' Lv' + pc.level : 'none'}`,
+    `Eggs: ${state.eggs.length}  |  Creatures: ${state.creatures.length}  |  Coins: ${state.coins}\nActive: ${pc ? pc.name + ' Lv' + pc.level + ' SP:' + (pc.skillPoints||0) : 'none'}`,
     [
+      { label: 'Skills & Rest',   fn: openSkillPanel },
       { label: 'Switch Region',   fn: showRegionMenu },
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
@@ -1248,6 +1347,7 @@ function hatchEgg(idx) {
     id:        Date.now(),
   };
 
+  initCreatureSkills(creature);
   state.eggs.splice(idx, 1);
   state.creatures.push(creature);
   if (state.activeCreatureIdx < 0) state.activeCreatureIdx = state.creatures.length - 1;
@@ -1300,6 +1400,8 @@ function updateHUD() {
   document.getElementById('hud-eggs').textContent     = state.eggs.length;
   document.getElementById('hud-creatures').textContent = state.creatures.length;
   document.getElementById('hud-coins').textContent     = state.coins;
+  const spEl = document.getElementById('hud-sp');
+  if (spEl) spEl.textContent = pc ? (pc.skillPoints || 0) : 0;
 }
 
 // ── RENDERER ──────────────────────────────────────────────
@@ -1759,6 +1861,337 @@ function drawMinimap() {
   mmCtx.strokeRect(state.camX * s + 6, state.camY * s + 6, VIEW_W * s, VIEW_H * s);
 }
 
+// ═══════════════════════════════════════════════════════════
+//  SKILL & STAT LEVELING SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+// Stat upgrade costs (skill points)
+const STAT_UPGRADE = {
+  hp:      { label:'HP',      cost:1, max:20, barColor:'#44ff88', desc:'Max hit points' },
+  attack:  { label:'ATK',     cost:1, max:20, barColor:'#ff6644', desc:'Damage dealt'   },
+  defense: { label:'DEF',     cost:1, max:20, barColor:'#4488ff', desc:'Damage reduced' },
+  speed:   { label:'SPD',     cost:1, max:20, barColor:'#ffcc00', desc:'Turn priority'  },
+};
+
+// Skill tree nodes per element type
+const SKILL_TREES = {
+  fire: [
+    {id:'ember_fang',   name:'Ember Fang',    desc:'Fire attacks deal +15% dmg',   cost:2, maxRank:3, effect:{atkMult:0.15}},
+    {id:'heat_shell',   name:'Heat Shell',    desc:'Defense +8 vs ice attacks',     cost:2, maxRank:3, effect:{defBonus:8}},
+    {id:'blaze_dash',   name:'Blaze Dash',    desc:'Speed +5, energy gains +10%',   cost:3, maxRank:2, effect:{spdBonus:5}},
+    {id:'inferno_core', name:'Inferno Core',  desc:'All fire moves crit on 18+',    cost:4, maxRank:1, effect:{critBoost:true}},
+    {id:'phoenix_will', name:'Phoenix Will',  desc:'Survive one KO at 1 HP (once)', cost:5, maxRank:1, effect:{survive:true}},
+  ],
+  ice: [
+    {id:'frost_bite',   name:'Frost Bite',    desc:'Chance to slow enemy on hit',   cost:2, maxRank:3, effect:{slowChance:0.2}},
+    {id:'ice_armor',    name:'Ice Armor',     desc:'Defense +10 vs fire',           cost:2, maxRank:3, effect:{defBonus:10}},
+    {id:'chill_step',   name:'Chill Step',    desc:'Freeze chance on crits',        cost:3, maxRank:2, effect:{freezeOnCrit:true}},
+    {id:'glacier_body', name:'Glacier Body',  desc:'HP +20 permanently',            cost:3, maxRank:2, effect:{hpFlat:20}},
+    {id:'absolute_zero',name:'Absolute Zero', desc:'Once per battle: skip enemy turn',cost:5,maxRank:1,effect:{skipTurn:true}},
+  ],
+  nature: [
+    {id:'thorn_hide',   name:'Thorn Hide',    desc:'Attacker takes 5 dmg on hit',   cost:2, maxRank:3, effect:{thornDmg:5}},
+    {id:'root_pulse',   name:'Root Pulse',    desc:'Regen 5 HP each turn',          cost:3, maxRank:3, effect:{regenHp:5}},
+    {id:'verdant_rush', name:'Verdant Rush',  desc:'First attack each battle +25%', cost:3, maxRank:2, effect:{firstAtkBoost:0.25}},
+    {id:'ancient_bark', name:'Ancient Bark',  desc:'Defense +15 permanently',       cost:4, maxRank:1, effect:{defFlat:15}},
+    {id:'world_root',   name:'World Root',    desc:'Fully heal once per region',    cost:5, maxRank:1, effect:{regionHeal:true}},
+  ],
+  spirit: [
+    {id:'phase_step',   name:'Phase Step',    desc:'10% chance to dodge any hit',   cost:2, maxRank:3, effect:{dodgeChance:0.1}},
+    {id:'soul_strike',  name:'Soul Strike',   desc:'Attacks ignore 30% defense',    cost:3, maxRank:2, effect:{defPen:0.3}},
+    {id:'light_body',   name:'Light Body',    desc:'Speed +8 permanently',          cost:2, maxRank:3, effect:{spdFlat:8}},
+    {id:'spirit_link',  name:'Spirit Link',   desc:'Share 20% dmg with all allies', cost:4, maxRank:1, effect:{dmgShare:true}},
+    {id:'astral_form',  name:'Astral Form',   desc:'Become invincible for 1 turn',  cost:5, maxRank:1, effect:{invincible:true}},
+  ],
+  dark: [
+    {id:'shadow_claw',  name:'Shadow Claw',   desc:'ATK +10, always hits',          cost:3, maxRank:3, effect:{atkFlat:10}},
+    {id:'void_mantle',  name:'Void Mantle',   desc:'Reduce incoming dmg by 15%',    cost:3, maxRank:2, effect:{dmgReduce:0.15}},
+    {id:'ink_trail',    name:'Ink Trail',     desc:'Enemy accuracy -20% for 2 turns',cost:2,maxRank:3,effect:{accReduce:0.2}},
+    {id:'mimic_aura',   name:'Mimic Aura',    desc:'Copy enemy element for 1 hit',  cost:4, maxRank:1, effect:{mimic:true}},
+    {id:'sovereign_veil',name:'Sovereign Veil',desc:'Immune to status effects',     cost:5, maxRank:1, effect:{statusImmune:true}},
+  ],
+  storm: [
+    {id:'thunder_rush', name:'Thunder Rush',  desc:'Speed +6, first to act each turn',cost:2,maxRank:3,effect:{spdFlat:6}},
+    {id:'static_field', name:'Static Field',  desc:'Attacker paralysed 10% chance', cost:3, maxRank:2, effect:{paralyseChance:0.1}},
+    {id:'storm_surge',  name:'Storm Surge',   desc:'Every 3rd hit deals double dmg', cost:3, maxRank:2, effect:{surgeHit:true}},
+    {id:'eye_of_storm', name:'Eye of Storm',  desc:'Ignore weather penalties',      cost:2, maxRank:1, effect:{weatherImmune:true}},
+    {id:'lightning_rod','name':'Lightning Rod',desc:'Absorb storm dmg as HP',       cost:5, maxRank:1, effect:{absorbStorm:true}},
+  ],
+  water: [
+    {id:'tidal_flow',   name:'Tidal Flow',    desc:'HP regen +3 each turn',         cost:2, maxRank:3, effect:{regenHp:3}},
+    {id:'deep_current', name:'Deep Current',  desc:'Speed +5 on water tiles',       cost:2, maxRank:2, effect:{spdBonus:5}},
+    {id:'pressure_wave',name:'Pressure Wave', desc:'ATK +8, pushes enemy back',     cost:3, maxRank:3, effect:{atkFlat:8}},
+    {id:'seafoam_guard','name':'Seafoam Guard',desc:'Defense +12 permanently',      cost:4, maxRank:1, effect:{defFlat:12}},
+    {id:'abyssal_surge','name':'Abyssal Surge',desc:'Unleash full HP as dmg once',  cost:5, maxRank:1, effect:{hpBurst:true}},
+  ],
+  sand: [
+    {id:'dust_cloak',   name:'Dust Cloak',    desc:'Dodge chance +15% in deserts',  cost:2, maxRank:3, effect:{dodgeChance:0.15}},
+    {id:'dune_shell',   name:'Dune Shell',    desc:'Defense +10 permanently',       cost:3, maxRank:2, effect:{defFlat:10}},
+    {id:'sandblast',    name:'Sandblast',     desc:'Enemy accuracy -30% for 1 turn',cost:3,maxRank:2, effect:{blindChance:true}},
+    {id:'buried_trap',  name:'Buried Trap',   desc:'Counter attack on dodge',       cost:4, maxRank:1, effect:{counterDodge:true}},
+    {id:'desert_king',  name:'Desert King',   desc:'All stats +5 in sand regions',  cost:5, maxRank:1, effect:{regionBoost:true}},
+  ],
+  magma: [
+    {id:'lava_coat',    name:'Lava Coat',     desc:'Attackers take 8 burn dmg',     cost:2, maxRank:3, effect:{thornDmg:8}},
+    {id:'molten_core',  name:'Molten Core',   desc:'ATK +12 permanently',           cost:3, maxRank:3, effect:{atkFlat:12}},
+    {id:'eruption',     name:'Eruption',      desc:'AoE blast once per battle',     cost:4, maxRank:2, effect:{eruption:true}},
+    {id:'magma_skin',   name:'Magma Skin',    desc:'Immune to burn status',         cost:3, maxRank:1, effect:{burnImmune:true}},
+    {id:'titan_force',  name:'Titan Force',   desc:'Next hit triples in power',     cost:5, maxRank:1, effect:{titanHit:true}},
+  ],
+  crystal: [
+    {id:'gem_shard',    name:'Gem Shard',     desc:'Crits shatter: hit 2 turns',    cost:3, maxRank:2, effect:{shatterCrit:true}},
+    {id:'crystal_wall', name:'Crystal Wall',  desc:'Defense +14 permanently',       cost:3, maxRank:3, effect:{defFlat:14}},
+    {id:'refraction',   name:'Refraction',    desc:'20% chance to reflect spells',  cost:4, maxRank:2, effect:{reflect:0.2}},
+    {id:'prismatic',    name:'Prismatic',     desc:'Attacks hit all elements at 1x', cost:4, maxRank:1, effect:{allElement:true}},
+    {id:'peak_form',    name:'Peak Form',     desc:'All stats +8 permanently',      cost:5, maxRank:1, effect:{allStats:8}},
+  ],
+};
+
+// Fallback skill tree for undefined elements
+SKILL_TREES.default = SKILL_TREES.dark;
+
+function initCreatureSkills(c) {
+  if (c.skillPoints !== undefined) return; // already init'd
+  c.skillPoints   = 0;           // unspent skill points
+  c.statUpgrades  = { hp:0, attack:0, defense:0, speed:0 }; // times each stat upgraded
+  c.skills        = {};          // { skill_id: rank }
+  c.usedSurvive   = false;
+  c.usedRegionHeal = false;
+}
+
+function xpToNextLevel(level) {
+  return Math.floor(80 * Math.pow(1.4, level - 1));
+}
+
+function grantXP(creature, amount) {
+  initCreatureSkills(creature);
+  creature.xp = (creature.xp || 0) + amount;
+  let leveled  = false;
+  while (creature.xp >= xpToNextLevel(creature.level)) {
+    creature.xp   -= xpToNextLevel(creature.level);
+    creature.level += 1;
+    creature.skillPoints += 2;  // 2 skill points per level
+    // Auto stat gains on level-up
+    const hpGain  = 3 + Math.floor(Math.random() * 4);
+    const atkGain = 1 + Math.floor(Math.random() * 2);
+    creature.hp      += hpGain;
+    creature.maxHp   = creature.hp;
+    creature.attack  += atkGain;
+    creature.defense += Math.floor(Math.random() * 2);
+    creature.speed   += Math.floor(Math.random() * 2);
+    creature.currentHp = Math.min(creature.currentHp + hpGain, creature.hp);
+    leveled = true;
+  }
+  return leveled;
+}
+
+// ── SKILL PANEL UI ────────────────────────────────────────
+let skillPanelCreatureIdx = -1;
+
+function openSkillPanel() {
+  closeDialog();
+  if (!state.creatures.length) {
+    showDialog('NO CREATURES', 'Hatch or catch creatures first!', [{label:'OK',fn:closeDialog}]);
+    return;
+  }
+  state.inDialog = true;
+  skillPanelCreatureIdx = state.activeCreatureIdx >= 0 ? state.activeCreatureIdx : 0;
+  document.getElementById('skill-panel').classList.add('show');
+  renderSkillPanel();
+}
+
+function closeSkillPanel() {
+  state.inDialog = false;
+  document.getElementById('skill-panel').classList.remove('show');
+  updateHUD();
+}
+
+function renderSkillPanel() {
+  const listEl = document.getElementById('sp-creature-list');
+  const mainEl = document.getElementById('sp-main-content');
+  listEl.innerHTML = '';
+  mainEl.innerHTML = '';
+
+  // Creature list
+  state.creatures.forEach((c, i) => {
+    initCreatureSkills(c);
+    const btn  = document.createElement('button');
+    btn.className = 'sp-c-btn' + (i === skillPanelCreatureIdx ? ' active' : '');
+    btn.innerHTML = `${c.name.substring(0,12)}<br><span style="color:#553377">Lv${c.level} ${c.element.toUpperCase()}</span><br><span style="color:#228844">${c.currentHp}/${c.hp} HP</span>`;
+    btn.onclick   = () => { skillPanelCreatureIdx = i; renderSkillPanel(); };
+    listEl.appendChild(btn);
+  });
+
+  const c = state.creatures[skillPanelCreatureIdx];
+  if (!c) return;
+  initCreatureSkills(c);
+
+  const xpNext = xpToNextLevel(c.level);
+  const xpPct  = Math.min(100, Math.round(((c.xp||0) / xpNext) * 100));
+
+  // XP & skill points card
+  const xpCard = document.createElement('div');
+  xpCard.className = 'sp-card';
+  xpCard.innerHTML = `
+    <div class="sp-card-title">${c.name} — Lv${c.level}</div>
+    <div class="sp-xp-bar-wrap"><div class="sp-xp-bar" style="width:${xpPct}%"></div></div>
+    <div class="sp-xp-label">XP: ${c.xp||0} / ${xpNext} &nbsp;|&nbsp; <span style="color:#ffcc44">SP: ${c.skillPoints} unspent</span></div>
+  `;
+  mainEl.appendChild(xpCard);
+
+  // Stat upgrades card
+  const statsCard = document.createElement('div');
+  statsCard.className = 'sp-card';
+  statsCard.innerHTML = '<div class="sp-card-title">STAT UPGRADES  <span style="color:#553377;font-size:5px">(1 SP each)</span></div>';
+
+  const STAT_MAX_DISP = { hp: c.hp, attack: c.attack, defense: c.defense, speed: c.speed };
+  const BASE_MAX      = 200;
+
+  Object.entries(STAT_UPGRADE).forEach(([key, info]) => {
+    const curVal  = c[key] || 0;
+    const upgrades = c.statUpgrades[key] || 0;
+    const atMax   = upgrades >= info.max;
+    const pct     = Math.min(100, Math.round((curVal / BASE_MAX) * 100));
+
+    const row = document.createElement('div');
+    row.className = 'sp-stat-row';
+    row.innerHTML = `
+      <div class="sp-stat-name">${info.label}</div>
+      <div class="sp-stat-bar-wrap"><div class="sp-stat-bar" style="width:${pct}%;background:${info.barColor}"></div></div>
+      <div class="sp-stat-val">${curVal}</div>
+      <button class="sp-stat-up-btn" ${(atMax||c.skillPoints<1)?'disabled':''} onclick="upgradeStatSP('${key}',${skillPanelCreatureIdx})">
+        ${atMax ? 'MAX' : '+1'}
+      </button>
+    `;
+    statsCard.appendChild(row);
+  });
+  mainEl.appendChild(statsCard);
+
+  // Skill tree card
+  const tree   = SKILL_TREES[c.element] || SKILL_TREES.default;
+  const skillCard = document.createElement('div');
+  skillCard.className = 'sp-card';
+  skillCard.innerHTML = '<div class="sp-card-title">SKILL TREE  <span style="color:#553377;font-size:5px">(SP cost varies)</span></div>';
+
+  const treeWrap = document.createElement('div');
+  treeWrap.className = 'skill-tree';
+
+  tree.forEach(skill => {
+    const rank    = c.skills[skill.id] || 0;
+    const maxed   = rank >= skill.maxRank;
+    const canAfford = c.skillPoints >= skill.cost;
+    const node    = document.createElement('div');
+    node.className = 'skill-node' + (maxed ? ' maxed' : rank > 0 ? ' unlocked' : canAfford ? '' : ' locked');
+    node.innerHTML = `
+      <span class="skill-node-name">${skill.name}</span>
+      <div class="skill-node-rank">${'★'.repeat(rank)}${'☆'.repeat(skill.maxRank - rank)}</div>
+      <span class="skill-node-cost">${maxed ? 'MAXED' : `${skill.cost} SP`}</span>
+    `;
+    if (!maxed && canAfford) {
+      node.onclick = () => unlockSkill(skill.id, skillPanelCreatureIdx);
+      node.title   = skill.desc;
+    }
+    // Tooltip on hover
+    node.addEventListener('mouseenter', () => {
+      document.getElementById('rest-info').textContent = `${skill.name}: ${skill.desc}`;
+    });
+    treeWrap.appendChild(node);
+  });
+
+  skillCard.appendChild(treeWrap);
+  mainEl.appendChild(skillCard);
+}
+
+function upgradeStatSP(stat, idx) {
+  const c = state.creatures[idx];
+  if (!c || c.skillPoints < 1) return;
+  initCreatureSkills(c);
+  const info = STAT_UPGRADE[stat];
+  if ((c.statUpgrades[stat] || 0) >= info.max) return;
+
+  c.skillPoints -= 1;
+  c.statUpgrades[stat] = (c.statUpgrades[stat] || 0) + 1;
+
+  // Apply stat increase
+  const gain = stat === 'hp' ? 8 : stat === 'attack' ? 4 : stat === 'defense' ? 4 : 3;
+  c[stat]    += gain;
+  if (stat === 'hp') { c.maxHp = c.hp; c.currentHp = Math.min(c.currentHp + gain, c.hp); }
+  if (stat === 'attack' && battleData && battleData.player.id === c.id) battleData.player.attack = c.attack;
+
+  renderSkillPanel();
+  updateHUD();
+}
+
+function unlockSkill(skillId, idx) {
+  const c = state.creatures[idx];
+  if (!c) return;
+  initCreatureSkills(c);
+  const tree  = SKILL_TREES[c.element] || SKILL_TREES.default;
+  const skill = tree.find(s => s.id === skillId);
+  if (!skill) return;
+
+  const rank = c.skills[skillId] || 0;
+  if (rank >= skill.maxRank || c.skillPoints < skill.cost) return;
+
+  c.skillPoints        -= skill.cost;
+  c.skills[skillId]     = rank + 1;
+
+  // Apply permanent effects immediately
+  const fx = skill.effect;
+  if (fx.hpFlat)   { c.hp += fx.hpFlat;  c.maxHp = c.hp; c.currentHp = Math.min(c.currentHp + fx.hpFlat, c.hp); }
+  if (fx.atkFlat)  c.attack   += fx.atkFlat;
+  if (fx.defFlat)  c.defense  += fx.defFlat;
+  if (fx.spdFlat)  c.speed    += fx.spdFlat;
+  if (fx.allStats) { c.hp+=fx.allStats; c.attack+=fx.allStats; c.defense+=fx.allStats; c.speed+=fx.allStats; c.maxHp=c.hp; }
+
+  renderSkillPanel();
+  updateHUD();
+}
+
+// ── REST & HEAL SYSTEM ────────────────────────────────────
+function doRest(type) {
+  const infoEl = document.getElementById('rest-info');
+
+  if (type === 'camp') {
+    // Free rest — heals 50% HP for all creatures
+    let msg = '';
+    state.creatures.forEach(c => {
+      const heal = Math.floor(c.hp * 0.5);
+      c.currentHp = Math.min(c.hp, c.currentHp + heal);
+      msg += `${c.name}: +${heal} HP  `;
+    });
+    infoEl.textContent = `Camped! ${msg}`;
+    // Time skip to morning
+    state.time = 7;
+  }
+
+  else if (type === 'inn') {
+    // Inn — full heal + status clear, costs 30 coins
+    if (state.coins < 30) { infoEl.textContent = 'Not enough coins! Need 30.'; return; }
+    state.coins -= 30;
+    state.creatures.forEach(c => {
+      c.currentHp = c.hp;
+      c.status    = null;
+    });
+    infoEl.textContent = 'All creatures fully healed and status cleared! (-30 coins)';
+    state.time = 7;
+  }
+
+  else if (type === 'potion') {
+    // Potion — 30 HP to active creature, costs 20 coins
+    if (state.coins < 20) { infoEl.textContent = 'Not enough coins! Need 20.'; return; }
+    const pc = state.creatures[state.activeCreatureIdx];
+    if (!pc) { infoEl.textContent = 'No active creature!'; return; }
+    state.coins -= 20;
+    const heal = 30;
+    pc.currentHp = Math.min(pc.hp, pc.currentHp + heal);
+    infoEl.textContent = `${pc.name} restored ${heal} HP! (-20 coins)`;
+  }
+
+  updateHUD();
+}
+
+// ═══════════════════════════════════════════════════════════
 // ── MAIN LOOP ─────────────────────────────────────────────
 let lastTime = 0;
 
@@ -1799,6 +2232,7 @@ function init() {
   starter.energy    = 0;
   starter.status    = null;
   starter.id        = Date.now();
+  initCreatureSkills(starter);
   state.creatures.push(starter);
   state.activeCreatureIdx = 0;
 
