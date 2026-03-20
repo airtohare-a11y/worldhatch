@@ -345,7 +345,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 </style>
 </head>
 <body>
-<!-- ══ OPENING SCREEN ══ -->
+<!-- ══ OPENING SCREEN — buttons wired in JS after load ══ -->
 <div id="opening">
   <!-- Panel 0: Title -->
   <div class="ob-panel active" id="ob-p0">
@@ -354,7 +354,9 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
       <div class="ob-speaker">WORLDHATCH</div>
       <div class="ob-line" id="ob-line-0"></div>
     </div>
-    <div class="ob-nav"><button class="ob-btn primary" onclick="obNext()">NEXT ▶</button></div>
+    <div class="ob-nav">
+      <button class="ob-btn primary" id="ob-next-0">NEXT ▶</button>
+    </div>
   </div>
   <!-- Panel 1: Lore -->
   <div class="ob-panel" id="ob-p1">
@@ -364,8 +366,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
       <div class="ob-line" id="ob-line-1"></div>
     </div>
     <div class="ob-nav">
-      <button class="ob-btn" onclick="obPrev()">◀ BACK</button>
-      <button class="ob-btn primary" onclick="obNext()">NEXT ▶</button>
+      <button class="ob-btn" id="ob-prev-1">◀ BACK</button>
+      <button class="ob-btn primary" id="ob-next-1">NEXT ▶</button>
     </div>
   </div>
   <!-- Panel 2: Choose Region -->
@@ -376,8 +378,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
     </div>
     <div id="region-select"></div>
     <div class="ob-nav">
-      <button class="ob-btn" onclick="obPrev()">◀ BACK</button>
-      <button class="ob-btn primary" id="ob-choose-btn" onclick="obChooseRegion()" disabled>CHOOSE ▶</button>
+      <button class="ob-btn" id="ob-prev-2">◀ BACK</button>
+      <button class="ob-btn primary" id="ob-choose-btn" disabled>CHOOSE ▶</button>
     </div>
   </div>
   <!-- Panel 3: Dice Roll -->
@@ -397,7 +399,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
           <div class="dice-creature-rarity" id="ob-crarity">—</div>
         </div>
       </div>
-      <button class="ob-btn primary" id="ob-roll-btn" onclick="obRollDice()">ROLL THE DICE ▶</button>
+      <button class="ob-btn primary" id="ob-roll-btn">ROLL THE DICE ▶</button>
     </div>
   </div>
   <!-- Panel 4: Confirm -->
@@ -408,8 +410,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
       <div class="ob-line" id="ob-line-4"></div>
     </div>
     <div class="ob-nav">
-      <button class="ob-btn" onclick="obPrev()">◀ REROLL</button>
-      <button class="ob-btn primary" onclick="obStartGame()">BEGIN! ▶</button>
+      <button class="ob-btn" id="ob-prev-4">◀ REROLL</button>
+      <button class="ob-btn primary" id="ob-begin-btn">BEGIN! ▶</button>
     </div>
   </div>
 </div>
@@ -3302,6 +3304,19 @@ function obShowPanel(idx) {
 function obNext() { if(obCurrentPanel<4) obShowPanel(obCurrentPanel+1); }
 function obPrev() { if(obCurrentPanel>0) obShowPanel(obCurrentPanel-1); }
 
+function obWireButtons() {
+  // Wire all opening screen buttons safely after JS is loaded
+  const wire = (id, fn) => { const el=document.getElementById(id); if(el) el.onclick=fn; };
+  wire('ob-next-0', ()=>obNext());
+  wire('ob-prev-1', ()=>obPrev());
+  wire('ob-next-1', ()=>obNext());
+  wire('ob-prev-2', ()=>obPrev());
+  wire('ob-choose-btn', ()=>obChooseRegion());
+  wire('ob-roll-btn',   ()=>obRollDice());
+  wire('ob-prev-4',     ()=>obPrev());
+  wire('ob-begin-btn',  ()=>obStartGame());
+}
+
 function obBuildRegionSelect() {
   const wrap = document.getElementById('region-select');
   if(!wrap) return;
@@ -3381,7 +3396,7 @@ function obRollDice() {
     setTimeout(()=>{
       btn.disabled = false;
       btn.textContent = 'CONTINUE ▶';
-      btn.onclick = () => obShowPanel(4);
+      btn.onclick = () => obShowPanel(4);  // safe — set programmatically after load
     }, 600);
   }, 1800);
 }
@@ -3738,6 +3753,8 @@ function init() {
   // Starter creature is given by the opening screen (obStartGame)
   // No starter here — opening handles it
 
+  // Wire opening screen buttons (must happen after JS fully loaded)
+  obWireButtons();
   // Show opening screen first
   obShowPanel(0);
   updateHUD();
