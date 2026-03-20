@@ -36,32 +36,78 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 .d-btn:hover{background:#330055;color:#ff88ff;}
 .d-btn.primary{border-color:#cc44ff;color:#ff88ff;}
 
-/* ── BATTLE OVERLAY ── */
-#battle-overlay{position:absolute;inset:0;background:rgba(4,0,12,0.97);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;}
+/* ── BATTLE OVERLAY — 16-BIT STYLE ── */
+#battle-overlay{
+  position:absolute;inset:0;z-index:100;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:12px;gap:10px;
+  background:linear-gradient(160deg,#080018 0%,#0e0028 50%,#060010 100%);
+}
 #battle-overlay.show{display:flex;}
-.battle-fighters{display:flex;justify-content:space-between;width:100%;max-width:500px;gap:8px;}
-.fighter-box{background:#12002a;border:2px solid #440088;border-radius:4px;padding:10px;flex:1;}
-.fighter-box.player-side{border-color:#4488ff;}
-.fighter-box.enemy-side{border-color:#ff4444;}
-.fighter-name{font-size:7px;color:#cc88ff;margin-bottom:6px;}
-.fighter-name.player-name{color:#88aaff;}
-.fighter-name.enemy-name{color:#ff8888;}
-.stat-bar-wrap{height:8px;background:#1a0030;border-radius:2px;margin:3px 0;overflow:hidden;}
-.stat-bar-fill{height:100%;border-radius:2px;transition:width 0.4s;}
-.hp-color{background:#44ff88;}
-.en-color{background:#ffcc00;}
-.stat-label{font-size:6px;color:#664488;margin-bottom:2px;}
-.battle-log{width:100%;max-width:500px;background:#0a0018;border:1px solid #330055;border-radius:3px;padding:8px;height:80px;overflow-y:auto;font-size:6px;color:#aa88cc;line-height:2;}
+#battle-arena{
+  width:100%;max-width:520px;height:140px;position:relative;
+  border:3px solid #440088;border-radius:4px;overflow:hidden;
+  background:linear-gradient(180deg,#1a0a30 0%,#0e0820 60%,#1a0a10 100%);
+}
+#battle-arena-bg{position:absolute;inset:0;}
+#battle-arena-floor{position:absolute;bottom:0;left:0;right:0;height:35px;background:linear-gradient(180deg,#2a1840,#1a0e30);}
+.arena-fighter{position:absolute;bottom:35px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.arena-fighter.player-pos{left:30px;}
+.arena-fighter.enemy-pos{right:30px;}
+.arena-sprite{image-rendering:pixelated;display:block;}
+.arena-shadow{width:40px;height:6px;background:rgba(0,0,0,0.5);border-radius:50%;margin-top:-4px;}
+.battle-fighters{display:flex;justify-content:space-between;width:100%;max-width:520px;gap:8px;}
+.fighter-box{
+  background:#0e0022;border:2px solid #440088;border-radius:4px;
+  padding:8px 10px;flex:1;
+  box-shadow:inset 0 0 12px rgba(100,0,180,0.2);
+}
+.fighter-box.player-side{border-color:#2255cc;box-shadow:inset 0 0 12px rgba(30,80,200,0.25);}
+.fighter-box.enemy-side{border-color:#cc2222;box-shadow:inset 0 0 12px rgba(200,30,30,0.25);}
+.fighter-name{font-size:7px;color:#cc88ff;margin-bottom:5px;letter-spacing:1px;}
+.fighter-name.player-name{color:#6699ff;}
+.fighter-name.enemy-name{color:#ff7766;}
+.stat-bar-wrap{height:9px;background:#0a0018;border:1px solid #330055;border-radius:2px;margin:3px 0;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:1px;transition:width 0.35s;}
+.hp-color{background:linear-gradient(90deg,#22cc44,#44ff88);}
+.en-color{background:linear-gradient(90deg,#cc8800,#ffcc00);}
+.stat-label{font-size:6px;color:#553377;margin-bottom:2px;}
+.battle-log{
+  width:100%;max-width:520px;
+  background:#060010;border:2px solid #2a0044;border-radius:3px;
+  padding:8px;height:72px;overflow-y:auto;
+  font-size:6px;color:#997acc;line-height:2.2;
+}
 .log-hit{color:#ffcc44;}
-.log-crit{color:#44ff88;}
+.log-crit{color:#44ff88;text-shadow:0 0 4px #00cc44;}
 .log-miss{color:#ff6644;}
-.log-info{color:#8866aa;}
-.battle-moves{display:flex;gap:6px;flex-wrap:wrap;width:100%;max-width:500px;justify-content:center;}
-.move-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#cc88ff;border:2px solid #440088;padding:8px 12px;cursor:pointer;border-radius:3px;min-width:100px;text-align:center;}
-.move-btn:hover:not(:disabled){background:#2a0050;border-color:#cc44ff;}
-.move-btn:disabled{opacity:0.4;cursor:not-allowed;}
-.move-btn.special{border-color:#ffcc00;color:#ffcc00;}
-.dice-display{font-size:14px;color:#ffcc44;text-align:center;min-height:24px;}
+.log-info{color:#7755aa;}
+.battle-moves{display:flex;gap:6px;flex-wrap:wrap;width:100%;max-width:520px;justify-content:center;}
+.move-btn{
+  font-family:'Press Start 2P',monospace;font-size:6px;
+  background:#0e0022;color:#cc88ff;
+  border:2px solid #440088;border-radius:3px;
+  padding:8px 10px;cursor:pointer;min-width:90px;text-align:center;
+  box-shadow:inset 0 -2px 0 #220044;
+  transition:all 0.1s;
+}
+.move-btn:hover:not(:disabled){
+  background:#1a0038;border-color:#cc44ff;color:#ff88ff;
+  box-shadow:inset 0 -2px 0 #440088,0 0 8px rgba(200,100,255,0.3);
+}
+.move-btn:active:not(:disabled){box-shadow:inset 0 2px 0 #220044;}
+.move-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.move-btn.special{
+  border-color:#aa8800;color:#ffcc00;
+  box-shadow:inset 0 -2px 0 #664400,0 0 8px rgba(255,200,0,0.2);
+}
+.move-btn.danger{border-color:#882200;color:#ff8866;}
+.move-btn.catch{border-color:#228844;color:#66ff99;}
+.dice-display{
+  font-size:13px;color:#ffcc44;text-align:center;
+  min-height:22px;letter-spacing:2px;
+  text-shadow:0 0 8px rgba(255,200,0,0.6);
+}
 
 /* ── ENCOUNTER FLASH ── */
 #encounter-flash{position:absolute;inset:0;background:#ffffff;opacity:0;pointer-events:none;z-index:90;transition:opacity 0.1s;}
@@ -91,6 +137,18 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
     </div>
 
     <div id="battle-overlay">
+      <div id="battle-arena">
+        <canvas id="battle-arena-bg" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;"></canvas>
+        <div id="battle-arena-floor"></div>
+        <div class="arena-fighter player-pos">
+          <canvas id="player-sprite" class="arena-sprite" width="32" height="32" style="width:64px;height:64px;"></canvas>
+          <div class="arena-shadow"></div>
+        </div>
+        <div class="arena-fighter enemy-pos">
+          <canvas id="enemy-sprite" class="arena-sprite" width="32" height="32" style="width:64px;height:64px;"></canvas>
+          <div class="arena-shadow"></div>
+        </div>
+      </div>
       <div class="battle-fighters">
         <div class="fighter-box player-side">
           <div class="fighter-name player-name" id="b-player-name">YOUR CREATURE</div>
@@ -153,11 +211,9 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 //  All self-contained — no server required.
 // ═══════════════════════════════════════════════════════════
 
-const TILE  = 16;   // pixels per tile (native)
-const SCALE = 3;    // render scale
-const TS    = TILE * SCALE;  // 48px on screen
-const VIEW_W = 15;  // tiles visible horizontally
-const VIEW_H = 11;  // tiles visible vertically
+const TILE   = 24;  // 16-bit SNES style — bigger tiles
+const VIEW_W = 13;
+const VIEW_H = 10;
 
 // ── TILE TYPES ────────────────────────────────────────────
 const T = {
@@ -177,22 +233,23 @@ const T = {
   CHEST:   13,
 };
 
-// ── TILE COLORS (pixel art palette) ──────────────────────
-const TILE_COLORS = {
-  [T.GROUND]: ['#2a4a1a','#2e5020','#264416'],
-  [T.GRASS]:  ['#1a6010','#1e6814','#226e18','#187010'],
-  [T.WALL]:   ['#443322','#3a2a18','#4a3828'],
-  [T.WATER]:  ['#1a3888','#1e3e90','#1630aa'],
-  [T.SAND]:   ['#aa8833','#bb9944','#cc9938'],
-  [T.PATH]:   ['#5a4a2a','#5e4e2e','#624e28'],
-  [T.TREE]:   ['#1a5510','#1e5c14','#164c0e'],
-  [T.FLOWER]: ['#2a4a1a','#cc4488','#ff66aa'],
-  [T.CAVE]:   ['#221122','#1a0a22','#2a1a32'],
-  [T.SHRINE]: ['#442200','#553300','#664400'],
-  [T.RUIN]:   ['#333333','#3a3a3a','#2a2a2a'],
-  [T.NEST]:   ['#3a2800','#4a3800','#cc9900'],
-  [T.NPC]:    ['#2a4a1a','#2255cc','#4477ff'],
-  [T.CHEST]:  ['#2a4a1a','#aa8800','#ffcc00'],
+// ── 16-BIT TILE PALETTE — SNES quality ───────────────────
+// Each tile has base, highlight, shadow, accent colors
+const TILE_PAL = {
+  [T.GROUND]: {base:'#3a5c20',hi:'#4a7228',sh:'#2a4418',acc:'#567830'},
+  [T.GRASS]:  {base:'#1e7a0a',hi:'#28961a',sh:'#145606',acc:'#32aa22'},
+  [T.WALL]:   {base:'#5a4030',hi:'#6e5040',sh:'#3e2c20',acc:'#7a5c44'},
+  [T.WATER]:  {base:'#1840a8',hi:'#2858cc',sh:'#0e2c80',acc:'#4488ee'},
+  [T.SAND]:   {base:'#c8a840',hi:'#e0c060',sh:'#a08028',acc:'#f0d870'},
+  [T.PATH]:   {base:'#6a5838',hi:'#7e6c4a',sh:'#52442a',acc:'#8a7050'},
+  [T.TREE]:   {base:'#1e6010',hi:'#2a7a18',sh:'#124408',acc:'#369028'},
+  [T.FLOWER]: {base:'#3a5c20',hi:'#e0409a',sh:'#2a4418',acc:'#ff70bb'},
+  [T.CAVE]:   {base:'#1a0828',hi:'#2a1040',sh:'#0e0418',acc:'#440066'},
+  [T.SHRINE]: {base:'#6a3800',hi:'#8a4c00',sh:'#4a2800',acc:'#cc8820'},
+  [T.RUIN]:   {base:'#484840',hi:'#585858',sh:'#303030',acc:'#686860'},
+  [T.NEST]:   {base:'#3a2800',hi:'#c89800',sh:'#281800',acc:'#ffcc00'},
+  [T.NPC]:    {base:'#3a5c20',hi:'#2255cc',sh:'#2a4418',acc:'#4477ff'},
+  [T.CHEST]:  {base:'#3a5c20',hi:'#cc9900',sh:'#2a4418',acc:'#ffcc00'},
 };
 
 // ── REGION DEFINITIONS ───────────────────────────────────
@@ -656,6 +713,11 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
 
   updateBattleUI();
   buildMoveButtons();
+  // Draw creature sprites in arena
+  renderBattleArena();
+  drawCreatureSprite('player-sprite', playerCreature.element, false);
+  drawCreatureSprite('enemy-sprite',  wildCreature.element,   true);
+  startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
 
@@ -695,18 +757,18 @@ function buildMoveButtons() {
   wrap.innerHTML = '';
 
   const moves = [
-    { label: 'BASE ATTACK',   id: 'base', special: false },
-    { label: 'POWER STRIKE',  id: 'power', special: false },
-    { label: '⚡ SPECIAL',    id: 'special', special: true },
-    { label: 'CATCH EGG 🥚', id: 'catch', special: false },
-    { label: 'RUN AWAY',     id: 'run', special: false },
+    { label: 'BASE ATTACK',  id:'base',    cls:'',       disabled:false },
+    { label: 'POWER STRIKE', id:'power',   cls:'',       disabled:false },
+    { label: 'SPECIAL ⚡',   id:'special', cls:'special',disabled: battleData.player.energy < 100 },
+    { label: 'CATCH',        id:'catch',   cls:'catch',  disabled:false },
+    { label: 'RUN',          id:'run',     cls:'danger', disabled:false },
   ];
 
   moves.forEach(m => {
     const btn = document.createElement('button');
-    btn.className   = 'move-btn' + (m.special ? ' special' : '');
+    btn.className   = `move-btn ${m.cls}`;
     btn.textContent = m.label;
-    btn.disabled    = m.special && battleData.player.energy < 100;
+    btn.disabled    = m.disabled;
     btn.onclick     = () => playerAction(m.id);
     wrap.appendChild(btn);
   });
@@ -852,6 +914,193 @@ function showDice(roll, label) {
 
 function disableMoveButtons(disabled) {
   document.querySelectorAll('.move-btn').forEach(b => b.disabled = disabled);
+}
+
+// ── BATTLE ARENA RENDERING ────────────────────────────────
+function renderBattleArena() {
+  const bg  = document.getElementById('battle-arena-bg');
+  if (!bg) return;
+  bg.width  = bg.clientWidth  || 520;
+  bg.height = bg.clientHeight || 140;
+  const c   = bg.getContext('2d');
+
+  // Sky
+  c.fillStyle = '#12082a'; c.fillRect(0, 0, bg.width, bg.height);
+
+  // Stars
+  const stars = [[20,10],[80,20],[150,8],[230,15],[310,6],[400,12],[480,18],[50,35],[180,28],[350,30],[460,22]];
+  stars.forEach(([x,y]) => {
+    const b = Math.sin(Date.now()*0.002 + x) * 0.3 + 0.7;
+    c.fillStyle = `rgba(255,255,220,${b})`;
+    c.fillRect(x, y, 2, 2);
+  });
+
+  // Distant mountains
+  c.fillStyle = '#1a0a30';
+  [[0,80],[60,60],[130,70],[200,55],[280,65],[360,58],[430,72],[500,60],[560,80]].forEach(([x,h],i,arr)=>{
+    if (i<arr.length-1) {
+      c.beginPath();
+      c.moveTo(x, bg.height);
+      c.lineTo(x, h);
+      c.lineTo(arr[i+1][0], arr[i+1][1]);
+      c.lineTo(arr[i+1][0], bg.height);
+      c.fill();
+    }
+  });
+
+  // Ground platform
+  c.fillStyle = '#2a1040'; c.fillRect(0, bg.height-35, bg.width, 35);
+  c.fillStyle = '#3a1a50'; c.fillRect(0, bg.height-35, bg.width, 6);
+  // Ground pattern
+  for (let x=0; x<bg.width; x+=16) {
+    c.fillStyle = (Math.floor(x/16)+1)%2===0 ? '#321848':'#2a1040';
+    c.fillRect(x, bg.height-29, 16, 29);
+  }
+  c.fillStyle = '#4a2060'; c.fillRect(0, bg.height-35, bg.width, 3);
+}
+
+function drawCreatureSprite(canvasId, element, isEnemy) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const c  = cv.getContext('2d');
+  c.clearRect(0, 0, 32, 32);
+
+  const ELEM_COLORS = {
+    fire:   ['#ff6600','#ff9900','#cc3300','#ffcc44','#ff3300'],
+    ice:    ['#88ddff','#aaeeff','#4499cc','#ccf4ff','#2266aa'],
+    nature: ['#44bb22','#66dd44','#226600','#aaffaa','#334d00'],
+    spirit: ['#ffcc44','#ffee88','#cc9900','#fff4aa','#886600'],
+    dark:   ['#8833cc','#aa55ee','#440088','#cc88ff','#220044'],
+    storm:  ['#8866ff','#aaaaff','#4422cc','#ccccff','#221188'],
+    water:  ['#2266cc','#4488ee','#114488','#88bbff','#002244'],
+    sand:   ['#cc9933','#eecc55','#886600','#ffee88','#443300'],
+    magma:  ['#cc2200','#ff4400','#881100','#ff8844','#440000'],
+    crystal:['#88ccff','#aaeeff','#4488cc','#ddf4ff','#224466'],
+  };
+
+  const ec = ELEM_COLORS[element] || ELEM_COLORS.dark;
+  const [mc, lc, dc, hlc, sc] = ec;
+  const flip = isEnemy ? -1 : 1;
+
+  const q = (x, y, w, h, col) => {
+    c.fillStyle = col;
+    if (flip < 0) c.fillRect(32-x-w, y, w, h);
+    else          c.fillRect(x, y, w, h);
+  };
+
+  // Body based on element archetype
+  if (['fire','magma'].includes(element)) {
+    // Spiky angular body
+    q(8,14, 16, 14, dc);
+    q(9,12, 14, 14, mc);
+    q(10,10,12, 12, lc);
+    q(12,8,  8, 6,  lc);   // neck
+    q(11,4,  10,8,  mc);   // head
+    q(12,5,  8, 6,  lc);
+    // Spines on back
+    q(6, 10, 3, 8, lc);
+    q(4, 8,  3, 6, hlc);
+    q(23,10, 3, 8, dc);
+    q(9, 4,  3, 6, lc);
+    q(7, 2,  3, 5, hlc);
+    // Eyes
+    q(13,6, 2, 2, '#ff2200'); q(14,6,1,1,'#ffffff');
+    q(18,6, 2, 2, '#ff2200'); q(18,6,1,1,'#ffffff');
+    // Legs
+    q(9, 26, 5, 6, dc); q(18, 26, 5, 6, dc);
+    q(8, 28, 5, 4, sc); q(17, 28, 5, 4, sc);
+    // Glow
+    c.fillStyle = `rgba(255,100,0,0.18)`;
+    c.fillRect(4,4,24,24);
+  } else if (['ice','crystal'].includes(element)) {
+    // Angular crystalline body
+    q(10,16, 12, 12, dc);
+    q(9, 14, 14, 12, mc);
+    q(10,12, 12, 10, lc);
+    q(12,8,  8,  8,  lc);  // head
+    q(13,7,  6,  7,  hlc);
+    // Crystal shards
+    q(6, 6,  4, 10, lc); q(7,4,2,4,hlc);
+    q(22,8,  4, 8,  mc);  q(23,6,2,4,lc);
+    q(14,2,  4, 6,  hlc); q(15,1,2,3,'#ffffff');
+    // Eyes
+    q(13,9, 2, 2, '#0044ff'); q(14,9,1,1,'#aaeeff');
+    q(18,9, 2, 2, '#0044ff'); q(18,9,1,1,'#aaeeff');
+    // Legs
+    q(10,27, 4, 5, dc); q(18,27, 4, 5, dc);
+  } else if (['nature','water'].includes(element)) {
+    // Round organic body
+    q(8, 16, 16, 14, dc);
+    q(7, 14, 18, 14, mc);
+    q(8, 12, 16, 12, lc);
+    q(10,8,  12, 10, mc);  // head
+    q(11,7,  10, 8, lc);
+    q(12,6,  8,  6, hlc);
+    // Leaf/fin decorations
+    q(4, 12, 5, 10, lc);  q(3,10,4,6,mc);
+    q(23,12, 5, 10, lc);  q(25,10,4,6,mc);
+    // Eyes
+    q(12,9, 3, 3, '#00aa22'); q(13,9,1,2,'#ffffff');
+    q(18,9, 3, 3, '#00aa22'); q(18,9,1,2,'#ffffff');
+    // Legs
+    q(9, 28, 5, 4, dc); q(18,28, 5, 4, dc);
+    // Spots
+    q(12,14,2,2, hlc); q(17,16,2,2, hlc);
+  } else if (['dark','spirit'].includes(element)) {
+    // Sleek mysterious body
+    q(10,18, 12, 12, dc);
+    q(9, 16, 14, 12, mc);
+    q(10,12, 12, 10, mc);
+    q(12,7,  8,  9,  mc);  // head
+    q(13,6,  6,  8, lc);
+    q(14,5,  4,  6, hlc);
+    // Ears
+    q(11,3, 3, 6, mc); q(12,2,2,4,lc);
+    q(19,3, 3, 6, mc); q(19,2,2,4,lc);
+    // Tail
+    q(22,18, 4, 12, mc); q(23,16,3,4,lc);
+    q(24,14, 4, 6, lc);  q(25,12,3,4,hlc);
+    // Eyes
+    q(13,8, 2, 3, hlc); q(14,8,1,1,'#ffffff');
+    q(18,8, 2, 3, hlc); q(18,8,1,1,'#ffffff');
+    // Legs
+    q(10,28,4,4,dc); q(17,28,4,4,dc);
+    // Aura
+    c.fillStyle = `rgba(150,0,255,0.15)`;
+    c.fillRect(2,2,28,28);
+  } else if (['storm','sand'].includes(element)) {
+    // Broad powerful body
+    q(7, 17, 18, 13, dc);
+    q(8, 14, 16, 13, mc);
+    q(9, 12, 14, 10, lc);
+    q(10,8,  12, 9,  mc);  // head
+    q(11,7,  10, 8, lc);
+    // Horns / tusks
+    q(9,4,  4, 6, lc);  q(8,2,3,5,hlc);
+    q(19,4, 4, 6, lc);  q(21,2,3,5,hlc);
+    // Eyes
+    q(12,9, 3, 2, '#ffdd00'); q(13,9,1,1,'#ffffff');
+    q(17,9, 3, 2, '#ffdd00'); q(17,9,1,1,'#ffffff');
+    // Legs
+    q(8, 28,5,4,dc); q(19,28,5,4,dc);
+    q(7, 27,5,2,sc); q(18,27,5,2,sc);
+  }
+
+  // Outline pass
+  c.globalCompositeOperation = 'destination-over';
+  c.fillStyle = sc;
+  c.fillRect(0,0,32,32);
+  c.globalCompositeOperation = 'source-over';
+}
+
+let arenaAnimId = null;
+function startArenaAnim() {
+  if (arenaAnimId) cancelAnimationFrame(arenaAnimId);
+  function loop() {
+    renderBattleArena();
+    if (battleData && !battleData.over) arenaAnimId = requestAnimationFrame(loop);
+  }
+  loop();
 }
 
 function endBattle(won, caught) {
@@ -1074,12 +1323,7 @@ function render() {
 
       const px = tx * TILE;
       const py = ty * TILE;
-      const colors = TILE_COLORS[tile] || TILE_COLORS[T.GROUND];
-      const colorIdx = ((mx + my) % colors.length);
-      ctx.fillStyle = colors[colorIdx];
-      ctx.fillRect(px, py, TILE, TILE);
-
-      // Tile decorations
+      drawTile(ctx, tile, px, py, mx, my);
       drawTileDetail(ctx, tile, px, py, mx, my);
     }
   }
@@ -1090,10 +1334,33 @@ function render() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Weather overlay
+  // Weather effects
+  if (state.weather === 'rain') {
+    for (let i = 0; i < 40; i++) {
+      const rx = ((animFrame * 3 + i * 37) % (canvas.width + 20)) - 10;
+      const ry = ((animFrame * 6 + i * 53) % (canvas.height + 10));
+      ctx.fillStyle = 'rgba(160,180,255,0.5)';
+      ctx.fillRect(rx, ry, 1, 6);
+    }
+  }
   if (state.weather === 'fog') {
-    ctx.fillStyle = 'rgba(180,180,220,0.18)';
+    ctx.fillStyle = 'rgba(180,190,220,0.22)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(200,210,240,0.12)';
+    const fogX = (animFrame * 0.3) % canvas.width;
+    ctx.fillRect(-fogX, 0, canvas.width * 2, canvas.height);
+  }
+  if (state.weather === 'storm') {
+    for (let i = 0; i < 60; i++) {
+      const rx = ((animFrame * 5 + i * 29) % (canvas.width + 20)) - 10;
+      const ry = ((animFrame * 8 + i * 41) % (canvas.height + 10));
+      ctx.fillStyle = 'rgba(140,160,255,0.6)';
+      ctx.fillRect(rx, ry, 1, 8);
+    }
+    if (animFrame % 120 < 3) {
+      ctx.fillStyle = 'rgba(255,255,200,0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
   }
 
   // Player
@@ -1105,103 +1372,359 @@ function render() {
   animFrame++;
 }
 
+// ── 16-BIT TILE RENDERER ─────────────────────────────────
+function p(ctx, x, y, w, h, color) {
+  ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
+}
+
+function drawTile(ctx, tile, px, py, mx, my) {
+  const pal = TILE_PAL[tile] || TILE_PAL[T.GROUND];
+  const T24 = TILE;
+
+  // Base fill with checkerboard variation
+  const alt = (mx + my) % 2;
+  ctx.fillStyle = alt ? pal.base : pal.sh;
+  ctx.fillRect(px, py, T24, T24);
+
+  // Top highlight edge
+  ctx.fillStyle = pal.hi;
+  ctx.fillRect(px, py, T24, 2);
+  ctx.fillRect(px, py, 2, T24);
+
+  // Bottom shadow edge
+  ctx.fillStyle = pal.sh;
+  ctx.fillRect(px, py + T24 - 2, T24, 2);
+  ctx.fillRect(px + T24 - 2, py, 2, T24);
+}
+
 function drawTileDetail(ctx, tile, px, py, mx, my) {
+  const pal  = TILE_PAL[tile] || TILE_PAL[T.GROUND];
+  const af   = animFrame;
+  const T24  = TILE;
+
+  if (tile === T.GROUND) {
+    // Grass texture patches
+    const seed = (mx * 7 + my * 13) % 6;
+    ctx.fillStyle = pal.hi;
+    if (seed < 2) {
+      p(ctx, px+3,  py+5,  3, 1, pal.hi);
+      p(ctx, px+14, py+9,  3, 1, pal.hi);
+      p(ctx, px+8,  py+16, 3, 1, pal.hi);
+    }
+    if (seed < 4) {
+      p(ctx, px+18, py+4,  2, 1, pal.acc);
+      p(ctx, px+6,  py+19, 2, 1, pal.acc);
+    }
+  }
+
   if (tile === T.GRASS) {
-    ctx.fillStyle = '#22880a';
-    ctx.fillRect(px + 2, py + 1, 2, 4);
-    ctx.fillRect(px + 7, py + 2, 2, 5);
-    ctx.fillRect(px + 12, py + 1, 2, 4);
+    // Rich layered grass blades with animation
+    const sway = Math.sin(af * 0.04 + mx * 0.7) * 1;
+    const sw2  = Math.sin(af * 0.05 + my * 0.9) * 1;
+    // Blade cluster 1
+    p(ctx, px+2+sway,  py+10, 2, 9,  pal.hi);
+    p(ctx, px+3+sway,  py+8,  2, 4,  pal.acc);
+    // Blade cluster 2
+    p(ctx, px+8+sw2,   py+11, 2, 9,  pal.base);
+    p(ctx, px+9+sw2,   py+8,  2, 5,  pal.hi);
+    // Blade cluster 3
+    p(ctx, px+15+sway, py+9,  2, 9,  pal.hi);
+    p(ctx, px+16+sway, py+7,  2, 5,  pal.acc);
+    // Blade cluster 4
+    p(ctx, px+20+sw2,  py+10, 2, 8,  pal.base);
+    // Dark ground between blades
+    p(ctx, px+5,  py+18, 3, 3,  pal.sh);
+    p(ctx, px+12, py+19, 3, 2,  pal.sh);
   }
+
   if (tile === T.TREE) {
-    ctx.fillStyle = '#0f3a08';
-    ctx.fillRect(px + 3, py + 2, 10, 9);
-    ctx.fillStyle = '#1a5510';
-    ctx.fillRect(px + 5, py + 1, 6, 3);
-    ctx.fillStyle = '#3a2a10';
-    ctx.fillRect(px + 6, py + 11, 4, 5);
+    // Trunk
+    p(ctx, px+9,  py+16, 6, 8,  '#5a3a18');
+    p(ctx, px+10, py+16, 4, 8,  '#7a5228');
+    // Root flare
+    p(ctx, px+7,  py+21, 10, 3, '#4a3010');
+    // Canopy — layered circles
+    p(ctx, px+4,  py+6,  16, 12, pal.sh);
+    p(ctx, px+6,  py+4,  12, 14, pal.base);
+    p(ctx, px+8,  py+2,  8,  6,  pal.hi);
+    p(ctx, px+5,  py+8,  14, 8,  pal.base);
+    // Highlight cluster
+    p(ctx, px+9,  py+4,  4,  3,  pal.acc);
+    p(ctx, px+7,  py+7,  5,  4,  pal.hi);
+    // Shadow underside
+    p(ctx, px+6,  py+15, 12, 3,  pal.sh);
   }
+
   if (tile === T.WATER) {
-    const wave = Math.floor(animFrame * 0.05 + mx * 0.3) % 2;
-    ctx.fillStyle = wave ? '#2255cc' : '#1a44aa';
-    ctx.fillRect(px + 1, py + 6, 14, 3);
+    // Animated water layers
+    const wv1 = Math.floor(af * 0.06 + mx * 0.5) % 3;
+    const wv2 = Math.floor(af * 0.04 + my * 0.4) % 4;
+    // Deep layer
+    p(ctx, px, py+4,  T24, 8, pal.sh);
+    p(ctx, px, py+12, T24, 8, pal.base);
+    // Wave highlights
+    const wx1 = ((mx*4 + af/4) % (T24-6));
+    const ww1 = 4 + wv1;
+    p(ctx, px+wx1, py+5,  ww1, 2, pal.acc);
+    p(ctx, px+wx1, py+13, ww1, 2, pal.hi);
+    const wfx = ((my*5 + af/3 + 8) % (T24-4));
+    p(ctx, px+wfx, py+9, 6, 2, '#88bbff');
+    // Foam edge
+    if (wv2 === 0) p(ctx, px+2, py+3, 8, 1, '#aaccff');
+    if (wv2 === 1) p(ctx, px+10, py+3, 8, 1, '#aaccff');
+    // Sparkle
+    if ((af + mx*3 + my*5) % 40 < 3)
+      p(ctx, px+T24/2, py+T24/3, 2, 2, '#ffffff');
   }
+
+  if (tile === T.WALL) {
+    // Stone wall with mortar lines
+    const row = my % 2;
+    p(ctx, px+1,        py+2,  10, 9, pal.hi);
+    p(ctx, px+12,       py+2,  10, 9, row ? pal.base : pal.hi);
+    p(ctx, px+(row?6:0),py+12, 10, 9, pal.base);
+    p(ctx, px+(row?0:6),py+12, 10, 9, pal.sh);
+    // Mortar
+    p(ctx, px, py+11, T24, 2, '#2a1808');
+    p(ctx, px+(row?5:11), py+2, 2, 9, '#2a1808');
+    // Lichen
+    if ((mx*11+my*7)%5===0) p(ctx, px+4, py+4, 3, 2, '#3a5a20');
+  }
+
+  if (tile === T.PATH) {
+    // Dirt path with pebbles
+    const seed = (mx*5+my*11)%8;
+    p(ctx, px+2, py+2, T24-4, T24-4, pal.hi);
+    // Pebbles
+    if (seed<4) { p(ctx,px+4, py+6, 3, 2, pal.sh); }
+    if (seed<6) { p(ctx,px+14,py+14,2, 2, pal.sh); }
+    if (seed<3) { p(ctx,px+8, py+18,4, 2, pal.acc); }
+    // Worn tracks
+    p(ctx, px+9, py, 6, T24, pal.base);
+    p(ctx, px+10,py, 4, T24, pal.hi);
+  }
+
   if (tile === T.CAVE) {
-    ctx.fillStyle = '#000';
-    ctx.fillRect(px + 4, py + 5, 8, 9);
-    ctx.fillStyle = '#330022';
-    ctx.fillRect(px + 5, py + 6, 6, 7);
+    // Cave entrance with depth
+    p(ctx, px+4,  py+8,  16, 16, '#000000');
+    p(ctx, px+6,  py+6,  12, 14, '#0a000f');
+    // Rocky arch
+    p(ctx, px+3,  py+6,  4,  4,  pal.acc);
+    p(ctx, px+17, py+6,  4,  4,  pal.acc);
+    p(ctx, px+5,  py+4,  14, 4,  pal.acc);
+    p(ctx, px+6,  py+3,  12, 3,  pal.hi);
+    // Dark glow inside
+    const glow = Math.sin(af*0.05)*0.15+0.15;
+    ctx.fillStyle = `rgba(80,0,120,${glow})`;
+    ctx.fillRect(px+7, py+8, 10, 10);
+    // Stalactites
+    p(ctx, px+8,  py+8,  2, 4, '#221133');
+    p(ctx, px+12, py+8,  2, 3, '#221133');
+    p(ctx, px+16, py+8,  2, 5, '#221133');
   }
+
   if (tile === T.SHRINE) {
-    ctx.fillStyle = '#884400';
-    ctx.fillRect(px + 5, py + 4, 6, 10);
-    ctx.fillStyle = '#cc6600';
-    ctx.fillRect(px + 4, py + 3, 8, 3);
-    const glow = Math.sin(animFrame * 0.08) * 0.3 + 0.5;
-    ctx.fillStyle = `rgba(255,200,50,${glow})`;
-    ctx.fillRect(px + 6, py + 6, 4, 4);
+    // Stone base
+    p(ctx, px+3,  py+18, 18, 5, '#553300');
+    p(ctx, px+4,  py+17, 16, 3, '#664400');
+    // Pillar
+    p(ctx, px+9,  py+6,  6, 14, '#7a5c00');
+    p(ctx, px+10, py+6,  4, 14, '#9a7800');
+    // Top ornament
+    p(ctx, px+6,  py+4,  12, 4,  '#aa8800');
+    p(ctx, px+8,  py+2,  8,  4,  '#cc9900');
+    p(ctx, px+10, py+1,  4,  3,  '#ffcc00');
+    // Pulsing glow
+    const shrine_glow = Math.sin(af*0.06)*0.35+0.55;
+    ctx.fillStyle = `rgba(255,180,0,${shrine_glow*0.5})`;
+    ctx.fillRect(px+7, py+2, 10, 14);
+    p(ctx, px+11, py+8, 2, 6, `rgba(255,220,100,${shrine_glow})`);
   }
+
   if (tile === T.RUIN) {
-    ctx.fillStyle = '#555';
-    ctx.fillRect(px + 2, py + 8, 5, 6);
-    ctx.fillRect(px + 9, py + 6, 5, 8);
-    ctx.fillStyle = '#333';
-    ctx.fillRect(px + 4, py + 10, 2, 4);
+    // Crumbled stone blocks
+    p(ctx, px+1,  py+12, 8,  11, pal.hi);
+    p(ctx, px+2,  py+11, 6,  2,  pal.acc);
+    p(ctx, px+13, py+8,  9,  15, pal.base);
+    p(ctx, px+14, py+7,  7,  3,  pal.acc);
+    // Rubble
+    p(ctx, px+9,  py+18, 4,  3,  pal.sh);
+    p(ctx, px+5,  py+20, 5,  2,  pal.sh);
+    // Cracks
+    p(ctx, px+3,  py+14, 1,  6,  '#1a1a1a');
+    p(ctx, px+15, py+10, 1,  5,  '#1a1a1a');
+    // Moss
+    p(ctx, px+1,  py+13, 4,  2,  '#2a5010');
+    p(ctx, px+14, py+8,  3,  2,  '#2a5010');
   }
+
   if (tile === T.NEST) {
-    const pulse = Math.sin(animFrame * 0.1) * 0.4 + 0.6;
-    ctx.fillStyle = `rgba(220,170,0,${pulse})`;
-    ctx.fillRect(px + 4, py + 4, 8, 8);
-    ctx.fillStyle = '#ffdd44';
-    ctx.fillRect(px + 6, py + 6, 4, 4);
+    // Egg nest — twigs and golden egg
+    const pulse = Math.sin(af*0.08)*0.4+0.7;
+    // Nest twigs
+    p(ctx, px+4,  py+14, 16, 5,  '#6a4020');
+    p(ctx, px+6,  py+12, 12, 5,  '#7a4c28');
+    p(ctx, px+3,  py+15, 4,  3,  '#5a3418');
+    p(ctx, px+17, py+15, 4,  3,  '#5a3418');
+    // Egg
+    ctx.fillStyle = `rgba(255,200,0,${pulse})`;
+    ctx.fillRect(px+8, py+6, 8, 10);
+    p(ctx, px+9,  py+5,  6, 10, `rgba(255,220,50,${pulse})`);
+    p(ctx, px+10, py+4,  4, 10, '#ffe050');
+    // Egg highlight
+    p(ctx, px+10, py+6,  2, 3,  '#ffffff');
+    // Glow halo
+    ctx.fillStyle = `rgba(255,180,0,${pulse*0.3})`;
+    ctx.fillRect(px+4, py+2, 16, 18);
   }
+
   if (tile === T.FLOWER) {
-    ctx.fillStyle = '#cc4488';
-    ctx.fillRect(px + 6, py + 4, 4, 4);
-    ctx.fillStyle = '#ffaacc';
-    ctx.fillRect(px + 7, py + 5, 2, 2);
+    // Flower patch — multiple blooms
+    const fswap = Math.floor(af*0.02+mx) % 2;
+    const fcol  = fswap ? '#ff66aa' : '#ffaa22';
+    const fcol2 = fswap ? '#cc3388' : '#cc8800';
+    p(ctx, px+3,  py+8,  3, 3, fcol);
+    p(ctx, px+4,  py+7,  1, 1, '#ffffff');
+    p(ctx, px+12, py+10, 3, 3, fcol2);
+    p(ctx, px+13, py+9,  1, 1, '#ffffff');
+    p(ctx, px+7,  py+14, 3, 3, fcol);
+    p(ctx, px+8,  py+13, 1, 1, '#ffffff');
+    p(ctx, px+18, py+7,  3, 3, fcol2);
+    // Stems
+    p(ctx, px+4,  py+11, 1, 4, '#2a7010');
+    p(ctx, px+13, py+13, 1, 3, '#2a7010');
+    p(ctx, px+8,  py+17, 1, 4, '#2a7010');
+    p(ctx, px+19, py+10, 1, 5, '#2a7010');
+  }
+
+  if (tile === T.SAND) {
+    // Desert sand with ripples
+    const rip  = Math.floor(af*0.02+mx+my) % T24;
+    p(ctx, px+0,  py+rip%8,     T24, 2, pal.hi);
+    p(ctx, px+0,  py+(rip%8)+10,T24, 2, pal.acc);
+    // Small rocks
+    const sr = (mx*9+my*7)%7;
+    if (sr<3) p(ctx, px+4, py+10, 4, 3, pal.sh);
+    if (sr<5) p(ctx, px+16,py+16, 3, 2, pal.sh);
   }
 }
 
+// ── 16-BIT PLAYER SPRITE ─────────────────────────────────
 function drawPlayer(ctx) {
-  const sx = (state.px - state.camX) * TILE;
-  const sy = (state.py - state.camY) * TILE;
-  if (sx < 0 || sy < 0 || sx >= VIEW_W * TILE || sy >= VIEW_H * TILE) return;
+  const sx  = (state.px - state.camX) * TILE;
+  const sy  = (state.py - state.camY) * TILE;
+  if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
 
-  const bob = Math.sin(animFrame * 0.15) * 1;
+  const af    = animFrame;
+  const step  = Math.floor(af * 0.14) % 4; // 4-frame walk cycle
+  const bob   = (step === 1 || step === 3) ? -1 : 0;
+  const legA  = (step < 2) ? 1 : -1;
+  const dir   = state.playerDir;
+  const isMoving = Object.values(state.keys).some(v=>v);
 
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fillRect(sx + 3, sy + 14, 10, 3);
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Body
-  ctx.fillStyle = '#3366ff';
-  ctx.fillRect(sx + 4, sy + 4 + bob, 8, 8);
-
-  // Head
-  ctx.fillStyle = '#ffccaa';
-  ctx.fillRect(sx + 5, sy + 1 + bob, 6, 5);
-
-  // Eyes
-  ctx.fillStyle = '#000';
-  if (state.playerDir === 'down' || state.playerDir === 'right') {
-    ctx.fillRect(sx + 7, sy + 2 + bob, 1, 2);
-    ctx.fillRect(sx + 9, sy + 2 + bob, 1, 2);
-  } else {
-    ctx.fillRect(sx + 6, sy + 2 + bob, 1, 2);
-    ctx.fillRect(sx + 8, sy + 2 + bob, 1, 2);
+  // Scarf / cape (behind body) — direction specific
+  if (dir === 'down' || dir === 'right' || dir === 'left') {
+    p(ctx, sx+7, sy+7+bob, 10, 2, '#cc2200');
+    p(ctx, sx+8, sy+9+bob, 8,  3, '#ee3300');
   }
 
-  // Legs
-  const legOff = Math.floor(animFrame * 0.12) % 2;
-  ctx.fillStyle = '#224499';
-  ctx.fillRect(sx + 4, sy + 12 + (legOff ? 1 : 0), 3, 4);
-  ctx.fillRect(sx + 9, sy + 12 + (legOff ? 0 : 1), 3, 4);
+  // Backpack
+  if (dir === 'down') {
+    // no backpack visible from front
+  } else if (dir === 'up') {
+    p(ctx, sx+6,  sy+8+bob, 4, 8, '#8844aa');
+    p(ctx, sx+7,  sy+7+bob, 3, 7, '#9955bb');
+    p(ctx, sx+14, sy+8+bob, 4, 8, '#8844aa');
+  }
 
-  // Hat
-  ctx.fillStyle = '#ffcc00';
-  ctx.fillRect(sx + 5, sy - 1 + bob, 6, 3);
-  ctx.fillStyle = '#ffdd44';
-  ctx.fillRect(sx + 6, sy - 2 + bob, 4, 2);
+  // Legs — walking animation
+  if (dir === 'down' || dir === 'up') {
+    // Left leg
+    p(ctx, sx+8,  sy+16+bob,       4, 6+legA, '#2244aa');
+    p(ctx, sx+8,  sy+22+bob+legA,  4, 2,      '#3355cc');
+    // Right leg
+    p(ctx, sx+12, sy+16+bob,       4, 6-legA, '#2244aa');
+    p(ctx, sx+12, sy+22+bob-legA,  4, 2,      '#3355cc');
+  } else {
+    p(ctx, sx+8,  sy+16+bob,    4, 7, '#2244aa');
+    p(ctx, sx+12, sy+16+bob,    4, 7, '#2244aa');
+    p(ctx, sx+7+legA,  sy+22+bob, 4, 2, '#3355cc');
+    p(ctx, sx+13+legA, sy+22+bob, 4, 2, '#3355cc');
+  }
+
+  // Shoes
+  p(ctx, sx+7,  sy+22+bob, 5, 2, '#221100');
+  p(ctx, sx+12, sy+22+bob, 5, 2, '#221100');
+
+  // Body / jacket
+  p(ctx, sx+6,  sy+8+bob,  12, 9, '#1a66cc');   // jacket main
+  p(ctx, sx+7,  sy+8+bob,  10, 7, '#2277dd');   // jacket front
+  p(ctx, sx+9,  sy+9+bob,  6,  5, '#3388ee');   // highlight
+  p(ctx, sx+10, sy+8+bob,  4,  1, '#ffdd00');   // collar accent
+
+  // Arms
+  if (dir === 'left' || dir === 'right') {
+    const armSwing = isMoving ? legA * 2 : 0;
+    p(ctx, sx+4,  sy+9+bob+armSwing,  4, 7, '#1a55bb');
+    p(ctx, sx+16, sy+9+bob-armSwing, 4, 7, '#1a55bb');
+    // Hands
+    p(ctx, sx+4,  sy+15+bob+armSwing, 4, 3, '#ffccaa');
+    p(ctx, sx+16, sy+15+bob-armSwing, 4, 3, '#ffccaa');
+  } else {
+    p(ctx, sx+3,  sy+9+bob, 4, 7, '#1a55bb');
+    p(ctx, sx+17, sy+9+bob, 4, 7, '#1a55bb');
+    p(ctx, sx+3,  sy+15+bob, 4, 3, '#ffccaa');
+    p(ctx, sx+17, sy+15+bob, 4, 3, '#ffccaa');
+  }
+
+  // Neck
+  p(ctx, sx+10, sy+5+bob, 4, 4, '#ffccaa');
+
+  // Head
+  p(ctx, sx+6,  sy+1+bob,  12, 8, '#ffddbb');  // head base
+  p(ctx, sx+7,  sy+1+bob,  10, 7, '#ffccaa');  // face
+  p(ctx, sx+8,  sy+2+bob,  8,  5, '#ffd8aa');  // face highlight
+
+  // Hair
+  p(ctx, sx+6,  sy+1+bob,  12, 3, '#4a2800');  // dark hair base
+  p(ctx, sx+7,  sy+1+bob,  10, 2, '#6a3c10');  // hair highlight
+  p(ctx, sx+6,  sy+1+bob,  3,  4, '#4a2800');  // side hair L
+  p(ctx, sx+15, sy+1+bob,  3,  4, '#4a2800');  // side hair R
+
+  // Eyes — direction aware
+  if (dir === 'up') {
+    // back of head, no eyes
+    p(ctx, sx+6, sy+1+bob, 12, 6, '#4a2800');
+  } else if (dir === 'left') {
+    p(ctx, sx+8, sy+4+bob, 2, 2, '#000000');
+    p(ctx, sx+9, sy+4+bob, 1, 1, '#ffffff');
+  } else if (dir === 'right') {
+    p(ctx, sx+14, sy+4+bob, 2, 2, '#000000');
+    p(ctx, sx+14, sy+4+bob, 1, 1, '#ffffff');
+  } else { // down / front
+    p(ctx, sx+8,  sy+4+bob, 2, 2, '#222222');
+    p(ctx, sx+14, sy+4+bob, 2, 2, '#222222');
+    p(ctx, sx+9,  sy+4+bob, 1, 1, '#ffffff');
+    p(ctx, sx+15, sy+4+bob, 1, 1, '#ffffff');
+    // Smile
+    p(ctx, sx+9,  sy+7+bob, 1, 1, '#cc7755');
+    p(ctx, sx+10, sy+8+bob, 4, 1, '#cc7755');
+    p(ctx, sx+13, sy+7+bob, 1, 1, '#cc7755');
+  }
+
+  // Hat — iconic trainer style
+  p(ctx, sx+5,  sy-2+bob, 14, 5, '#dd2200');  // hat brim
+  p(ctx, sx+7,  sy-5+bob, 10, 5, '#ee3300');  // hat crown
+  p(ctx, sx+8,  sy-5+bob, 8,  3, '#ff4400');  // hat highlight
+  p(ctx, sx+4,  sy-1+bob, 16, 3, '#cc1100');  // brim underside shadow
+  p(ctx, sx+9,  sy-2+bob, 6,  2, '#ffffff');  // hat logo band
+  p(ctx, sx+10, sy-2+bob, 4,  1, '#ffcc00');  // logo detail
 }
 
 function drawMinimap() {
