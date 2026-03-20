@@ -165,7 +165,3684 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .vs-badge{
   position:absolute;left:50%;top:50%;
   transform:translate(-50%,-50%);
+  font-family:'Press Start 2P',monospace;<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>WORLDHATCH — World Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;touch-action:none;}
+
+
+
+/* ── LAYOUT ── */
+#game-wrap{position:relative;width:100vw;max-width:800px;}
+#top-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#0d001a;border-bottom:2px solid #440088;}
+#top-bar .player-info{font-size:7px;color:#cc88ff;}
+#top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
+#top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
+#game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;touch-action:none;}
+
+/* ── HUD ── */
+#hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
+.hud-box{background:#12002a;border:1px solid #330055;border-radius:3px;padding:5px 8px;font-size:6px;}
+.hud-label{color:#664488;margin-bottom:3px;}
+.hud-val{color:#cc88ff;}
+.hp-bar-wrap,.en-bar-wrap{height:6px;background:#1a0030;border-radius:2px;width:80px;margin-top:3px;overflow:hidden;}
+.hp-fill{height:100%;background:#44ff88;border-radius:2px;transition:width 0.2s;}
+.en-fill{height:100%;background:#ffcc00;border-radius:2px;transition:width 0.2s;}
+
+/* ── DIALOG ── */
+#dialog{position:absolute;bottom:0;left:0;right:0;background:rgba(8,0,20,0.97);border-top:3px solid #cc44ff;padding:12px 16px;min-height:90px;display:none;z-index:50;}
+#dialog-name{font-size:8px;color:#ff88ff;margin-bottom:8px;}
+#dialog-text{font-size:7px;color:#e0d0ff;line-height:1.8;margin-bottom:10px;}
+#dialog-options{display:flex;gap:8px;flex-wrap:wrap;}
+.d-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#cc88ff;border:1px solid #660099;padding:8px 14px;cursor:pointer;border-radius:2px;touch-action:manipulation;}
+.d-btn:hover{background:#330055;color:#ff88ff;}
+.d-btn.primary{border-color:#cc44ff;color:#ff88ff;}
+
+/* ── BATTLE OVERLAY — 16-BIT STYLE ── */
+#battle-overlay{
+  position:absolute;inset:0;z-index:100;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:12px;gap:10px;
+  background:linear-gradient(160deg,#080018 0%,#0e0028 50%,#060010 100%);
+}
+#battle-overlay.show{display:flex;}
+#battle-arena{
+  width:100%;max-width:520px;height:140px;position:relative;
+  border:3px solid #440088;border-radius:4px;overflow:hidden;
+  background:linear-gradient(180deg,#1a0a30 0%,#0e0820 60%,#1a0a10 100%);
+}
+#battle-arena-bg{position:absolute;inset:0;}
+#battle-arena-floor{position:absolute;bottom:0;left:0;right:0;height:35px;background:linear-gradient(180deg,#2a1840,#1a0e30);}
+.arena-fighter{position:absolute;bottom:35px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.arena-fighter.player-pos{left:30px;}
+.arena-fighter.enemy-pos{right:30px;}
+.arena-sprite{image-rendering:pixelated;display:block;}
+.arena-shadow{width:40px;height:6px;background:rgba(0,0,0,0.5);border-radius:50%;margin-top:-4px;}
+.battle-fighters{display:flex;justify-content:space-between;width:100%;max-width:520px;gap:8px;}
+.fighter-box{
+  background:#0e0022;border:2px solid #440088;border-radius:4px;
+  padding:8px 10px;flex:1;
+  box-shadow:inset 0 0 12px rgba(100,0,180,0.2);
+}
+.fighter-box.player-side{border-color:#2255cc;box-shadow:inset 0 0 12px rgba(30,80,200,0.25);}
+.fighter-box.enemy-side{border-color:#cc2222;box-shadow:inset 0 0 12px rgba(200,30,30,0.25);}
+.fighter-name{font-size:7px;color:#cc88ff;margin-bottom:5px;letter-spacing:1px;}
+.fighter-name.player-name{color:#6699ff;}
+.fighter-name.enemy-name{color:#ff7766;}
+.stat-bar-wrap{height:9px;background:#0a0018;border:1px solid #330055;border-radius:2px;margin:3px 0;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:1px;transition:width 0.35s;}
+.hp-color{background:linear-gradient(90deg,#22cc44,#44ff88);}
+.en-color{background:linear-gradient(90deg,#cc8800,#ffcc00);}
+.stat-label{font-size:6px;color:#553377;margin-bottom:2px;}
+.battle-log{
+  width:100%;max-width:520px;
+  background:#060010;border:2px solid #2a0044;border-radius:3px;
+  padding:8px;height:72px;overflow-y:auto;
+  font-size:6px;color:#997acc;line-height:2.2;
+}
+.log-hit{color:#ffcc44;}
+.log-crit{color:#44ff88;text-shadow:0 0 4px #00cc44;}
+.log-miss{color:#ff6644;}
+.log-info{color:#7755aa;}
+.battle-moves{display:flex;gap:6px;flex-wrap:wrap;width:100%;max-width:520px;justify-content:center;}
+.move-btn{touch-action:manipulation;
+  font-family:'Press Start 2P',monospace;font-size:6px;
+  background:#0e0022;color:#cc88ff;
+  border:2px solid #440088;border-radius:3px;
+  padding:8px 10px;cursor:pointer;min-width:90px;text-align:center;
+  box-shadow:inset 0 -2px 0 #220044;
+  transition:all 0.1s;
+}
+.move-btn:hover:not(:disabled){
+  background:#1a0038;border-color:#cc44ff;color:#ff88ff;
+  box-shadow:inset 0 -2px 0 #440088,0 0 8px rgba(200,100,255,0.3);
+}
+.move-btn:active:not(:disabled){box-shadow:inset 0 2px 0 #220044;}
+.move-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.move-btn.special{
+  border-color:#aa8800;color:#ffcc00;
+  box-shadow:inset 0 -2px 0 #664400,0 0 8px rgba(255,200,0,0.2);
+}
+.move-btn.danger{border-color:#882200;color:#ff8866;}
+.move-btn.catch{border-color:#228844;color:#66ff99;}
+.dice-display{
+  font-size:13px;color:#ffcc44;text-align:center;
+  min-height:22px;letter-spacing:2px;
+  text-shadow:0 0 8px rgba(255,200,0,0.6);
+}
+
+/* ── ENCOUNTER FLASH ── */
+#encounter-flash{position:absolute;inset:0;background:#ffffff;opacity:0;pointer-events:none;z-index:90;transition:opacity 0.1s;}
+
+/* ── BATTLE SCENE ── */
+#battle-scene{
+  width:100%;max-width:520px;height:200px;
+  position:relative;display:flex;
+  align-items:stretch;gap:0;
+  border:2px solid #440088;border-radius:6px;overflow:hidden;
+}
+#battle-arena-bg{border-radius:4px;}
+.battle-side{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding:6px;gap:4px;position:relative;z-index:2;
+}
+.battle-art-frame{
+  width:100%;flex:1;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;border-radius:4px;
+  background:rgba(0,0,0,0.2);
+}
+.battle-art-img{
+  width:100%;height:100%;
+  object-fit:contain;
+  object-position:center bottom;
+  image-rendering:pixelated;
+  display:block;
+}
+.enemy-img{transform:scaleX(-1);}
+.battle-sprite-canvas{
+  image-rendering:pixelated;
+  width:96px;height:96px;
+  display:block;
+}
+.enemy-canvas{transform:scaleX(-1);}
+.battle-art-overlay{
+  position:absolute;inset:0;pointer-events:none;
+}
+.player-overlay{
+  background:linear-gradient(to right,rgba(0,40,120,0.3) 0%,transparent 60%);
+}
+.enemy-overlay{
+  background:linear-gradient(to left,rgba(120,0,0,0.3) 0%,transparent 60%);
+}
+.battle-hit-flash{
+  position:absolute;inset:0;background:#ffffff;
+  opacity:0;pointer-events:none;
+  border-radius:4px;
+  transition:opacity 0.05s;
+}
+.vs-badge{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
   font-family:'Press Start 2P',monospace;
+  font-size:12px;color:#cc44ff;
+  text-shadow:0 0 12px rgba(200,50,255,0.8),0 0 24px rgba(200,50,255,0.4);
+  z-index:10;
+  background:rgba(8,0,20,0.7);
+  padding:4px 8px;border-radius:4px;
+  border:1px solid #440088;
+}
+.battle-name-plate{
+  width:100%;display:flex;justify-content:space-between;
+  align-items:center;padding:2px 4px;
+  background:rgba(0,0,0,0.6);border-radius:3px;
+  border:1px solid rgba(100,50,150,0.4);
+}
+.player-plate{border-color:rgba(50,100,200,0.5);}
+.enemy-plate{border-color:rgba(200,50,50,0.5);}
+.b-name{font-size:6px;color:#eeccff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;}
+.b-level{font-size:5px;color:#8866aa;}
+.b-elem{font-size:6px;color:#cc88ff;}
+.b-bars{width:100%;display:flex;flex-direction:column;gap:3px;}
+.b-bar-row{display:flex;align-items:center;gap:3px;}
+.b-bar-label{font-size:5px;color:#664488;width:12px;flex-shrink:0;}
+.b-bar-track{flex:1;height:7px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.b-bar-fill{height:100%;border-radius:1px;transition:width 0.3s;}
+.b-hp{background:linear-gradient(90deg,#22cc44,#44ff88);}
+.b-en{background:linear-gradient(90deg,#cc8800,#ffcc00);}
+.b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
+
+/* ── MINIMAP ── */
+#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
+#minimap canvas{display:block;image-rendering:pixelated;}
+
+/* ── SKILL & REST PANEL ── */
+#skill-panel{
+  position:absolute;inset:0;z-index:110;display:none;
+  flex-direction:column;align-items:center;
+  background:linear-gradient(160deg,#060014 0%,#0c0022 100%);
+  overflow-y:auto;padding:12px;gap:10px;
+}
+#skill-panel.show{display:flex;}
+.sp-header{width:100%;max-width:520px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #440088;padding-bottom:8px;}
+.sp-title{font-size:9px;color:#cc88ff;letter-spacing:2px;}
+.sp-close{font-family:'Press Start 2P',monospace;font-size:7px;background:#1a0030;color:#ff6666;border:1px solid #aa2222;padding:5px 9px;cursor:pointer;border-radius:2px;}
+.sp-close:hover{background:#330000;}
+.sp-creature-row{width:100%;max-width:520px;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;}
+.sp-creature-select{display:flex;flex-direction:column;gap:4px;min-width:120px;}
+.sp-c-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#0e0022;color:#8866aa;border:1px solid #330055;padding:6px 8px;cursor:pointer;border-radius:2px;text-align:left;}
+.sp-c-btn.active{background:#1a0040;color:#cc88ff;border-color:#8833cc;}
+.sp-c-btn:hover{background:#150030;}
+.sp-main{flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px;}
+.sp-card{background:#0e0022;border:2px solid #330055;border-radius:4px;padding:10px;}
+.sp-card-title{font-size:7px;color:#ffcc44;margin-bottom:8px;letter-spacing:1px;}
+.sp-stat-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.sp-stat-name{font-size:6px;color:#664488;width:52px;flex-shrink:0;}
+.sp-stat-bar-wrap{flex:1;height:8px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.sp-stat-bar{height:100%;border-radius:1px;transition:width 0.3s;}
+.sp-stat-val{font-size:6px;color:#cc88ff;width:28px;text-align:right;flex-shrink:0;}
+.sp-stat-up-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0040;color:#ffcc00;border:1px solid #664400;padding:3px 6px;cursor:pointer;border-radius:2px;flex-shrink:0;}
+.sp-stat-up-btn:hover:not(:disabled){background:#2a0060;border-color:#cc8800;}
+.sp-stat-up-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.sp-sp-display{font-size:7px;color:#ffcc44;text-align:center;padding:6px;background:#0a0018;border:1px solid #332200;border-radius:3px;}
+.sp-xp-bar-wrap{height:10px;background:#0a0018;border:1px solid #220044;border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.sp-xp-bar{height:100%;background:linear-gradient(90deg,#4400cc,#8822ff);border-radius:2px;transition:width 0.4s;}
+.sp-xp-label{font-size:6px;color:#553377;text-align:center;}
+
+/* Skill Tree */
+.skill-tree{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0;}
+.skill-node{
+  background:#0a0018;border:2px solid #330055;border-radius:3px;
+  padding:6px 8px;cursor:pointer;min-width:90px;text-align:center;
+  transition:all 0.15s;position:relative;
+}
+.skill-node:hover:not(.locked):not(.maxed){background:#150030;border-color:#6622aa;}
+.skill-node.unlocked{border-color:#4488ff;background:#0a0028;}
+.skill-node.maxed{border-color:#ffcc00;background:#0e0820;}
+.skill-node.locked{opacity:0.4;cursor:not-allowed;}
+.skill-node-name{font-size:6px;color:#cc88ff;display:block;margin-bottom:3px;}
+.skill-node.unlocked .skill-node-name{color:#88bbff;}
+.skill-node.maxed .skill-node-name{color:#ffcc00;}
+.skill-node-rank{font-size:6px;color:#443366;}
+.skill-node.unlocked .skill-node-rank{color:#4466aa;}
+.skill-node.maxed .skill-node-rank{color:#aa8800;}
+.skill-node-cost{font-size:5px;color:#553377;display:block;margin-top:2px;}
+
+/* Rest panel */
+.rest-panel{background:#06000e;border:2px solid #220044;border-radius:4px;padding:10px;width:100%;max-width:520px;}
+.rest-title{font-size:7px;color:#88ffcc;margin-bottom:8px;}
+.rest-options{display:flex;gap:8px;flex-wrap:wrap;}
+.rest-btn{
+  font-family:'Press Start 2P',monospace;font-size:6px;
+  padding:8px 12px;cursor:pointer;border-radius:3px;
+  border:2px solid;transition:all 0.15s;
+}
+.rest-btn.camp{background:#0a1a10;color:#44ff88;border-color:#228844;}
+.rest-btn.camp:hover{background:#0e2818;box-shadow:0 0 8px rgba(50,200,100,0.3);}
+.rest-btn.inn{background:#0a0a1a;color:#88aaff;border-color:#224488;}
+.rest-btn.inn:hover{background:#0e0e28;box-shadow:0 0 8px rgba(80,120,255,0.3);}
+.rest-btn.item{background:#1a0a00;color:#ffaa44;border-color:#884400;}
+.rest-btn.item:hover{background:#281200;box-shadow:0 0 8px rgba(200,120,0,0.3);}
+.rest-info{font-size:6px;color:#443366;margin-top:6px;line-height:1.8;}
+
+/* ══════════════════════════════════════════════
+   OPENING MENU
+══════════════════════════════════════════════ */
+#menu-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:#080010;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:0;overflow-y:auto;overflow-x:hidden;
+  pointer-events:all;
+  cursor:default;
+}
+/* title screen */
+#menu-title, #menu-regions, #menu-dice{
+  position:relative;z-index:10000;
+}
+#menu-title{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  width:100%;gap:18px;padding:20px;
+}
+.menu-logo{
+  font-size:clamp(14px,4vw,22px);
+  color:#ffcc44;letter-spacing:4px;
+  text-shadow:0 0 20px rgba(255,200,0,0.6),0 0 40px rgba(255,150,0,0.3);
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{text-shadow:0 0 20px rgba(255,200,0,0.6);}50%{text-shadow:0 0 35px rgba(255,200,0,0.9),0 0 60px rgba(255,150,0,0.5);}}
+.menu-sub{font-size:8px;color:#6622aa;letter-spacing:2px;margin-top:-8px;}
+.menu-start-btn{
+  font-family:'Press Start 2P',monospace;
+  font-size:10px;color:#080010;
+  background:#ffcc44;border:none;
+  padding:18px 36px;cursor:pointer;
+  border-radius:4px;margin-top:8px;
+  box-shadow:0 0 20px rgba(255,200,0,0.4);
+  animation:startBlink 1.2s step-end infinite;
+  position:relative;z-index:10000;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  user-select:none;
+  touch-action:manipulation;
+}
+@keyframes startBlink{50%{opacity:0.4;}}
+.menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
+
+/* region select */
+#menu-regions{
+  display:none;flex-direction:column;
+  align-items:center;width:100%;gap:10px;padding:16px 20px;
+}
+.menu-regions-title{font-size:9px;color:#ffcc44;letter-spacing:2px;margin-bottom:4px;}
+.menu-regions-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:8px;width:100%;max-width:520px;
+}
+.region-card{
+  background:#0e0022;border:2px solid #330055;
+  border-radius:5px;padding:10px 12px;
+  cursor:pointer;transition:all 0.15s;
+  display:flex;flex-direction:column;gap:4px;
+}
+.region-card:hover{background:#180038;border-color:#8833cc;transform:translateY(-2px);}
+.region-card.selected{border-color:#ffcc44;background:#1a1000;}
+.rc-name{font-size:7px;color:#cc88ff;}
+.rc-elem{font-size:16px;line-height:1;}
+.rc-tag{font-size:5px;color:#553377;letter-spacing:1px;}
+.menu-choose-btn{
+  font-family:'Press Start 2P',monospace;font-size:8px;
+  background:#0e0022;color:#ffcc44;
+  border:2px solid #cc8800;padding:10px 20px;
+  cursor:pointer;border-radius:3px;margin-top:6px;
+  opacity:0.4;pointer-events:none;transition:all 0.2s;
+}
+.menu-choose-btn.ready{opacity:1;pointer-events:all;}
+.menu-choose-btn.ready:hover{background:#1a1000;box-shadow:0 0 12px rgba(255,200,0,0.3);}
+
+/* dice roll screen */
+#menu-dice{
+  display:none;flex-direction:column;
+  align-items:center;width:100%;gap:14px;padding:16px 20px;
+}
+.dice-title{font-size:8px;color:#ffcc44;letter-spacing:2px;}
+.dice-region-name{font-size:7px;color:#8844cc;margin-top:-6px;}
+
+/* The egg display area */
+.egg-stage{
+  position:relative;width:140px;height:160px;
+  display:flex;align-items:center;justify-content:center;
+}
+.egg-svg{transition:transform 0.1s;}
+.egg-stage.spinning .egg-svg{animation:eggSpin 0.12s linear infinite;}
+@keyframes eggSpin{
+  0%  {transform:rotate(-8deg) scale(1);}
+  25% {transform:rotate(0deg)  scale(1.05);}
+  50% {transform:rotate(8deg)  scale(1);}
+  75% {transform:rotate(0deg)  scale(1.05);}
+  100%{transform:rotate(-8deg) scale(1);}
+}
+.egg-glow{
+  position:absolute;inset:0;border-radius:50%;
+  opacity:0;transition:opacity 0.4s;
+  pointer-events:none;
+}
+.egg-stage.revealed .egg-glow{opacity:1;}
+
+.dice-roll-display{
+  font-size:32px;color:#ffcc44;min-height:44px;
+  text-align:center;
+  text-shadow:0 0 16px rgba(255,200,0,0.8);
+  font-family:'Press Start 2P',monospace;
+}
+.creature-reveal{
+  width:100%;max-width:400px;
+  background:#0a0018;border:3px solid #c8960c;
+  border-radius:8px;padding:12px 16px;
+  display:none;flex-direction:row;
+  align-items:center;gap:14px;
+}
+.cr-egg-icon{font-size:40px;flex-shrink:0;}
+.cr-info{flex:1;}
+.cr-name{font-size:9px;color:#ffcc44;margin-bottom:6px;letter-spacing:1px;}
+.cr-elem{font-size:7px;color:#cc88ff;margin-bottom:4px;}
+.cr-rarity{font-size:7px;letter-spacing:1px;}
+.cr-rarity.common   {color:#aaaacc;}
+.cr-rarity.uncommon {color:#4488ff;}
+.cr-rarity.rare     {color:#cc44ff;}
+.cr-rarity.legendary{color:#ffcc00;text-shadow:0 0 8px rgba(255,200,0,0.6);}
+.cr-desc{font-size:5px;color:#553377;line-height:1.8;margin-top:6px;}
+.dice-begin-btn{
+  font-family:'Press Start 2P',monospace;font-size:9px;
+  background:#0a0018;color:#44ff88;
+  border:2px solid #228844;padding:11px 22px;
+  cursor:pointer;border-radius:3px;
+  display:none;
+  box-shadow:0 0 12px rgba(50,200,100,0.3);
+}
+.dice-begin-btn:hover{background:#0e1818;box-shadow:0 0 20px rgba(50,200,100,0.5);}
+.dice-reroll-btn{
+  font-family:'Press Start 2P',monospace;font-size:7px;
+  background:#0a0018;color:#cc88ff;
+  border:2px solid #440088;padding:8px 16px;
+  cursor:pointer;border-radius:3px;display:none;
+}
+/* stars bg */
+#menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+
+
+/* ── MOBILE D-PAD ── */
+#dpad{
+  position:fixed;bottom:20px;left:16px;
+  width:140px;height:140px;
+  z-index:500;
+  display:none;
+  touch-action:none;
+  user-select:none;
+}
+#dpad-center{
+  position:absolute;top:50%;left:50%;
+  width:44px;height:44px;
+  transform:translate(-50%,-50%);
+  background:rgba(80,0,140,0.3);
+  border-radius:50%;
+}
+.dpad-btn{
+  position:absolute;
+  width:44px;height:44px;
+  background:rgba(20,0,40,0.75);
+  border:2px solid rgba(180,80,255,0.5);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:rgba(200,140,255,0.9);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+  user-select:none;
+  transition:background 0.08s;
+}
+.dpad-btn:active{background:rgba(100,0,180,0.7);}
+#dpad-up   {top:0;   left:50%;transform:translateX(-50%);}
+#dpad-down {bottom:0;left:50%;transform:translateX(-50%);}
+#dpad-left {left:0;  top:50%; transform:translateY(-50%);}
+#dpad-right{right:0; top:50%; transform:translateY(-50%);}
+
+/* Action buttons */
+#mobile-btns{
+  position:fixed;bottom:20px;right:16px;
+  display:none;flex-direction:column;gap:8px;
+  z-index:500;
+  touch-action:none;
+}
+.mobile-action-btn{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+  background:rgba(20,0,40,0.75);
+  color:rgba(200,140,255,0.9);
+  border:2px solid rgba(180,80,255,0.5);
+  padding:8px 12px;border-radius:6px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+}
+.mobile-action-btn:active{background:rgba(100,0,180,0.7);}
+
+@media (pointer:coarse),(max-width:600px){
+  #dpad{display:block;}
+  #mobile-btns{display:flex;}
+}
+@media(max-width:600px){
+  .hud-box{padding:4px 6px;}
+  .hud-label{font-size:5px;}
+  .hud-val{font-size:7px;}
+  #top-bar .player-info,#top-bar .time-weather{font-size:6px;}
+  #top-bar .region-name{font-size:7px;}
+  .d-btn{font-size:7px;padding:8px 14px;}
+  #dialog-name{font-size:9px;}
+  #dialog-text{font-size:8px;}
+  .move-btn{font-size:7px;padding:10px 12px;min-width:80px;}
+  .battle-log{font-size:7px;}
+  .b-name{font-size:7px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     OPENING MENU — wired entirely in JS after load
+══════════════════════════════════════════════ -->
+<div id="menu-overlay">
+  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
+  <!-- SCREEN 0: TITLE -->
+  <div id="menu-title">
+    <div class="menu-logo">WORLDHATCH</div>
+    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
+    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
+    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+  </div>
+
+  <!-- SCREEN 1: REGION SELECT -->
+  <div id="menu-regions">
+    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
+    <div class="menu-regions-grid" id="menu-regions-grid"></div>
+    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
+  </div>
+
+  <!-- SCREEN 2: DICE ROLL -->
+  <div id="menu-dice">
+    <div class="dice-title">YOUR STARTER EGG</div>
+    <div class="dice-region-name" id="dice-region-label"></div>
+    <div class="egg-stage" id="egg-stage">
+      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
+        <defs>
+          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
+            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
+            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
+          </radialGradient>
+          <filter id="eggGlow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+        <!-- Speckles -->
+        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
+        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
+        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
+      </svg>
+      <div class="egg-glow" id="egg-glow"></div>
+    </div>
+    <div class="dice-roll-display" id="dice-roll-display"></div>
+    <div class="creature-reveal" id="creature-reveal">
+      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
+      <div class="cr-info">
+        <div class="cr-name" id="cr-name"></div>
+        <div class="cr-elem" id="cr-elem"></div>
+        <div class="cr-rarity" id="cr-rarity"></div>
+        <div class="cr-desc" id="cr-desc"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
+      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="game-wrap">
+  <div id="top-bar">
+    <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
+    <div class="region-name" id="top-region">Suncrest Expanse</div>
+    <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
+  </div>
+
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
+    <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
+    <div id="encounter-flash"></div>
+
+    <!-- SKILL & REST PANEL -->
+    <div id="skill-panel">
+      <div class="sp-header">
+        <div class="sp-title">CREATURE SKILLS</div>
+        <button class="sp-close" onclick="closeSkillPanel()">X CLOSE</button>
+      </div>
+      <div class="sp-creature-row">
+        <div class="sp-creature-select" id="sp-creature-list"></div>
+        <div class="sp-main" id="sp-main-content"></div>
+      </div>
+      <div class="rest-panel">
+        <div class="rest-title">REST & HEAL</div>
+        <div class="rest-options">
+          <button class="rest-btn camp" onclick="doRest('camp')">CAMP (FREE)<br><span style="font-size:5px;color:#226633">50% HP heal</span></button>
+          <button class="rest-btn inn" onclick="doRest('inn')">INN (30c)<br><span style="font-size:5px;color:#224466">Full HP + status clear</span></button>
+          <button class="rest-btn item" onclick="doRest('potion')">POTION (20c)<br><span style="font-size:5px;color:#664400">30 HP to active only</span></button>
+        </div>
+        <div class="rest-info" id="rest-info">Choose how to restore your creatures.</div>
+      </div>
+    </div>
+
+    <div id="dialog">
+      <div id="dialog-name"></div>
+      <div id="dialog-text"></div>
+      <div id="dialog-options"></div>
+    </div>
+
+    <div id="battle-overlay">
+
+      <!-- BATTLE SCENE — full art panels side by side -->
+      <div id="battle-scene">
+        <canvas id="battle-arena-bg" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;"></canvas>
+
+        <!-- PLAYER side -->
+        <div class="battle-side player-side-panel" id="player-panel">
+          <div class="battle-art-frame player-art-frame">
+            <canvas id="player-sprite" width="48" height="48" style="display:none"></canvas>
+            <img id="player-art-img" class="battle-art-img" src="" alt="" style="display:none"/>
+            <canvas id="player-sprite-fallback" class="battle-sprite-canvas" width="48" height="48"></canvas>
+            <div class="battle-art-overlay player-overlay"></div>
+            <div class="battle-hit-flash" id="player-flash"></div>
+          </div>
+          <div class="battle-name-plate player-plate">
+            <span class="b-name" id="b-player-name">YOUR CREATURE</span>
+            <span class="b-level" id="b-player-level">Lv1</span>
+          </div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <span class="b-bar-label">HP</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-player-hp" style="width:100%"></div></div>
+              <span class="b-bar-val" id="b-player-hp-txt">100/100</span>
+            </div>
+            <div class="b-bar-row">
+              <span class="b-bar-label">⚡</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-en" id="b-player-en" style="width:0%"></div></div>
+              <span class="b-bar-val" id="b-player-en-txt">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- VS badge -->
+        <div class="vs-badge">VS</div>
+
+        <!-- ENEMY side -->
+        <div class="battle-side enemy-side-panel" id="enemy-panel">
+          <div class="battle-art-frame enemy-art-frame">
+            <img id="enemy-art-img" class="battle-art-img enemy-img" src="" alt="" style="display:none"/>
+            <canvas id="enemy-sprite-fallback" class="battle-sprite-canvas enemy-canvas" width="48" height="48"></canvas>
+            <div class="battle-art-overlay enemy-overlay"></div>
+            <div class="battle-hit-flash" id="enemy-flash"></div>
+          </div>
+          <div class="battle-name-plate enemy-plate">
+            <span class="b-name" id="b-enemy-name">WILD CREATURE</span>
+            <span class="b-elem" id="b-enemy-elem">—</span>
+          </div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <span class="b-bar-label">HP</span>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-enemy-hp" style="width:100%"></div></div>
+              <span class="b-bar-val" id="b-enemy-hp-txt">100/100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dice-display" id="dice-display"></div>
+      <div class="battle-log" id="battle-log"></div>
+      <div class="battle-moves" id="battle-moves"></div>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  WORLDHATCH — Browser Top-Down Explorer
+//  Pixel art tile engine, encounter system, battle engine
+//  All self-contained — no server required.
+// ═══════════════════════════════════════════════════════════
+
+const TILE   = 24;  // 16-bit SNES style — bigger tiles
+const VIEW_W = 13;
+const VIEW_H = 10;
+
+// ── TILE TYPES ────────────────────────────────────────────
+const T = {
+  GROUND:   0,
+  GRASS:    1,   // tall grass — triggers encounters
+  WALL:     2,
+  WATER:    3,
+  SAND:     4,
+  PATH:     5,
+  TREE:     6,
+  FLOWER:   7,
+  CAVE:     8,   // point of interest
+  SHRINE:   9,   // point of interest
+  RUIN:     10,  // point of interest
+  NEST:     11,  // egg nest
+  NPC:      12,
+  CHEST:    13,
+  CAVE_FLOOR:14,
+  TOWN:     15,  // safe zone — no encounters
+  MINIBOSS: 16,  // mini-boss trigger tile
+  BOSS:     17,  // final boss trigger tile
+  SIGN:     18,  // direction sign
+  BRIDGE:   19,  // bridge over water
+};
+
+// ── 16-BIT REGION-AWARE TILE PALETTE ─────────────────────
+// Base palette — overridden per-region in getRegionPal()
+const TILE_PAL_BASE = {
+  [T.GROUND]: {base:'#3a5c20',hi:'#4a7228',sh:'#2a4418',acc:'#567830'},
+  [T.GRASS]:  {base:'#1e7a0a',hi:'#28961a',sh:'#145606',acc:'#32aa22'},
+  [T.WALL]:   {base:'#5a4030',hi:'#6e5040',sh:'#3e2c20',acc:'#7a5c44'},
+  [T.WATER]:  {base:'#1840a8',hi:'#2858cc',sh:'#0e2c80',acc:'#4488ee'},
+  [T.SAND]:   {base:'#c8a840',hi:'#e0c060',sh:'#a08028',acc:'#f0d870'},
+  [T.PATH]:   {base:'#6a5838',hi:'#7e6c4a',sh:'#52442a',acc:'#8a7050'},
+  [T.TREE]:   {base:'#1e6010',hi:'#2a7a18',sh:'#124408',acc:'#369028'},
+  [T.FLOWER]: {base:'#3a5c20',hi:'#e0409a',sh:'#2a4418',acc:'#ff70bb'},
+  [T.CAVE]:   {base:'#1a0828',hi:'#2a1040',sh:'#0e0418',acc:'#440066'},
+  [T.SHRINE]: {base:'#6a3800',hi:'#8a4c00',sh:'#4a2800',acc:'#cc8820'},
+  [T.RUIN]:   {base:'#484840',hi:'#585858',sh:'#303030',acc:'#686860'},
+  [T.NEST]:   {base:'#3a2800',hi:'#c89800',sh:'#281800',acc:'#ffcc00'},
+  [T.NPC]:     {base:'#3a5c20',hi:'#2255cc',sh:'#2a4418',acc:'#4477ff'},
+  [T.CHEST]:   {base:'#3a5c20',hi:'#cc9900',sh:'#2a4418',acc:'#ffcc00'},
+  [T.TOWN]:    {base:'#7a6a50',hi:'#9a8868',sh:'#5a4c38',acc:'#c8b080'},
+  [T.MINIBOSS]:{base:'#3a0808',hi:'#6a1010',sh:'#200404',acc:'#ff4422'},
+  [T.BOSS]:    {base:'#200008',hi:'#500018',sh:'#100004',acc:'#ff0044'},
+  [T.SIGN]:    {base:'#6a5838',hi:'#8a7448',sh:'#4a3820',acc:'#ffdd88'},
+  [T.BRIDGE]:  {base:'#8a7050',hi:'#aa9060',sh:'#6a5030',acc:'#ccaa70'},
+};
+
+// Region-specific palette overrides
+const REGION_PALETTES = {
+  suncrest_expanse: {
+    [T.GROUND]: {base:'#6a4a10',hi:'#8a6220',sh:'#4a3008',acc:'#aa7828'},
+    [T.GRASS]:  {base:'#7a8820',hi:'#9aaa28',sh:'#5a6410',acc:'#b8cc30'},
+    [T.SAND]:   {base:'#d4a840',hi:'#eecc60',sh:'#b08020',acc:'#ffdd70'},
+    [T.WALL]:   {base:'#885830',hi:'#aa7040',sh:'#664018',acc:'#cc8848'},
+    [T.WATER]:  {base:'#2258c8',hi:'#3a74e8',sh:'#1a3ea0',acc:'#5898ff'},
+    [T.TREE]:   {base:'#4a8010',hi:'#60a018',sh:'#306008',acc:'#80c828'},
+    [T.PATH]:   {base:'#8a6838',hi:'#aa8448',sh:'#6a5028',acc:'#c89850'},
+    [T.CAVE]:   {base:'#2a1408',hi:'#3c2010',sh:'#180c04',acc:'#603018'},
+  },
+  sakurami_highlands: {
+    [T.GROUND]: {base:'#2a4020',hi:'#385430',sh:'#1c2c14',acc:'#4a6838'},
+    [T.GRASS]:  {base:'#306018',hi:'#407c22',sh:'#204010',acc:'#58a830'},
+    [T.TREE]:   {base:'#204a10',hi:'#2c6418',sh:'#143008',acc:'#507828'},
+    [T.WATER]:  {base:'#1838a0',hi:'#2450cc',sh:'#0e2470',acc:'#3870ee'},
+    [T.WALL]:   {base:'#4a3828',hi:'#5e4c38',sh:'#342818',acc:'#726050'},
+    [T.CAVE]:   {base:'#140c22',hi:'#201432',sh:'#0c0816',acc:'#38226a'},
+    [T.FLOWER]: {base:'#2a4020',hi:'#ff88cc',sh:'#1c2c14',acc:'#ffbbee'},
+    [T.PATH]:   {base:'#5a4828',hi:'#726038',sh:'#423418',acc:'#8a7040'},
+  },
+  frostspire_reach: {
+    [T.GROUND]: {base:'#283848',hi:'#384858',sh:'#182838',acc:'#485868'},
+    [T.GRASS]:  {base:'#2a4455',hi:'#385566',sh:'#1c3040',acc:'#4a6a7a'},
+    [T.WATER]:  {base:'#0c2060',hi:'#143080',sh:'#081440',acc:'#2050a8'},
+    [T.WALL]:   {base:'#6878a0',hi:'#8898c0',sh:'#485878',acc:'#a0b8e0'},
+    [T.TREE]:   {base:'#1a3040',hi:'#244050',sh:'#102030',acc:'#305870'},
+    [T.CAVE]:   {base:'#182438',hi:'#243048',sh:'#101828',acc:'#304868'},
+    [T.SAND]:   {base:'#a0b8d0',hi:'#c0d4e8',sh:'#8098b0',acc:'#d8eeff'},
+    [T.PATH]:   {base:'#585868',hi:'#6a6a7a',sh:'#404050',acc:'#7a7a8a'},
+  },
+  shadowmere_hollows: {
+    [T.GROUND]: {base:'#1e1a2a',hi:'#2a2438',sh:'#141020',acc:'#382e4a'},
+    [T.GRASS]:  {base:'#1a2230',hi:'#222c3c',sh:'#101820',acc:'#2c3848'},
+    [T.WATER]:  {base:'#0a0e28',hi:'#121838',sh:'#060810',acc:'#1a2248'},
+    [T.WALL]:   {base:'#2a2030',hi:'#382c40',sh:'#1a1420',acc:'#4a3854'},
+    [T.TREE]:   {base:'#0e1818',hi:'#162222',sh:'#080e0e',acc:'#1e2e2e'},
+    [T.CAVE]:   {base:'#080410',hi:'#0e0818',sh:'#040208',acc:'#1a0e2a'},
+    [T.FLOWER]: {base:'#1e1a2a',hi:'#8844cc',sh:'#141020',acc:'#bb66ff'},
+    [T.PATH]:   {base:'#2a2030',hi:'#38303e',sh:'#1c1422',acc:'#4a3850'},
+  },
+};
+
+function getRegionPal(tile) {
+  const rp = REGION_PALETTES[state.currentRegion];
+  return (rp && rp[tile]) ? rp[tile] : TILE_PAL_BASE[tile] || TILE_PAL_BASE[T.GROUND];
+}
+
+// Keep TILE_PAL as alias for compatibility
+const TILE_PAL = TILE_PAL_BASE;
+
+// ── REGION DEFINITIONS ───────────────────────────────────
+const REGIONS = {
+  suncrest_expanse: {
+    name: 'Suncrest Expanse',
+    element: 'fire',
+    areas: ['Canyon Ridge','Coastal Cliffs','Ember Valley'],
+    palette: { ground:'#3a3010', grass:'#557720', path:'#665522', water:'#2244aa' },
+    creatures: [
+      {id:'emberback_rumbler',name:'Emberback Rumbler',element:'fire',  hp:90, atk:23,def:20,spd:11,rarity:'common'},
+      {id:'dustfin_drifter',  name:'Dustfin Drifter',  element:'fire',  hp:65, atk:16,def:9, spd:22,rarity:'common'},
+      {id:'tidewatcher',      name:'Tidewatcher',       element:'water', hp:75, atk:17,def:17,spd:16,rarity:'common'},
+      {id:'fogcrawler',       name:'Fogcrawler',        element:'spirit',hp:68, atk:15,def:9, spd:25,rarity:'common'},
+      {id:'cinderclaw',       name:'Cinderclaw',        element:'fire',  hp:81, atk:28,def:12,spd:21,rarity:'uncommon'},
+      {id:'stormhawk',        name:'Stormhawk',         element:'storm', hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'sunshell_crawler', name:'Sunshell Crawler',  element:'fire',  hp:149,atk:32,def:41,spd:8, rarity:'rare'},
+      {id:'darkwood_stalker', name:'Darkwood Stalker',  element:'dark',  hp:95, atk:30,def:16,spd:24,rarity:'rare'},
+      {id:'solarcrown_wyrm',  name:'Solarcrown Wyrm',   element:'magma', hp:184,atk:60,def:40,spd:16,rarity:'legendary'},
+    ],
+  },
+  sakurami_highlands: {
+    name: 'Sakurami Highlands',
+    element: 'spirit',
+    areas: ['Cherry Grove','Mountain Shrine','Deep Trench'],
+    palette: { ground:'#2a3a18', grass:'#446610', path:'#554428', water:'#1a2a88' },
+    creatures: [
+      {id:'misthare',    name:'Misthare',    element:'spirit', hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'blossomwing', name:'Blossomwing', element:'spirit', hp:67, atk:16,def:10,spd:25,rarity:'common'},
+      {id:'inkfox',      name:'Inkfox',      element:'dark',   hp:81, atk:31,def:12,spd:32,rarity:'uncommon'},
+      {id:'thunderkoi',  name:'Thunderkoi',  element:'storm',  hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'ashveil_crane',name:'Ashveil Crane',element:'fire', hp:114,atk:27,def:14,spd:19,rarity:'rare'},
+      {id:'frostpetal_oni',name:'Frostpetal Oni',element:'ice',hp:115,atk:24,def:22,spd:15,rarity:'rare'},
+      {id:'ryujin_serpent',name:'Ryujin Serpent',element:'spirit',hp:107,atk:23,def:13,spd:36,rarity:'legendary'},
+    ],
+  },
+  frostspire_reach: {
+    name: 'Frostspire Reach',
+    element: 'ice',
+    areas: ['Frozen Fjord','Ice Caves','Aurora Peaks'],
+    palette: { ground:'#1a2a3a', grass:'#2a4055', path:'#443a28', water:'#0a1a44' },
+    creatures: [
+      {id:'glacierfang',    name:'Glacierfang',     element:'ice',   hp:102,atk:35,def:15,spd:13,rarity:'common'},
+      {id:'rimewolve',      name:'Rimewolve',        element:'ice',   hp:86, atk:23,def:12,spd:21,rarity:'common'},
+      {id:'aurorawing',     name:'Aurorawing',       element:'spirit',hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'coldcrest_raptor',name:'Coldcrest Raptor',element:'ice',  hp:88, atk:30,def:9, spd:28,rarity:'uncommon'},
+      {id:'stormtusk_boar', name:'Stormtusk Boar',   element:'storm', hp:78, atk:22,def:12,spd:23,rarity:'uncommon'},
+      {id:'avalanche_golem',name:'Avalanche Golem',  element:'ice',  hp:203,atk:38,def:47,spd:4, rarity:'rare'},
+      {id:'jormunveil',     name:'Jormunveil',        element:'ice',  hp:157,atk:47,def:33,spd:18,rarity:'legendary'},
+    ],
+  },
+  shadowmere_hollows: {
+    name: 'Shadowmere Hollows',
+    element: 'dark',
+    areas: ['Dark Marsh','Ancient Castle','Moonlit Plains'],
+    palette: { ground:'#1a1428', grass:'#22183a', path:'#2a2030', water:'#0a0820' },
+    creatures: [
+      {id:'marsh_lurker',  name:'Marsh Lurker',   element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'mirecat',       name:'Mirecat',         element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'hollowbat',     name:'Hollowbat',        element:'dark',  hp:70, atk:22,def:12,spd:18,rarity:'common'},
+      {id:'moonveil_moth', name:'Moonveil Moth',   element:'spirit',hp:65, atk:14,def:8, spd:25,rarity:'common'},
+      {id:'bog_golem',     name:'Bog Golem',        element:'nature',hp:109,atk:18,def:21,spd:10,rarity:'uncommon'},
+      {id:'frostshade_wolf',name:'Frostshade Wolf',element:'ice',   hp:86, atk:23,def:12,spd:21,rarity:'uncommon'},
+      {id:'castle_wraith', name:'Castle Wraith',   element:'dark',  hp:95, atk:30,def:16,spd:24,rarity:'rare'},
+      {id:'void_sovereign',name:'Void Sovereign',  element:'dark',  hp:131,atk:64,def:29,spd:41,rarity:'legendary'},
+    ],
+  },
+};
+
+
+// ═══════════════════════════════════════════════════════════
+//  CREATURE ART REGISTRY
+//  Add image paths here as art is created.
+//  Key = creature id, value = image URL or path.
+//  Falls back to procedural sprite if not found.
+// ═══════════════════════════════════════════════════════════
+const CREATURE_ART = {
+  'inkfox':              'art_inkfox.png',
+  'marsh_lurker':        null,
+  'emberback_rumbler':   null,
+  'glacierfang':         null,
+  // Add more as art is generated:
+  // 'creature_id': 'art_creature_id.png',
+};
+
+function getArt(creatureId) {
+  return CREATURE_ART[creatureId] || null;
+}
+
+// ── MAP GENERATOR ────────────────────────────────────────
+const MAP_W = 128;
+const MAP_H = 128;
+
+// ── MULTI-OCTAVE NOISE ────────────────────────────────────
+function noise2(x, y, seed=0) {
+  const s = Math.sin(x*127.1 + y*311.7 + seed*419.3)*43758.5453;
+  return s - Math.floor(s);
+}
+function fbm(x, y, octaves=4, seed=0) {
+  let v=0, a=1, f=1, t=0;
+  for(let i=0;i<octaves;i++){v+=noise2(x*f,y*f,seed+i)*a;t+=a;a*=0.5;f*=2.1;}
+  return v/t;
+}
+
+function generateMap(regionId, forceSeed) {
+  const map  = Array.from({length:MAP_H},()=>new Array(MAP_W).fill(T.WALL));
+  const seed = (forceSeed !== undefined ? forceSeed : Date.now()) % 99991;
+
+  const W = MAP_W, H = MAP_H;
+  const CX = Math.floor(W/2), CY = Math.floor(H/2);
+
+  // ── Seeded RNG — every call with a different n gives a different value
+  function rng(n) {
+    const s = Math.sin(seed*127.1 + n*311.7 + seed*n*0.03) * 43758.5453;
+    return s - Math.floor(s);  // 0..1
+  }
+  function rngRange(n, lo, hi) { return Math.round(lo + rng(n) * (hi - lo)); }
+  function rngPick(n, arr)      { return arr[Math.floor(rng(n)*arr.length)];  }
+
+  // ── Helpers ───────────────────────────────────────────
+  function road(x1,y1,x2,y2,width=4) {
+    const dx=x2-x1, dy=y2-y1;
+    const steps=Math.max(Math.abs(dx),Math.abs(dy));
+    for(let i=0;i<=steps;i++){
+      const tx=Math.round(x1+dx*(i/steps));
+      const ty=Math.round(y1+dy*(i/steps));
+      for(let oy=-width;oy<=width;oy++)
+        for(let ox=-width;ox<=width;ox++)
+          if(tx+ox>0&&tx+ox<W-1&&ty+oy>0&&ty+oy<H-1)
+            map[ty+oy][tx+ox]=T.PATH;
+    }
+  }
+
+  function fill(cx,cy,rw,rh,tile=T.GROUND) {
+    for(let y=cy-rh;y<=cy+rh;y++)
+      for(let x=cx-rw;x<=cx+rw;x++)
+        if(x>0&&x<W-1&&y>0&&y<H-1) map[y][x]=tile;
+  }
+
+  function zone(cx,cy,rw,rh) {
+    for(let y=cy-rh;y<=cy+rh;y++)
+      for(let x=cx-rw;x<=cx+rw;x++) {
+        if(x<=0||x>=W-1||y<=0||y>=H-1) continue;
+        if(map[y][x]!==T.WALL) continue;
+        const n=fbm(x*0.1+seed*0.01, y*0.1+seed*0.01, 3, seed);
+        map[y][x] = n>0.6?T.TREE : n>0.44?T.GRASS : T.GROUND;
+      }
+  }
+
+  function pond(cx,cy,rx,ry) {
+    for(let y=cy-ry;y<=cy+ry;y++)
+      for(let x=cx-rx;x<=cx+rx;x++){
+        if(x<=0||x>=W-1||y<=0||y>=H-1) continue;
+        const dx=(x-cx)/rx, dy=(y-cy)/ry;
+        if(dx*dx+dy*dy<1) map[y][x]=T.WATER;
+      }
+  }
+
+  function safe(x,y,r=3) {
+    // Clear wall/water in a radius so path isn't blocked
+    for(let dy=-r;dy<=r;dy++)
+      for(let dx=-r;dx<=r;dx++) {
+        const nx=x+dx, ny=y+dy;
+        if(nx>0&&nx<W-1&&ny>0&&ny<H-1&&(map[ny][nx]===T.WALL||map[ny][nx]===T.WATER))
+          map[ny][nx]=T.GROUND;
+      }
+  }
+
+  function placeNest(x,y) {
+    const cx=Math.max(4,Math.min(W-5,Math.round(x)));
+    const cy=Math.max(4,Math.min(H-5,Math.round(y)));
+    for(let r=0;r<=8;r++)
+      for(let a=0;a<8;a++){
+        const nx=cx+Math.round(Math.cos(a*Math.PI/4)*r);
+        const ny=cy+Math.round(Math.sin(a*Math.PI/4)*r);
+        if(nx>0&&nx<W-1&&ny>0&&ny<H-1){
+          const t=map[ny][nx];
+          if(t===T.GROUND||t===T.GRASS||t===T.PATH){
+            map[ny][nx]=T.NEST; return;
+          }
+        }
+      }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  HUB TOWN — always centred, layout varies
+  // ══════════════════════════════════════════════════════
+  const townW = rngRange(1, 7, 11);
+  const townH = rngRange(2, 5, 8);
+  fill(CX, CY, townW, townH, T.TOWN);
+
+  // Town buildings — vary count and spacing
+  const bSpacing = rngRange(3, 3, 5);
+  for(let bx=CX-townW+1; bx<=CX+townW-1; bx+=bSpacing)
+    for(let by=CY-townH+1; by<=CY+townH-1; by+=bSpacing)
+      if(Math.abs(bx-CX)>3||Math.abs(by-CY)>2)
+        fill(bx, by, 1, 1, T.WALL);
+
+  // Shrine + chests
+  map[CY-2][CX]        = T.SHRINE;
+  map[CY+townH-1][CX-townW+2] = T.CHEST;
+  map[CY+townH-1][CX+townW-2] = T.CHEST;
+  // Direction signs
+  map[CY][CX+townW+1]  = T.SIGN;
+  map[CY][CX-townW-1]  = T.SIGN;
+  map[CY-townH-1][CX]  = T.SIGN;
+  map[CY+townH+1][CX]  = T.SIGN;
+
+  // ══════════════════════════════════════════════════════
+  //  SPOKE ZONES — length, width, and sub-features seeded
+  // ══════════════════════════════════════════════════════
+
+  // ── NORTH SPOKE ───────────────────────────────────────
+  const northLen  = rngRange(10, 22, 42);      // how far north the zone centre is
+  const northJog  = rngRange(11, -16, 16);     // lateral offset of zone centre
+  const NCX = CX + northJog;
+  const NCY = CY - northLen;
+  const northRW   = rngRange(12, 16, 28);
+  const northRH   = rngRange(13, 10, 18);
+  road(CX, CY-townH-1, NCX, NCY, rngRange(14,3,5));
+  zone(NCX, NCY, northRW, northRH);
+  // Mini-boss
+  const nmbX = NCX + rngRange(15,-8,8);
+  const nmbY = NCY - rngRange(16,4,10);
+  safe(nmbX, nmbY); map[Math.max(2,nmbY)][Math.max(2,nmbX)] = T.MINIBOSS;
+  // Caves (1 or 2)
+  const nCaves = rngRange(17, 1, 2);
+  for(let i=0;i<nCaves;i++){
+    const cx=NCX+rngRange(18+i*3,-northRW+4,northRW-4);
+    const cy=NCY+rngRange(19+i*3,-northRH+4,northRH-4);
+    safe(cx,cy); map[cy][cx]=T.CAVE;
+  }
+  // Water (50% chance)
+  if(rng(20)>0.5) pond(NCX+rngRange(21,-10,10), NCY+rngRange(22,-6,6), rngRange(23,4,8), rngRange(24,3,5));
+  // Ruins (50%)
+  if(rng(25)>0.5){ const rx=NCX+rngRange(26,-12,12),ry=NCY+rngRange(27,0,8); safe(rx,ry,2); map[ry][rx]=T.RUIN; }
+  // Nests
+  placeNest(NCX+rngRange(28,-northRW+2,northRW-2), NCY+rngRange(29,-northRH+2,northRH-2));
+  placeNest(NCX+rngRange(30,-northRW+2,northRW-2), NCY+rngRange(31,-northRH+2,northRH-2));
+
+  // ── EAST SPOKE ────────────────────────────────────────
+  const eastLen   = rngRange(40, 22, 42);
+  const eastJog   = rngRange(41, -16, 16);
+  const EZX = CX + eastLen;
+  const EZY = CY + eastJog;
+  const eastRW    = rngRange(42, 14, 24);
+  const eastRH    = rngRange(43, 16, 28);
+  road(CX+townW+1, CY, EZX, EZY, rngRange(44,3,5));
+  zone(EZX, EZY, eastRW, eastRH);
+  // Mini-boss
+  const embX = EZX+rngRange(45,4,10); const embY = EZY+rngRange(46,-8,8);
+  safe(embX,embY); map[Math.min(H-2,embY)][Math.min(W-2,embX)]=T.MINIBOSS;
+  // Ruins or shrine (varies)
+  const eastPoI = rngPick(47,[T.RUIN,T.SHRINE,T.RUIN]);
+  const epX=EZX+rngRange(48,-eastRW+4,eastRW-4), epY=EZY+rngRange(49,-eastRH+4,eastRH-4);
+  safe(epX,epY,2); map[epY][epX]=eastPoI;
+  // Cave
+  const ecX=EZX+rngRange(50,-eastRW+3,eastRW-3), ecY=EZY+rngRange(51,-eastRH+3,eastRH-3);
+  safe(ecX,ecY); map[ecY][ecX]=T.CAVE;
+  // Water
+  if(rng(52)>0.4) pond(EZX+rngRange(53,-8,8), EZY+rngRange(54,-8,8), rngRange(55,4,8), rngRange(56,3,5));
+  // Nests
+  placeNest(EZX+rngRange(57,-eastRW+2,eastRW-2), EZY+rngRange(58,-eastRH+2,eastRH-2));
+  placeNest(EZX+rngRange(59,-eastRW+2,eastRW-2), EZY+rngRange(60,-eastRH+2,eastRH-2));
+
+  // ── WEST SPOKE ────────────────────────────────────────
+  const westLen   = rngRange(70, 22, 42);
+  const westJog   = rngRange(71, -16, 16);
+  const WZX = CX - westLen;
+  const WZY = CY + westJog;
+  const westRW    = rngRange(72, 14, 24);
+  const westRH    = rngRange(73, 16, 28);
+  road(CX-townW-1, CY, WZX, WZY, rngRange(74,3,5));
+  zone(WZX, WZY, westRW, westRH);
+  // Mini-boss
+  const wmbX=WZX-rngRange(75,4,10); const wmbY=WZY+rngRange(76,-8,8);
+  safe(wmbX,wmbY); map[Math.min(H-2,Math.max(2,wmbY))][Math.max(2,wmbX)]=T.MINIBOSS;
+  // Shrine
+  const wsX=WZX+rngRange(77,-westRW+4,westRW-4), wsY=WZY+rngRange(78,-westRH+4,westRH-4);
+  safe(wsX,wsY,2); map[wsY][wsX]=T.SHRINE;
+  // Cave
+  const wcX=WZX+rngRange(79,-westRW+3,westRW-3), wcY=WZY+rngRange(80,-westRH+3,westRH-3);
+  safe(wcX,wcY); map[wcY][wcX]=T.CAVE;
+  // Lake + bridge
+  const lakeX=WZX+rngRange(81,-8,8), lakeY=WZY+rngRange(82,-8,8);
+  pond(lakeX, lakeY, rngRange(83,5,9), rngRange(84,3,6));
+  bridge(map, lakeX, lakeY, rng(85)>0.5);
+  // Nests
+  placeNest(WZX+rngRange(86,-westRW+2,westRW-2), WZY+rngRange(87,-westRH+2,westRH-2));
+  placeNest(WZX+rngRange(88,-westRW+2,westRW-2), WZY+rngRange(89,-westRH+2,westRH-2));
+
+  // ── SOUTH SPOKE → BOSS GAUNTLET ──────────────────────
+  const southLen  = rngRange(90, 30, 48);
+  const southJog  = rngRange(91, -10, 10);
+  const SGX = CX + southJog;
+  const SGY = CY + southLen;
+  road(CX, CY+townH+1, SGX, SGY-8, rngRange(92,3,5));
+  // Pre-boss dense zone
+  const preW=rngRange(93,14,22), preH=rngRange(94,8,14);
+  zone(SGX, SGY-14, preW, preH);
+  // Pre-boss mini-boss
+  safe(SGX, SGY-15);
+  map[Math.min(H-2,SGY-15)][Math.min(W-2,Math.max(2,SGX))]=T.MINIBOSS;
+  // Checkpoint chests
+  map[Math.min(H-2,SGY-22)][Math.max(2,SGX-6)]=T.CHEST;
+  map[Math.min(H-2,SGY-22)][Math.min(W-2,SGX+6)]=T.CHEST;
+
+  // ── FINAL BOSS ARENA ──────────────────────────────────
+  const arenaW=rngRange(95,10,16), arenaH=rngRange(96,8,12);
+  fill(SGX, SGY, arenaW, arenaH, T.GROUND);
+  road(SGX, SGY-8, SGX, SGY-arenaH-1, 3);
+  // Arena walls
+  for(let ax=SGX-arenaW-2;ax<=SGX+arenaW+2;ax++){
+    if(SGY-arenaH-2>=0) map[SGY-arenaH-2][Math.min(W-2,Math.max(2,ax))]=T.WALL;
+    if(SGY+arenaH+2<H)  map[SGY+arenaH+2][Math.min(W-2,Math.max(2,ax))]=T.WALL;
+  }
+  for(let ay=SGY-arenaH-2;ay<=SGY+arenaH+2;ay++){
+    if(SGX-arenaW-2>=0) map[Math.min(H-2,ay)][SGX-arenaW-2]=T.WALL;
+    if(SGX+arenaW+2<W)  map[Math.min(H-2,ay)][SGX+arenaW+2]=T.WALL;
+  }
+  // Gate open in arena wall
+  for(let gx=SGX-2;gx<=SGX+2;gx++)
+    if(SGY-arenaH-2>=0) map[SGY-arenaH-2][Math.min(W-2,Math.max(2,gx))]=T.PATH;
+  // Boss tile + trophy chests
+  map[Math.min(H-2,SGY)][Math.min(W-2,Math.max(2,SGX))]=T.BOSS;
+  map[Math.min(H-2,SGY+arenaH-2)][Math.max(2,SGX-arenaW+2)]=T.CHEST;
+  map[Math.min(H-2,SGY+arenaH-2)][Math.min(W-2,SGX+arenaW-2)]=T.CHEST;
+
+  // ── BONUS HIDDEN NEST ─────────────────────────────────
+  placeNest(CX+rngRange(100,-40,40), CY+rngRange(101,-40,40));
+
+  // ── SCATTER FLOWERS ───────────────────────────────────
+  for(let i=0;i<60;i++){
+    const fx=rngRange(200+i,4,W-5), fy=rngRange(300+i,4,H-5);
+    if(map[fy][fx]===T.GROUND) map[fy][fx]=T.FLOWER;
+  }
+
+  // ── HARD BORDER ───────────────────────────────────────
+  for(let x=0;x<W;x++){map[0][x]=T.WALL;map[H-1][x]=T.WALL;}
+  for(let y=0;y<H;y++){map[y][0]=T.WALL;map[y][W-1]=T.WALL;}
+
+  // ── CLEAR SPAWN ───────────────────────────────────────
+  safe(CX, CY, 4);
+  for(let dy=-2;dy<=2;dy++)
+    for(let dx=-2;dx<=2;dx++)
+      if(map[CY+dy]?.[CX+dx]!==T.SHRINE&&map[CY+dy]?.[CX+dx]!==T.CHEST)
+        map[CY+dy][CX+dx]=T.TOWN;
+
+  return map;
+}
+
+
+function bridge(map, cx, cy, horizontal) {
+  if(horizontal){
+    for(let x=cx-7;x<=cx+7;x++) if(map[cy]?.[x]===T.WATER) map[cy][x]=T.BRIDGE;
+  } else {
+    for(let y=cy-5;y<=cy+5;y++) if(map[y]?.[cx]===T.WATER) map[y][cx]=T.BRIDGE;
+  }
+}
+
+// ── GAME STATE ────────────────────────────────────────────
+const state = {
+  // Player
+  playerName:  'Trainer',
+  homeRegion:  'suncrest_expanse',
+  px: 64, py: 64,   // player tile position
+  playerDir: 'down',
+  moving: false,
+  stepCount: 0,
+
+  // World
+  currentRegion: 'suncrest_expanse',
+  map: [],
+  mapSeed: 0,
+  visitedNests:    new Set(),
+  visitedPoI:      new Set(),
+  defeatedBosses:  new Set(),
+  // Fog of war — tiles the player has been near
+  exploredTiles: new Set(),
+
+  // Time & weather
+  time: 8,           // 0-23 hours
+  timeSpeed: 0.00015, // hours per frame — 1 game-day ≈ 25 real minutes
+  weather: 'clear',  // clear, rain, fog, storm
+  weatherTimer: 0,
+
+  // Collection
+  eggs:      [],
+  creatures: [],
+  coins:     200,
+  activeCreatureIdx: -1,
+
+  // Battle
+  inBattle:   false,
+  battleState: null,
+
+  // Dialog
+  inDialog:   false,
+
+  // Input
+  keys: {},
+
+  // Camera
+  camX: 0, camY: 0,
+};
+
+// ── CANVAS SETUP ──────────────────────────────────────────
+const canvas  = document.getElementById('world');
+const ctx     = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const mmCanvas = document.getElementById('mm');
+const mmCtx    = mmCanvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = document.getElementById('game-canvas-wrap');
+  const w    = Math.min(800, window.innerWidth);
+  canvas.width  = VIEW_W * TILE;
+  canvas.height = VIEW_H * TILE;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = (w * VIEW_H / VIEW_W) + 'px';
+  wrap.style.height   = (w * VIEW_H / VIEW_W) + 'px';
+}
+
+// ── INPUT ─────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  // Don't swallow events when opening menu is visible
+  const menuOpen = document.getElementById('menu-overlay') &&
+                   document.getElementById('menu-overlay').style.display !== 'none';
+  if (menuOpen) return;
+  state.keys[e.key.toLowerCase()] = true;
+  if (e.key === 'e' || e.key === 'E') handleInteract();
+  if (e.key === 'Escape') handleEsc();
+  e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  const menuOpen = document.getElementById('menu-overlay') &&
+                   document.getElementById('menu-overlay').style.display !== 'none';
+  if (menuOpen) return;
+  state.keys[e.key.toLowerCase()] = false;
+});
+
+// Mobile D-pad (touch)
+function addTouch(id, key) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('touchstart', e => { state.keys[key] = true; e.preventDefault(); });
+  el.addEventListener('touchend',   e => { state.keys[key] = false; e.preventDefault(); });
+}
+
+// ── MOVEMENT ──────────────────────────────────────────────
+let moveTimer = 0;
+const MOVE_DELAY = 150; // ms between steps
+
+function handleMovement(dt) {
+  if (state.inBattle || state.inDialog) return;
+  moveTimer += dt;
+  if (moveTimer < MOVE_DELAY) return;
+
+  let dx = 0, dy = 0;
+  const k = state.keys;
+  if (k['arrowleft']  || k['a']) { dx = -1; state.playerDir = 'left';  }
+  if (k['arrowright'] || k['d']) { dx =  1; state.playerDir = 'right'; }
+  if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
+  if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
+
+  if (dx === 0 && dy === 0) return;
+  moveTimer = 0;
+
+  const nx = state.px + dx;
+  const ny = state.py + dy;
+
+  if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) return;
+  const tile = state.map[ny]?.[nx];
+  if (tile === undefined) return;
+
+  // Solid tiles
+  if (tile === T.WALL || tile === T.TREE || tile === T.WATER) return;
+
+  state.px = nx;
+  state.py = ny;
+  state.stepCount++;
+
+  // Update camera
+  state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
+  state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
+
+  // Mark nearby tiles as explored (fog of war radius = 6 tiles)
+  const FOG_R = 6;
+  for(let ey=-FOG_R;ey<=FOG_R;ey++)
+    for(let ex=-FOG_R;ex<=FOG_R;ex++)
+      if(ex*ex+ey*ey <= FOG_R*FOG_R)
+        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  // Grass encounter check — not in town tiles
+  if (tile === T.GRASS && Math.random() < 0.12) {
+    triggerEncounter();
+    return;
+  }
+  // No encounters on town, path to boss, or bridge
+  if (tile === T.TOWN || tile === T.BRIDGE) return;
+
+  // Nest check
+  if (tile === T.NEST) {
+    const nestKey = `${nx},${ny}`;
+    if (!state.visitedNests.has(nestKey)) {
+      state.visitedNests.add(nestKey);
+      triggerEggFind();
+    }
+  }
+
+  // PoI check
+  if (tile === T.CAVE) {
+    const poiKey = `${nx},${ny}`;
+    if (!state.visitedPoI.has(poiKey)) { triggerPoI(tile); }
+  }
+  if (tile === T.SHRINE || tile === T.RUIN) {
+    const poiKey = `${nx},${ny}`;
+    if (!state.visitedPoI.has(poiKey)) {
+      triggerPoI(tile);
+    }
+  }
+
+  // Town — safe zone message first visit
+  if (tile === T.TOWN) {
+    const townKey = `town_${state.currentRegion}`;
+    if (!state.visitedPoI.has(townKey)) {
+      state.visitedPoI.add(townKey);
+      showDialog('TOWN CENTER',
+        'You reached the town!\nThis is a safe zone — no wild encounters here.\n\nRest, heal, and plan your route:\n  NORTH — Cave Zone (mini-boss)\n  EAST  — Ruins Zone (mini-boss)\n  WEST  — Shrine Zone (mini-boss)\n  SOUTH — Boss Gauntlet',
+        [{label:'Explore!', fn:closeDialog}]);
+    }
+  }
+
+  // Mini-boss
+  if (tile === T.MINIBOSS) {
+    const bKey = `mb_${nx}_${ny}`;
+    if (!state.defeatedBosses.has(bKey)) {
+      triggerMiniBoss(bKey);
+    }
+  }
+
+  // Final boss
+  if (tile === T.BOSS) {
+    const bKey = `boss_${state.currentRegion}`;
+    if (!state.defeatedBosses.has(bKey)) {
+      triggerFinalBoss(bKey);
+    } else {
+      showDialog('BOSS DEFEATED',
+        'You have already defeated the boss of this region!\nTravel to another region for a new challenge.',
+        [{label:'OK', fn:closeDialog}]);
+    }
+  }
+
+  updateHUD();
+}
+
+// ── ENCOUNTER SYSTEM ─────────────────────────────────────
+function triggerEncounter() {
+  const region   = REGIONS[state.currentRegion];
+  const pool     = region.creatures;
+  // Weighted by rarity
+  const weights  = pool.map(c => c.rarity === 'common' ? 50 : c.rarity === 'uncommon' ? 20 : c.rarity === 'rare' ? 6 : 1);
+  const total    = weights.reduce((a,b) => a+b, 0);
+  let r          = Math.random() * total;
+  let wildTemplate = pool[0];
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { wildTemplate = pool[i]; break; }
+  }
+
+  // Scale wild creature level
+  const wildLevel  = Math.max(1, Math.floor(state.creatures.length * 2) + Math.floor(Math.random() * 4));
+  const wildMult   = 1 + (wildLevel - 1) * 0.08;
+  const wild = {
+    ...wildTemplate,
+    level:      wildLevel,
+    currentHp:  Math.round(wildTemplate.hp * wildMult),
+    maxHp:      Math.round(wildTemplate.hp * wildMult),
+    attack:     Math.round(wildTemplate.atk * wildMult),
+    defense:    Math.round(wildTemplate.def * wildMult),
+    energy:     0,
+    status:     null,
+  };
+
+  // Flash
+  const flash = document.getElementById('encounter-flash');
+  flash.style.opacity = '1';
+  setTimeout(() => { flash.style.opacity = '0'; }, 120);
+  setTimeout(() => { flash.style.opacity = '0.8'; }, 200);
+  setTimeout(() => { flash.style.opacity = '0'; }, 280);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    startBattle(state.creatures[state.activeCreatureIdx], wild, false);
+  } else {
+    showDialog(
+      `Wild ${wild.name} appeared!`,
+      `A wild ${wild.name} (Lv${wild.level}) leapt from the grass!\nYou have no active creature to battle with.`,
+      [
+        { label: 'Run away', fn: closeDialog },
+      ]
+    );
+  }
+}
+
+function triggerEggFind() {
+  const region   = REGIONS[state.currentRegion];
+  const pool     = region.creatures;
+  const weights  = pool.map(c => c.rarity === 'common' ? 50 : c.rarity === 'uncommon' ? 15 : c.rarity === 'rare' ? 4 : 1);
+  const total    = weights.reduce((a,b) => a+b, 0);
+  let r          = Math.random() * total;
+  let species    = pool[0];
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { species = pool[i]; break; }
+  }
+
+  const egg = {
+    id:       Date.now(),
+    speciesId: species.id,
+    name:      `${species.name} Egg`,
+    element:   species.element,
+    rarity:    species.rarity,
+    region:    state.currentRegion,
+    cards:     [],
+  };
+  state.eggs.push(egg);
+
+  // Replace nest tile with ground
+  state.map[state.py][state.px] = T.GROUND;
+
+  showDialog(
+    '🥚 EGG FOUND!',
+    `You discovered a ${species.name} Egg!\nRarity: ${species.rarity.toUpperCase()}\nElement: ${species.element.toUpperCase()}\n\nAdded to your collection.`,
+    [{ label: 'Great!', fn: closeDialog }]
+  );
+  updateHUD();
+}
+
+function triggerMiniBoss(bossKey) {
+  const region   = REGIONS[state.currentRegion];
+  // Mini-boss is a rare creature from the region, scaled up
+  const pool     = region.creatures.filter(c => c.rarity === 'rare' || c.rarity === 'uncommon');
+  const template = pool[Math.floor(Math.random() * pool.length)] || region.creatures[region.creatures.length-2];
+  const lvl      = Math.max(5, (state.creatures[state.activeCreatureIdx]?.level||1) + 3);
+  const mult     = 1 + (lvl-1)*0.12;
+  const boss = {
+    ...template,
+    name:      `[MINI] ${template.name}`,
+    level:     lvl,
+    currentHp: Math.round(template.hp * mult * 1.5),
+    maxHp:     Math.round(template.hp * mult * 1.5),
+    attack:    Math.round(template.atk * mult * 1.2),
+    defense:   Math.round(template.def * mult),
+    speed:     template.spd,
+    energy:    0, status:null,
+    isBoss:    true,
+    bossKey,
+  };
+
+  const flash = document.getElementById('encounter-flash');
+  flash.style.background='#ff4400';
+  flash.style.opacity='0.7';
+  setTimeout(()=>{flash.style.opacity='0';flash.style.background='#ffffff';},300);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    showDialog(
+      '⚠ MINI-BOSS APPEARED!',
+      `${boss.name} (Lv${boss.level}) blocks the path!\nHP: ${boss.maxHp}  ATK: ${boss.attack}\n\nDefeat it to clear this zone.`,
+      [
+        { label: 'FIGHT!', fn: () => { closeDialog(); startBattle(state.creatures[state.activeCreatureIdx], boss, false); }},
+        { label: 'Retreat', fn: closeDialog },
+      ]
+    );
+  } else {
+    showDialog('⚠ MINI-BOSS!', `${boss.name} blocks the path! You need a creature to fight it.`, [{label:'Retreat', fn:closeDialog}]);
+  }
+}
+
+function triggerFinalBoss(bossKey) {
+  const region   = REGIONS[state.currentRegion];
+  const template = region.creatures[region.creatures.length-1]; // legendary
+  const lvl      = Math.max(10, (state.creatures[state.activeCreatureIdx]?.level||1) + 6);
+  const mult     = 1 + (lvl-1)*0.15;
+  const boss = {
+    ...template,
+    name:      `${template.name.toUpperCase()} [BOSS]`,
+    level:     lvl,
+    currentHp: Math.round(template.hp * mult * 2),
+    maxHp:     Math.round(template.hp * mult * 2),
+    attack:    Math.round(template.atk * mult * 1.4),
+    defense:   Math.round(template.def * mult * 1.2),
+    speed:     template.spd,
+    energy:    50,  // boss starts with energy already charged
+    status:    null,
+    isBoss:    true,
+    isFinalBoss: true,
+    bossKey,
+  };
+
+  const flash = document.getElementById('encounter-flash');
+  flash.style.background='#ff0044';
+  flash.style.opacity='1';
+  setTimeout(()=>{flash.style.opacity='0.5';},150);
+  setTimeout(()=>{flash.style.opacity='0';flash.style.background='#ffffff';},400);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    showDialog(
+      '💀 FINAL BOSS!',
+      `${boss.name} (Lv${boss.level})\nHP: ${boss.maxHp}  ATK: ${boss.attack}\n\nThe guardian of ${region.name} stands before you.\nThis is the ultimate challenge of this region!`,
+      [
+        { label: '⚔ CHALLENGE!', fn: () => { closeDialog(); startBattle(state.creatures[state.activeCreatureIdx], boss, false); }},
+        { label: 'Not yet...', fn: closeDialog },
+      ]
+    );
+  } else {
+    showDialog('💀 FINAL BOSS!', `${boss.name} awaits. You need a creature to battle it!`, [{label:'Flee', fn:closeDialog}]);
+  }
+}
+
+function triggerPoI(tileType) {
+  const names  = { [T.CAVE]:'Dark Cave', [T.SHRINE]:'Ancient Shrine', [T.RUIN]:'Old Ruins' };
+  const msgs   = {
+    [T.CAVE]:   'The cave entrance is cool and dark.\nYou sense powerful creatures lurk inside.',
+    [T.SHRINE]: 'An ancient shrine glows faintly.\nYou feel your creatures grow stronger.\n\n+50 XP to all creatures!',
+    [T.RUIN]:   'Crumbling ruins of an old civilization.\nYou find a coin pouch in the rubble.\n\n+30 coins!',
+  };
+  const key = `${state.px},${state.py}`;
+
+  if (tileType === T.SHRINE) {
+    state.creatures.forEach(c => {
+      c.xp = (c.xp || 0) + 50;
+      c.level = Math.max(1, Math.floor(c.xp / 100) + 1);
+    });
+  }
+  if (tileType === T.RUIN) {
+    state.coins += 30;
+  }
+
+  state.visitedPoI.add(key);
+  showDialog(names[tileType] || 'Location', msgs[tileType] || 'Nothing here.',
+    [{ label: 'Leave', fn: closeDialog }]);
+  updateHUD();
+}
+
+function handleInteract() {
+  if (state.inDialog) {
+    closeDialog();
+    return;
+  }
+  // Check adjacent tiles for NPCs/chests
+  const dirs = [{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
+  for (const {dx, dy} of dirs) {
+    const tx = state.px + dx, ty = state.py + dy;
+    const tile = state.map[ty]?.[tx];
+    if (tile === T.CHEST) {
+      const reward = 10 + Math.floor(Math.random() * 40);
+      state.coins += reward;
+      state.map[ty][tx] = T.GROUND;
+      showDialog('TREASURE CHEST', `You found ${reward} coins!`, [{label:'Take it!', fn:closeDialog}]);
+      updateHUD();
+      return;
+    }
+  }
+}
+
+function handleEsc() {
+  if (state.inBattle || state.inDialog) return;
+  showMainMenu();
+}
+
+// ── BATTLE SYSTEM ─────────────────────────────────────────
+
+// Element circle: each beats the next, weak to previous
+const ELEM_CIRCLE = ['fire','nature','ice','storm','spirit','dark','water','sand','magma','crystal'];
+
+function getTypeMult(atkElem, defElem) {
+  const ai = ELEM_CIRCLE.indexOf(atkElem);
+  const di = ELEM_CIRCLE.indexOf(defElem);
+  if (ai < 0 || di < 0) return 1.0;
+  const len = ELEM_CIRCLE.length;
+  if ((ai + 1) % len === di) return 1.5;
+  if ((ai - 1 + len) % len === di) return 0.5;
+  return 1.0;
+}
+
+function rollD20() { return Math.floor(Math.random() * 20) + 1; }
+
+function getOutcome(roll) {
+  if (roll === 1)  return {label:'CRITICAL FAIL!', mult:0,    energy:0,   cls:'log-miss'};
+  if (roll <= 5)   return {label:'Weak Hit',        mult:0.25, energy:5,   cls:'log-info'};
+  if (roll <= 10)  return {label:'Hit',             mult:0.75, energy:10,  cls:'log-info'};
+  if (roll <= 15)  return {label:'Strong Hit!',     mult:1.0,  energy:15,  cls:'log-hit'};
+  if (roll <= 19)  return {label:'Heavy Hit!!',     mult:1.25, energy:20,  cls:'log-hit'};
+  return                  {label:'CRITICAL HIT!!!', mult:2.0,  energy:35,  cls:'log-crit'};
+}
+
+let battleData = null;
+
+function startBattle(playerCreature, wildCreature, isSurrender) {
+  battleData = {
+    player:  { ...playerCreature, energy: playerCreature.energy || 0, currentHp: playerCreature.currentHp || playerCreature.hp, maxHp: playerCreature.hp },
+    enemy:   { ...wildCreature },
+    turn:    'player',
+    over:    false,
+    canCatch: true,
+  };
+
+  state.inBattle = true;
+  const dpadEl = document.getElementById('dpad');
+  if (dpadEl) dpadEl.style.display = 'none';
+  const overlay = document.getElementById('battle-overlay');
+  overlay.classList.add('show');
+
+  document.getElementById('b-player-name').textContent = playerCreature.name.toUpperCase();
+  document.getElementById('b-enemy-name').textContent  = `WILD ${wildCreature.name.toUpperCase()}`;
+  document.getElementById('b-enemy-elem').textContent  = wildCreature.element.toUpperCase();
+
+  updateBattleUI();
+  buildMoveButtons();
+
+  // Load creature art — image if available, sprite fallback if not
+  loadBattleArt('player', playerCreature);
+  loadBattleArt('enemy',  wildCreature);
+
+  renderBattleArena();
+  blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
+  blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
+
+  // Initiative roll
+  const pRoll = rollD20(), eRoll = rollD20();
+  blogLog(`Initiative — You: ${pRoll} | Enemy: ${eRoll}`, 'log-info');
+  if (eRoll > pRoll) {
+    battleData.turn = 'enemy';
+    blogLog(`${wildCreature.name} goes first!`, 'log-info');
+    setTimeout(enemyTurn, 1200);
+  } else {
+    blogLog(`${playerCreature.name} goes first!`, 'log-info');
+  }
+}
+
+function blogLog(msg, cls='') {
+  const log = document.getElementById('battle-log');
+  const line = document.createElement('div');
+  line.className = cls;
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function updateBattleUI() {
+  if (!battleData) return;
+  const p = battleData.player, e = battleData.enemy;
+  const pPct = Math.max(0,(p.currentHp/p.maxHp)*100);
+  const hpEl = document.getElementById('b-player-hp');
+  if (hpEl) {
+    hpEl.style.width = pPct+'%';
+    hpEl.style.background = pPct<25?'#ff3333':pPct<50?'linear-gradient(90deg,#aa4400,#ff8800)':'linear-gradient(90deg,#22cc44,#44ff88)';
+  }
+  const hpTxt = document.getElementById('b-player-hp-txt');
+  if (hpTxt) hpTxt.textContent = `${p.currentHp}/${p.maxHp}`;
+  const enEl = document.getElementById('b-player-en');
+  if (enEl) enEl.style.width = (p.energy||0)+'%';
+  const enTxt = document.getElementById('b-player-en-txt');
+  if (enTxt) enTxt.textContent = p.energy||0;
+  const ePct = Math.max(0,(e.currentHp/e.maxHp)*100);
+  const eHp = document.getElementById('b-enemy-hp');
+  if (eHp) {
+    eHp.style.width = ePct+'%';
+    eHp.style.background = ePct<25?'#ff3333':ePct<50?'linear-gradient(90deg,#aa4400,#ff8800)':'linear-gradient(90deg,#22cc44,#44ff88)';
+  }
+  const eHpTxt = document.getElementById('b-enemy-hp-txt');
+  if (eHpTxt) eHpTxt.textContent = `${e.currentHp}/${e.maxHp}`;
+}
+
+function buildMoveButtons() {
+  const wrap = document.getElementById('battle-moves');
+  wrap.innerHTML = '';
+
+  const moves = [
+    { label: 'BASE ATTACK',  id:'base',    cls:'',       disabled:false },
+    { label: 'POWER STRIKE', id:'power',   cls:'',       disabled:false },
+    { label: 'SPECIAL ⚡',   id:'special', cls:'special',disabled: battleData.player.energy < 100 },
+    { label: 'CATCH',        id:'catch',   cls:'catch',  disabled:false },
+    { label: 'RUN',          id:'run',     cls:'danger', disabled:false },
+  ];
+
+  moves.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className   = `move-btn ${m.cls}`;
+    btn.textContent = m.label;
+    btn.disabled    = m.disabled;
+    btn.onclick     = () => playerAction(m.id);
+    wrap.appendChild(btn);
+  });
+}
+
+async function playerAction(actionId) {
+  if (!battleData || battleData.turn !== 'player' || battleData.over) return;
+  disableMoveButtons(true);
+
+  if (actionId === 'run') {
+    // Bosses cannot be fled
+    if (battleData.enemy.isBoss) {
+      blogLog('You cannot run from a boss!', 'log-miss');
+      disableMoveButtons(false);
+      buildMoveButtons();
+      return;
+    }
+
+    const runRoll  = rollD20();
+    const spdBonus = Math.floor((battleData.player.speed || 10) / 10);
+    const total    = runRoll + spdBonus;
+    await showDice(runRoll, 'ESCAPE ROLL');
+    blogLog(`Escape roll: ${runRoll} + SPD bonus ${spdBonus} = ${total}`, 'log-info');
+
+    if (total >= 10) {
+      blogLog(`Got away safely! (needed 10, got ${total})`, 'log-crit');
+      endBattle(false, false);
+    } else {
+      // Failed escape — enemy gets a free hit
+      const margin  = 10 - total;
+      const dmg     = Math.max(1, Math.round(battleData.enemy.attack * (margin / 10)));
+      battleData.player.currentHp = Math.max(0, battleData.player.currentHp - dmg);
+      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+        state.creatures[state.activeCreatureIdx].currentHp = battleData.player.currentHp;
+      }
+      flashHit('player');
+      blogLog(`Escape FAILED! (needed 10, got ${total}) — took ${dmg} damage!`, 'log-miss');
+      updateBattleUI();
+
+      if (battleData.player.currentHp <= 0) {
+        blogLog(`${battleData.player.name} fainted while fleeing!`, 'log-miss');
+        endBattle(false, false);
+        return;
+      }
+      // Turn passes to enemy after failed escape
+      battleData.turn = 'enemy';
+      setTimeout(enemyTurn, 800);
+    }
+    return;
+  }
+
+  if (actionId === 'catch') {
+    const catchRoll = rollD20();
+    await showDice(catchRoll, 'CATCH ATTEMPT');
+    const hpFactor = battleData.enemy.currentHp / battleData.enemy.maxHp;
+    const chance   = (1 - hpFactor) * 0.7 + 0.1;
+    if (Math.random() < chance) {
+      blogLog(`Caught ${battleData.enemy.name}!`, 'log-crit');
+      // Add as egg/creature
+      const caught = {
+        ...battleData.enemy,
+        name:      battleData.enemy.name,
+        currentHp: battleData.enemy.maxHp,
+        xp:        0,
+        level:     battleData.enemy.level,
+        energy:    0,
+        status:    null,
+      };
+      initCreatureSkills(caught);
+      state.creatures.push(caught);
+      if (state.activeCreatureIdx < 0) state.activeCreatureIdx = 0;
+      blogLog(`${caught.name} joined your team!`, 'log-crit');
+      endBattle(true, true);
+    } else {
+      blogLog(`${battleData.enemy.name} broke free!`, 'log-miss');
+      blogLog(`Tip: weaken it first for better catch odds.`, 'log-info');
+      battleData.turn = 'enemy';
+      setTimeout(enemyTurn, 800);
+    }
+    return;
+  }
+
+  // Attack
+  const roll    = rollD20();
+
+  // Play attack cutscene
+  const moveLabelCut = actionId==='special'?'SPECIAL MOVE!':actionId==='power'?'POWER STRIKE':'BASE ATTACK';
+
+  await showDice(roll, 'YOUR ATTACK');
+  const outcome = getOutcome(roll);
+  blogLog(`Roll: ${roll} — ${outcome.label}`, outcome.cls);
+
+  if (outcome.mult > 0) {
+    const p        = battleData.player;
+    const e        = battleData.enemy;
+    const typeMult = getTypeMult(p.element, e.element);
+    if (typeMult > 1) blogLog('Super effective!', 'log-crit');
+    if (typeMult < 1) blogLog('Not very effective...', 'log-info');
+
+    const powerBoost = actionId === 'power' ? 1.5 : actionId === 'special' ? 2.5 : 1.0;
+    const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost));
+
+    e.currentHp = Math.max(0, e.currentHp - dmg);
+    flashHit('enemy');
+    blogLog(`${p.name} deals ${dmg} damage!`, 'log-hit');
+
+    // Energy gain
+    p.energy = Math.min(100, p.energy + outcome.energy);
+    if (actionId === 'special') p.energy = 0;
+  }
+
+  updateBattleUI();
+
+  if (battleData.enemy.currentHp <= 0) {
+    blogLog(`${battleData.enemy.name} fainted!`, 'log-crit');
+    const xpGain = battleData.enemy.level * 12;
+    const pc = state.creatures[state.activeCreatureIdx];
+    if (pc) {
+      initCreatureSkills(pc);
+      const leveled = grantXP(pc, xpGain);
+      blogLog(`${pc.name} gained ${xpGain} XP! (Lv${pc.level})`, 'log-crit');
+      if (leveled) {
+        blogLog(`LEVEL UP! Lv${pc.level} — +2 Skill Points!`, 'log-crit');
+      }
+    }
+    state.coins += Math.floor(battleData.enemy.level * 3);
+    // Mark boss as defeated
+    if (battleData.enemy.bossKey) {
+      state.defeatedBosses.add(battleData.enemy.bossKey);
+      const reward = battleData.enemy.isFinalBoss ? 200 : 50;
+      state.coins += reward;
+      blogLog(battleData.enemy.isFinalBoss
+        ? `REGION BOSS DEFEATED! +${reward} coins! Region cleared!`
+        : `Mini-boss defeated! +${reward} coins! Path cleared!`, 'log-crit');
+    }
+    endBattle(true, false);
+    return;
+  }
+
+  battleData.turn = 'enemy';
+  setTimeout(enemyTurn, 800);
+}
+
+async function enemyTurn() {
+  if (!battleData || battleData.over) return;
+  const e = battleData.enemy;
+  const p = battleData.player;
+
+  const roll    = rollD20();
+  await showDice(roll, `${e.name} ATTACKS`);
+  const outcome = getOutcome(roll);
+  blogLog(`${e.name} roll: ${roll} — ${outcome.label}`, outcome.cls);
+
+  if (outcome.mult > 0) {
+    const typeMult = getTypeMult(e.element, p.element);
+    if (typeMult > 1) blogLog('Super effective!', 'log-crit');
+    const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
+    p.currentHp = Math.max(0, p.currentHp - dmg);
+    flashHit('player');
+
+    // Taking hits builds special bar — harder hits give more energy
+    const hitEnergyGain = Math.min(25, Math.max(8, Math.floor(dmg / 4)));
+    p.energy = Math.min(100, p.energy + hitEnergyGain);
+    if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+      state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
+      state.creatures[state.activeCreatureIdx].energy    = p.energy;
+    }
+
+    blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
+  }
+
+  updateBattleUI();
+  updateHUD();
+
+  if (p.currentHp <= 0) {
+    blogLog(`${p.name} fainted!`, 'log-miss');
+    endBattle(false, false);
+    return;
+  }
+
+  battleData.turn = 'player';
+  disableMoveButtons(false);
+  buildMoveButtons();
+}
+
+function showDice(roll, label) {
+  return new Promise(resolve => {
+    const el = document.getElementById('dice-display');
+    let i = 0;
+    const interval = setInterval(() => {
+      el.textContent = `${label}: [${Math.floor(Math.random()*20)+1}]`;
+      i++;
+      if (i > 10) {
+        clearInterval(interval);
+        el.textContent = `${label}: [${roll}] — ${getOutcome(roll).label}`;
+        resolve();
+      }
+    }, 70);
+  });
+}
+
+function disableMoveButtons(disabled) {
+  document.querySelectorAll('.move-btn').forEach(b => b.disabled = disabled);
+}
+
+// ── BATTLE ART LOADER ────────────────────────────────────
+function loadBattleArt(side, creature) {
+  const artPath = getArt(creature.id);
+  const imgEl   = document.getElementById(`${side}-art-img`);
+  const canvas  = document.getElementById(`${side}-sprite-fallback`);
+
+  if (artPath && imgEl) {
+    imgEl.src   = artPath;
+    imgEl.alt   = creature.name;
+    imgEl.style.display = 'block';
+    canvas.style.display = 'none';
+    imgEl.onerror = () => {
+      imgEl.style.display = 'none';
+      canvas.style.display = 'block';
+      drawCreatureSprite(`${side}-sprite-fallback`, creature.element, side==='enemy');
+    };
+  } else {
+    if (imgEl) imgEl.style.display = 'none';
+    if (canvas) {
+      canvas.style.display = 'block';
+      drawCreatureSprite(`${side}-sprite-fallback`, creature.element, side==='enemy');
+    }
+  }
+
+  // Update level display
+  const lvEl = document.getElementById(`b-${side}-level`);
+  if (lvEl) lvEl.textContent = `Lv${creature.level||1}`;
+}
+
+// ── HIT FLASH EFFECT ─────────────────────────────────────
+function flashHit(side) {
+  const el = document.getElementById(`${side}-flash`);
+  if (!el) return;
+  el.style.opacity = '0.6';
+  setTimeout(()=>{ el.style.opacity='0'; }, 80);
+  setTimeout(()=>{ el.style.opacity='0.3'; }, 120);
+  setTimeout(()=>{ el.style.opacity='0'; }, 180);
+}
+
+// ── BATTLE ARENA RENDERING ────────────────────────────────
+function renderBattleArena() {
+  const bg  = document.getElementById('battle-arena-bg');
+  if (!bg) return;
+  bg.width  = bg.clientWidth  || 520;
+  bg.height = bg.clientHeight || 140;
+  const c   = bg.getContext('2d');
+
+  // Sky
+  c.fillStyle = '#12082a'; c.fillRect(0, 0, bg.width, bg.height);
+
+  // Stars
+  const stars = [[20,10],[80,20],[150,8],[230,15],[310,6],[400,12],[480,18],[50,35],[180,28],[350,30],[460,22]];
+  stars.forEach(([x,y]) => {
+    const b = Math.sin(Date.now()*0.002 + x) * 0.3 + 0.7;
+    c.fillStyle = `rgba(255,255,220,${b})`;
+    c.fillRect(x, y, 2, 2);
+  });
+
+  // Distant mountains
+  c.fillStyle = '#1a0a30';
+  [[0,80],[60,60],[130,70],[200,55],[280,65],[360,58],[430,72],[500,60],[560,80]].forEach(([x,h],i,arr)=>{
+    if (i<arr.length-1) {
+      c.beginPath();
+      c.moveTo(x, bg.height);
+      c.lineTo(x, h);
+      c.lineTo(arr[i+1][0], arr[i+1][1]);
+      c.lineTo(arr[i+1][0], bg.height);
+      c.fill();
+    }
+  });
+
+  // Ground platform
+  c.fillStyle = '#2a1040'; c.fillRect(0, bg.height-35, bg.width, 35);
+  c.fillStyle = '#3a1a50'; c.fillRect(0, bg.height-35, bg.width, 6);
+  // Ground pattern
+  for (let x=0; x<bg.width; x+=16) {
+    c.fillStyle = (Math.floor(x/16)+1)%2===0 ? '#321848':'#2a1040';
+    c.fillRect(x, bg.height-29, 16, 29);
+  }
+  c.fillStyle = '#4a2060'; c.fillRect(0, bg.height-35, bg.width, 3);
+}
+
+function drawCreatureSprite(canvasId, element, isEnemy) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const c  = cv.getContext('2d');
+  c.clearRect(0, 0, 32, 32);
+
+  const ELEM_COLORS = {
+    fire:   ['#ff6600','#ff9900','#cc3300','#ffcc44','#ff3300'],
+    ice:    ['#88ddff','#aaeeff','#4499cc','#ccf4ff','#2266aa'],
+    nature: ['#44bb22','#66dd44','#226600','#aaffaa','#334d00'],
+    spirit: ['#ffcc44','#ffee88','#cc9900','#fff4aa','#886600'],
+    dark:   ['#8833cc','#aa55ee','#440088','#cc88ff','#220044'],
+    storm:  ['#8866ff','#aaaaff','#4422cc','#ccccff','#221188'],
+    water:  ['#2266cc','#4488ee','#114488','#88bbff','#002244'],
+    sand:   ['#cc9933','#eecc55','#886600','#ffee88','#443300'],
+    magma:  ['#cc2200','#ff4400','#881100','#ff8844','#440000'],
+    crystal:['#88ccff','#aaeeff','#4488cc','#ddf4ff','#224466'],
+  };
+
+  const ec = ELEM_COLORS[element] || ELEM_COLORS.dark;
+  const [mc, lc, dc, hlc, sc] = ec;
+  const flip = isEnemy ? -1 : 1;
+
+  const q = (x, y, w, h, col) => {
+    c.fillStyle = col;
+    if (flip < 0) c.fillRect(32-x-w, y, w, h);
+    else          c.fillRect(x, y, w, h);
+  };
+
+  // Body based on element archetype
+  if (['fire','magma'].includes(element)) {
+    // Spiky angular body
+    q(8,14, 16, 14, dc);
+    q(9,12, 14, 14, mc);
+    q(10,10,12, 12, lc);
+    q(12,8,  8, 6,  lc);   // neck
+    q(11,4,  10,8,  mc);   // head
+    q(12,5,  8, 6,  lc);
+    // Spines on back
+    q(6, 10, 3, 8, lc);
+    q(4, 8,  3, 6, hlc);
+    q(23,10, 3, 8, dc);
+    q(9, 4,  3, 6, lc);
+    q(7, 2,  3, 5, hlc);
+    // Eyes
+    q(13,6, 2, 2, '#ff2200'); q(14,6,1,1,'#ffffff');
+    q(18,6, 2, 2, '#ff2200'); q(18,6,1,1,'#ffffff');
+    // Legs
+    q(9, 26, 5, 6, dc); q(18, 26, 5, 6, dc);
+    q(8, 28, 5, 4, sc); q(17, 28, 5, 4, sc);
+    // Glow
+    c.fillStyle = `rgba(255,100,0,0.18)`;
+    c.fillRect(4,4,24,24);
+  } else if (['ice','crystal'].includes(element)) {
+    // Angular crystalline body
+    q(10,16, 12, 12, dc);
+    q(9, 14, 14, 12, mc);
+    q(10,12, 12, 10, lc);
+    q(12,8,  8,  8,  lc);  // head
+    q(13,7,  6,  7,  hlc);
+    // Crystal shards
+    q(6, 6,  4, 10, lc); q(7,4,2,4,hlc);
+    q(22,8,  4, 8,  mc);  q(23,6,2,4,lc);
+    q(14,2,  4, 6,  hlc); q(15,1,2,3,'#ffffff');
+    // Eyes
+    q(13,9, 2, 2, '#0044ff'); q(14,9,1,1,'#aaeeff');
+    q(18,9, 2, 2, '#0044ff'); q(18,9,1,1,'#aaeeff');
+    // Legs
+    q(10,27, 4, 5, dc); q(18,27, 4, 5, dc);
+  } else if (['nature','water'].includes(element)) {
+    // Round organic body
+    q(8, 16, 16, 14, dc);
+    q(7, 14, 18, 14, mc);
+    q(8, 12, 16, 12, lc);
+    q(10,8,  12, 10, mc);  // head
+    q(11,7,  10, 8, lc);
+    q(12,6,  8,  6, hlc);
+    // Leaf/fin decorations
+    q(4, 12, 5, 10, lc);  q(3,10,4,6,mc);
+    q(23,12, 5, 10, lc);  q(25,10,4,6,mc);
+    // Eyes
+    q(12,9, 3, 3, '#00aa22'); q(13,9,1,2,'#ffffff');
+    q(18,9, 3, 3, '#00aa22'); q(18,9,1,2,'#ffffff');
+    // Legs
+    q(9, 28, 5, 4, dc); q(18,28, 5, 4, dc);
+    // Spots
+    q(12,14,2,2, hlc); q(17,16,2,2, hlc);
+  } else if (['dark','spirit'].includes(element)) {
+    // Sleek mysterious body
+    q(10,18, 12, 12, dc);
+    q(9, 16, 14, 12, mc);
+    q(10,12, 12, 10, mc);
+    q(12,7,  8,  9,  mc);  // head
+    q(13,6,  6,  8, lc);
+    q(14,5,  4,  6, hlc);
+    // Ears
+    q(11,3, 3, 6, mc); q(12,2,2,4,lc);
+    q(19,3, 3, 6, mc); q(19,2,2,4,lc);
+    // Tail
+    q(22,18, 4, 12, mc); q(23,16,3,4,lc);
+    q(24,14, 4, 6, lc);  q(25,12,3,4,hlc);
+    // Eyes
+    q(13,8, 2, 3, hlc); q(14,8,1,1,'#ffffff');
+    q(18,8, 2, 3, hlc); q(18,8,1,1,'#ffffff');
+    // Legs
+    q(10,28,4,4,dc); q(17,28,4,4,dc);
+    // Aura
+    c.fillStyle = `rgba(150,0,255,0.15)`;
+    c.fillRect(2,2,28,28);
+  } else if (['storm','sand'].includes(element)) {
+    // Broad powerful body
+    q(7, 17, 18, 13, dc);
+    q(8, 14, 16, 13, mc);
+    q(9, 12, 14, 10, lc);
+    q(10,8,  12, 9,  mc);  // head
+    q(11,7,  10, 8, lc);
+    // Horns / tusks
+    q(9,4,  4, 6, lc);  q(8,2,3,5,hlc);
+    q(19,4, 4, 6, lc);  q(21,2,3,5,hlc);
+    // Eyes
+    q(12,9, 3, 2, '#ffdd00'); q(13,9,1,1,'#ffffff');
+    q(17,9, 3, 2, '#ffdd00'); q(17,9,1,1,'#ffffff');
+    // Legs
+    q(8, 28,5,4,dc); q(19,28,5,4,dc);
+    q(7, 27,5,2,sc); q(18,27,5,2,sc);
+  }
+
+  // Outline pass
+  c.globalCompositeOperation = 'destination-over';
+  c.fillStyle = sc;
+  c.fillRect(0,0,32,32);
+  c.globalCompositeOperation = 'source-over';
+}
+
+
+function endBattle(won, caught) {
+  if (!battleData) return;
+  battleData.over = true;
+  state.inBattle  = false;
+
+  setTimeout(() => {
+    document.getElementById('battle-overlay').classList.remove('show');
+    const dpadRestore = document.getElementById('dpad');
+    if (dpadRestore && window.matchMedia('(pointer:coarse)').matches) dpadRestore.style.display = 'block';
+    document.getElementById('battle-log').innerHTML = '';
+    document.getElementById('dice-display').textContent = '';
+    // Sync energy back to stored creature before clearing battleData
+    if (battleData && state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+      state.creatures[state.activeCreatureIdx].energy = battleData.player.energy || 0;
+    }
+    battleData = null;
+
+    if (!won && !caught) {
+      // Heal to 30% if fainted, reset energy on KO
+      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+        const c = state.creatures[state.activeCreatureIdx];
+        c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
+        c.energy    = 0;  // energy resets on KO
+      }
+    }
+    updateHUD();
+  }, 1500);
+}
+
+// ── DIALOG SYSTEM ─────────────────────────────────────────
+function showDialog(name, text, options) {
+  state.inDialog = true;
+  document.getElementById('dialog').style.display = 'block';
+  document.getElementById('dialog-name').textContent = name;
+  document.getElementById('dialog-text').textContent = text;
+  const optWrap = document.getElementById('dialog-options');
+  optWrap.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className   = 'primary d-btn';
+    btn.textContent = opt.label;
+    btn.onclick     = opt.fn;
+    optWrap.appendChild(btn);
+  });
+}
+
+function closeDialog() {
+  state.inDialog = false;
+  document.getElementById('dialog').style.display = 'none';
+}
+
+// ── MAIN MENU DIALOG ──────────────────────────────────────
+function showMainMenu() {
+  const pc = state.creatures[state.activeCreatureIdx];
+  showDialog(
+    'WORLDHATCH MENU',
+    `Eggs: ${state.eggs.length}  |  Creatures: ${state.creatures.length}  |  Coins: ${state.coins}\nActive: ${pc ? pc.name + ' Lv' + pc.level + ' SP:' + (pc.skillPoints||0) : 'none'}`,
+    [
+      { label: 'Skills & Rest',   fn: openSkillPanel },
+      { label: 'Switch Region',   fn: showRegionMenu },
+      { label: 'Switch Creature', fn: showCreatureMenu },
+      { label: 'Hatch Egg',       fn: showHatchMenu },
+      { label: 'Close',           fn: closeDialog },
+    ]
+  );
+}
+
+function showRegionMenu() {
+  closeDialog();
+  const regionIds = Object.keys(REGIONS);
+  const opts = regionIds.map(rid => ({
+    label: REGIONS[rid].name,
+    fn: () => { switchRegion(rid); closeDialog(); }
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('TRAVEL TO REGION', 'Choose a region to explore:', opts);
+}
+
+function switchRegion(regionId) {
+  state.currentRegion = regionId;
+  state.mapSeed       = Date.now() % 99991;
+  state.map           = generateMap(regionId, state.mapSeed);
+  state.px = 64; state.py = 64;
+  state.camX = Math.max(0, 64 - Math.floor(VIEW_W/2));
+  state.camY = Math.max(0, 64 - Math.floor(VIEW_H/2));
+  state.visitedNests    = new Set();
+  state.visitedPoI      = new Set();
+  state.exploredTiles   = new Set();
+  // Don't reset defeatedBosses — they persist across region visits
+  document.getElementById('top-region').textContent = REGIONS[regionId].name;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[regionId].name.toUpperCase()}`;
+}
+
+function showCreatureMenu() {
+  closeDialog();
+  if (!state.creatures.length) {
+    showDialog('CREATURES', 'No creatures yet!\nCatch some in battle or hatch eggs.', [{label:'OK', fn:closeDialog}]);
+    return;
+  }
+  const opts = state.creatures.map((c, i) => ({
+    label: `${getArt(c.id)?'[ART] ':''}${c.name} Lv${c.level || 1} [${c.element.toUpperCase()}] HP:${c.currentHp||c.hp}/${c.hp}`,
+    fn: () => { state.activeCreatureIdx = i; closeDialog(); updateHUD(); }
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('CHOOSE ACTIVE CREATURE', 'Pick your battle companion:', opts);
+}
+
+function showHatchMenu() {
+  closeDialog();
+  if (!state.eggs.length) {
+    showDialog('EGGS', 'No eggs!\nFind egg nests marked with golden tiles on the map.', [{label:'OK', fn:closeDialog}]);
+    return;
+  }
+  const opts = state.eggs.map((egg, i) => ({
+    label: `${egg.name} [${egg.rarity.toUpperCase()}]`,
+    fn: () => hatchEgg(i)
+  }));
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog('HATCH AN EGG', 'Choose an egg to hatch:', opts);
+}
+
+function hatchEgg(idx) {
+  const egg = state.eggs[idx];
+  if (!egg) return;
+
+  // D20 stat rolls
+  const region  = REGIONS[egg.region] || REGIONS.suncrest_expanse;
+  const species = region.creatures.find(c => c.id === egg.speciesId) ||
+                  region.creatures[0];
+
+  const rollStat = (base) => {
+    const r = rollD20();
+    const m = r === 1 ? 0.5 : r <= 5 ? 0.75 : r <= 10 ? 0.9 : r <= 15 ? 1.0 : r <= 19 ? 1.15 : 1.5;
+    return { final: Math.max(1, Math.round(base * m)), roll: r };
+  };
+
+  const hpRoll  = rollStat(species.hp);
+  const atkRoll = rollStat(species.atk);
+  const defRoll = rollStat(species.def);
+  const spdRoll = rollStat(species.spd);
+
+  const creature = {
+    ...species,
+    hp:        hpRoll.final,
+    atk:       atkRoll.final,
+    attack:    atkRoll.final,
+    defense:   defRoll.final,
+    speed:     spdRoll.final,
+    currentHp: hpRoll.final,
+    maxHp:     hpRoll.final,
+    xp:        0,
+    level:     1,
+    energy:    0,
+    status:    null,
+    hatchedIn: egg.region,
+    id:        Date.now(),
+  };
+
+  initCreatureSkills(creature);
+  state.eggs.splice(idx, 1);
+  state.creatures.push(creature);
+  if (state.activeCreatureIdx < 0) state.activeCreatureIdx = state.creatures.length - 1;
+
+  const mutations = [];
+  if (hpRoll.roll === 20)  mutations.push('Perfect HP!');
+  if (atkRoll.roll === 20) mutations.push('Perfect ATK!');
+  if (Math.random() < 0.15) mutations.push('Shadow Stripe mutation!');
+
+  const mutTxt = mutations.length ? `\nMutations: ${mutations.join(', ')}` : '';
+  showDialog(
+    `✨ ${creature.name} HATCHED!`,
+    `HP:  ${creature.hp} (rolled ${hpRoll.roll})\n` +
+    `ATK: ${creature.attack} (rolled ${atkRoll.roll})\n` +
+    `DEF: ${creature.defense} (rolled ${defRoll.roll})\n` +
+    `SPD: ${creature.speed} (rolled ${spdRoll.roll})${mutTxt}`,
+    [{ label: 'Amazing!', fn: closeDialog }]
+  );
+  updateHUD();
+}
+
+// ── TIME & WEATHER ────────────────────────────────────────
+function updateTimeWeather(dt) {
+  state.time = (state.time + state.timeSpeed * dt) % 24;
+  state.weatherTimer -= dt;
+
+  if (state.weatherTimer <= 0) {
+    const weathers = ['clear','clear','clear','rain','fog','storm'];
+    state.weather  = weathers[Math.floor(Math.random() * weathers.length)];
+    state.weatherTimer = 30000 + Math.random() * 60000;
+  }
+
+  const hour  = Math.floor(state.time);
+  const isDay = hour >= 6 && hour < 20;
+  const timeStr = `${String(hour).padStart(2,'0')}:00`;
+  const icon  = isDay ? '☀' : '🌙';
+  const wIcon = state.weather === 'clear' ? '' : state.weather === 'rain' ? '🌧' : state.weather === 'fog' ? '🌫' : '⛈';
+  document.getElementById('top-time').textContent = `${timeStr} ${icon} ${state.weather.toUpperCase()} ${wIcon}`;
+}
+
+// ── HUD UPDATE ────────────────────────────────────────────
+function updateHUD() {
+  const pc = state.activeCreatureIdx >= 0 ? state.creatures[state.activeCreatureIdx] : null;
+  document.getElementById('hud-creature').textContent = pc ? `${pc.name} Lv${pc.level||1}` : '— none —';
+  // Portrait
+  const portImg  = document.getElementById('hud-portrait-img');
+  const portIcon = document.getElementById('hud-portrait-icon');
+  if (pc && portImg && portIcon) {
+    const art = getArt(pc.id);
+    if (art) {
+      portImg.src = art;
+      portImg.style.display = 'block';
+      portIcon.style.display = 'none';
+      portImg.onerror = ()=>{ portImg.style.display='none'; portIcon.style.display='block'; };
+    } else {
+      portImg.style.display = 'none';
+      portIcon.style.display = 'block';
+      const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
+      portIcon.textContent = ELEM_ICONS[pc.element] || '❓';
+    }
+  }
+  const hpPct = pc ? Math.max(0, (pc.currentHp / pc.hp) * 100) : 0;
+  document.getElementById('hud-hp').style.width = hpPct + '%';
+  document.getElementById('hud-hp').style.background = hpPct < 25 ? '#ff4444' : hpPct < 50 ? '#ffaa00' : '#44ff88';
+  document.getElementById('hud-energy').textContent = pc ? `${pc.energy || 0}/100` : '0/100';
+  document.getElementById('hud-en').style.width = pc ? (pc.energy || 0) + '%' : '0%';
+  document.getElementById('hud-eggs').textContent     = state.eggs.length;
+  document.getElementById('hud-creatures').textContent = state.creatures.length;
+  document.getElementById('hud-coins').textContent     = state.coins;
+  const spEl = document.getElementById('hud-sp');
+  if (spEl) spEl.textContent = pc ? (pc.skillPoints || 0) : 0;
+}
+
+// ── RENDERER ──────────────────────────────────────────────
+let animFrame = 0;
+
+function render() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const hour  = Math.floor(state.time);
+  const isDay = hour >= 6 && hour < 20;
+  const nightAlpha = isDay ? 0 : Math.min(0.6, (hour < 6 ? (6 - hour) / 6 : (hour - 20) / 4) * 0.6);
+
+  for (let ty = 0; ty < VIEW_H; ty++) {
+    for (let tx = 0; tx < VIEW_W; tx++) {
+      const mx = state.camX + tx;
+      const my = state.camY + ty;
+      if (mx < 0 || my < 0 || mx >= MAP_W || my >= MAP_H) continue;
+      const tile = state.map[my]?.[mx];
+      if (tile === undefined) continue;
+
+      const px = tx * TILE;
+      const py = ty * TILE;
+      drawTile(ctx, tile, px, py, mx, my);
+      drawTileDetail(ctx, tile, px, py, mx, my);
+    }
+  }
+
+  // Night overlay
+  if (nightAlpha > 0) {
+    ctx.fillStyle = `rgba(0,0,20,${nightAlpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Weather effects
+  if (state.weather === 'rain') {
+    for (let i = 0; i < 40; i++) {
+      const rx = ((animFrame * 3 + i * 37) % (canvas.width + 20)) - 10;
+      const ry = ((animFrame * 6 + i * 53) % (canvas.height + 10));
+      ctx.fillStyle = 'rgba(160,180,255,0.5)';
+      ctx.fillRect(rx, ry, 1, 6);
+    }
+  }
+  if (state.weather === 'fog') {
+    ctx.fillStyle = 'rgba(180,190,220,0.22)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(200,210,240,0.12)';
+    const fogX = (animFrame * 0.3) % canvas.width;
+    ctx.fillRect(-fogX, 0, canvas.width * 2, canvas.height);
+  }
+  if (state.weather === 'storm') {
+    for (let i = 0; i < 60; i++) {
+      const rx = ((animFrame * 5 + i * 29) % (canvas.width + 20)) - 10;
+      const ry = ((animFrame * 8 + i * 41) % (canvas.height + 10));
+      ctx.fillStyle = 'rgba(140,160,255,0.6)';
+      ctx.fillRect(rx, ry, 1, 8);
+    }
+    if (animFrame % 120 < 3) {
+      ctx.fillStyle = 'rgba(255,255,200,0.15)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // Player
+  drawPlayer(ctx);
+
+  // Minimap
+  drawMinimap();
+
+  animFrame++;
+}
+
+// ── 16-BIT TILE RENDERER ─────────────────────────────────
+function p(ctx, x, y, w, h, color) {
+  ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
+}
+
+function drawTile(ctx, tile, px, py, mx, my) {
+  const pal = getRegionPal(tile);
+  const T24 = TILE;
+
+  // Base fill with checkerboard variation
+  const alt = (mx + my) % 2;
+  ctx.fillStyle = alt ? pal.base : pal.sh;
+  ctx.fillRect(px, py, T24, T24);
+
+  // Top highlight edge
+  ctx.fillStyle = pal.hi;
+  ctx.fillRect(px, py, T24, 2);
+  ctx.fillRect(px, py, 2, T24);
+
+  // Bottom shadow edge
+  ctx.fillStyle = pal.sh;
+  ctx.fillRect(px, py + T24 - 2, T24, 2);
+  ctx.fillRect(px + T24 - 2, py, 2, T24);
+}
+
+function drawTileDetail(ctx, tile, px, py, mx, my) {
+  const pal  = getRegionPal(tile);
+  const af   = animFrame;
+  const T24  = TILE;
+
+  if (tile === T.GROUND) {
+    // Grass texture patches
+    const seed = (mx * 7 + my * 13) % 6;
+    ctx.fillStyle = pal.hi;
+    if (seed < 2) {
+      p(ctx, px+3,  py+5,  3, 1, pal.hi);
+      p(ctx, px+14, py+9,  3, 1, pal.hi);
+      p(ctx, px+8,  py+16, 3, 1, pal.hi);
+    }
+    if (seed < 4) {
+      p(ctx, px+18, py+4,  2, 1, pal.acc);
+      p(ctx, px+6,  py+19, 2, 1, pal.acc);
+    }
+  }
+
+  if (tile === T.GRASS) {
+    // Rich layered grass blades with animation
+    const sway = Math.sin(af * 0.04 + mx * 0.7) * 1;
+    const sw2  = Math.sin(af * 0.05 + my * 0.9) * 1;
+    // Blade cluster 1
+    p(ctx, px+2+sway,  py+10, 2, 9,  pal.hi);
+    p(ctx, px+3+sway,  py+8,  2, 4,  pal.acc);
+    // Blade cluster 2
+    p(ctx, px+8+sw2,   py+11, 2, 9,  pal.base);
+    p(ctx, px+9+sw2,   py+8,  2, 5,  pal.hi);
+    // Blade cluster 3
+    p(ctx, px+15+sway, py+9,  2, 9,  pal.hi);
+    p(ctx, px+16+sway, py+7,  2, 5,  pal.acc);
+    // Blade cluster 4
+    p(ctx, px+20+sw2,  py+10, 2, 8,  pal.base);
+    // Dark ground between blades
+    p(ctx, px+5,  py+18, 3, 3,  pal.sh);
+    p(ctx, px+12, py+19, 3, 2,  pal.sh);
+  }
+
+  if (tile === T.TREE) {
+    // Trunk
+    p(ctx, px+9,  py+16, 6, 8,  '#5a3a18');
+    p(ctx, px+10, py+16, 4, 8,  '#7a5228');
+    // Root flare
+    p(ctx, px+7,  py+21, 10, 3, '#4a3010');
+    // Canopy — layered circles
+    p(ctx, px+4,  py+6,  16, 12, pal.sh);
+    p(ctx, px+6,  py+4,  12, 14, pal.base);
+    p(ctx, px+8,  py+2,  8,  6,  pal.hi);
+    p(ctx, px+5,  py+8,  14, 8,  pal.base);
+    // Highlight cluster
+    p(ctx, px+9,  py+4,  4,  3,  pal.acc);
+    p(ctx, px+7,  py+7,  5,  4,  pal.hi);
+    // Shadow underside
+    p(ctx, px+6,  py+15, 12, 3,  pal.sh);
+  }
+
+  if (tile === T.WATER) {
+    // Animated water layers
+    const wv1 = Math.floor(af * 0.06 + mx * 0.5) % 3;
+    const wv2 = Math.floor(af * 0.04 + my * 0.4) % 4;
+    // Deep layer
+    p(ctx, px, py+4,  T24, 8, pal.sh);
+    p(ctx, px, py+12, T24, 8, pal.base);
+    // Wave highlights
+    const wx1 = ((mx*4 + af/4) % (T24-6));
+    const ww1 = 4 + wv1;
+    p(ctx, px+wx1, py+5,  ww1, 2, pal.acc);
+    p(ctx, px+wx1, py+13, ww1, 2, pal.hi);
+    const wfx = ((my*5 + af/3 + 8) % (T24-4));
+    p(ctx, px+wfx, py+9, 6, 2, '#88bbff');
+    // Foam edge
+    if (wv2 === 0) p(ctx, px+2, py+3, 8, 1, '#aaccff');
+    if (wv2 === 1) p(ctx, px+10, py+3, 8, 1, '#aaccff');
+    // Sparkle
+    if ((af + mx*3 + my*5) % 40 < 3)
+      p(ctx, px+T24/2, py+T24/3, 2, 2, '#ffffff');
+  }
+
+  if (tile === T.WALL) {
+    // Stone wall with mortar lines
+    const row = my % 2;
+    p(ctx, px+1,        py+2,  10, 9, pal.hi);
+    p(ctx, px+12,       py+2,  10, 9, row ? pal.base : pal.hi);
+    p(ctx, px+(row?6:0),py+12, 10, 9, pal.base);
+    p(ctx, px+(row?0:6),py+12, 10, 9, pal.sh);
+    // Mortar
+    p(ctx, px, py+11, T24, 2, '#2a1808');
+    p(ctx, px+(row?5:11), py+2, 2, 9, '#2a1808');
+    // Lichen
+    if ((mx*11+my*7)%5===0) p(ctx, px+4, py+4, 3, 2, '#3a5a20');
+  }
+
+  if (tile === T.PATH) {
+    // Dirt path with pebbles
+    const seed = (mx*5+my*11)%8;
+    p(ctx, px+2, py+2, T24-4, T24-4, pal.hi);
+    // Pebbles
+    if (seed<4) { p(ctx,px+4, py+6, 3, 2, pal.sh); }
+    if (seed<6) { p(ctx,px+14,py+14,2, 2, pal.sh); }
+    if (seed<3) { p(ctx,px+8, py+18,4, 2, pal.acc); }
+    // Worn tracks
+    p(ctx, px+9, py, 6, T24, pal.base);
+    p(ctx, px+10,py, 4, T24, pal.hi);
+  }
+
+  if (tile === T.CAVE) {
+    // Outer rock face
+    p(ctx, px,    py,    T24, T24, pal.sh);
+    p(ctx, px+1,  py+1,  T24-2, T24-2, pal.base);
+    // Wide cave mouth — dark void
+    p(ctx, px+3,  py+10, 18, 14, '#000000');
+    p(ctx, px+4,  py+8,  16, 14, '#05000a');
+    p(ctx, px+5,  py+6,  14, 12, '#08000f');
+    // Arched entrance top
+    p(ctx, px+3,  py+8,  4,  4,  pal.acc);
+    p(ctx, px+17, py+8,  4,  4,  pal.acc);
+    p(ctx, px+4,  py+6,  16, 4,  pal.acc);
+    p(ctx, px+5,  py+4,  14, 4,  pal.hi);
+    p(ctx, px+6,  py+3,  12, 3,  '#ffffff');
+    // Rock texture sides
+    p(ctx, px+1,  py+10, 3,  8,  pal.hi);
+    p(ctx, px+20, py+10, 3,  8,  pal.sh);
+    // Lichen on rocks
+    p(ctx, px+2,  py+6,  3, 2, '#2a5018');
+    p(ctx, px+19, py+8,  3, 2, '#2a5018');
+    // Pulsing inner glow
+    const cglow = Math.sin(af*0.04)*0.2+0.25;
+    const gcols = ['rgba(80,0,120,','rgba(0,60,160,','rgba(120,0,80,','rgba(0,120,60,'];
+    const gi = Object.keys(REGIONS).indexOf(state.currentRegion)%gcols.length;
+    ctx.fillStyle = gcols[gi]+cglow+')';
+    ctx.fillRect(px+6, py+8, 12, 12);
+    // Stalactites hanging from arch
+    p(ctx, px+7,  py+8,  2, 5, '#1a0828');
+    p(ctx, px+11, py+8,  2, 4, '#221133');
+    p(ctx, px+15, py+8,  2, 6, '#1a0828');
+    p(ctx, px+19, py+8,  1, 3, '#221133');
+    // Sign / marker stone
+    p(ctx, px+10, py+2,  4,  4, pal.acc);
+    p(ctx, px+11, py+3,  2,  2, '#ffffff');
+    // Ground at entrance
+    p(ctx, px+4,  py+22, 16, 2, '#1a1020');
+    p(ctx, px+3,  py+22, 18, 1, '#2a1830');
+  }
+
+  if (tile === T.SHRINE) {
+    // Stone base
+    p(ctx, px+3,  py+18, 18, 5, '#553300');
+    p(ctx, px+4,  py+17, 16, 3, '#664400');
+    // Pillar
+    p(ctx, px+9,  py+6,  6, 14, '#7a5c00');
+    p(ctx, px+10, py+6,  4, 14, '#9a7800');
+    // Top ornament
+    p(ctx, px+6,  py+4,  12, 4,  '#aa8800');
+    p(ctx, px+8,  py+2,  8,  4,  '#cc9900');
+    p(ctx, px+10, py+1,  4,  3,  '#ffcc00');
+    // Pulsing glow
+    const shrine_glow = Math.sin(af*0.06)*0.35+0.55;
+    ctx.fillStyle = `rgba(255,180,0,${shrine_glow*0.5})`;
+    ctx.fillRect(px+7, py+2, 10, 14);
+    p(ctx, px+11, py+8, 2, 6, `rgba(255,220,100,${shrine_glow})`);
+  }
+
+  if (tile === T.RUIN) {
+    // Crumbled stone blocks
+    p(ctx, px+1,  py+12, 8,  11, pal.hi);
+    p(ctx, px+2,  py+11, 6,  2,  pal.acc);
+    p(ctx, px+13, py+8,  9,  15, pal.base);
+    p(ctx, px+14, py+7,  7,  3,  pal.acc);
+    // Rubble
+    p(ctx, px+9,  py+18, 4,  3,  pal.sh);
+    p(ctx, px+5,  py+20, 5,  2,  pal.sh);
+    // Cracks
+    p(ctx, px+3,  py+14, 1,  6,  '#1a1a1a');
+    p(ctx, px+15, py+10, 1,  5,  '#1a1a1a');
+    // Moss
+    p(ctx, px+1,  py+13, 4,  2,  '#2a5010');
+    p(ctx, px+14, py+8,  3,  2,  '#2a5010');
+  }
+
+  if (tile === T.NEST) {
+    // Egg nest — twigs and golden egg
+    const pulse = Math.sin(af*0.08)*0.4+0.7;
+    // Nest twigs
+    p(ctx, px+4,  py+14, 16, 5,  '#6a4020');
+    p(ctx, px+6,  py+12, 12, 5,  '#7a4c28');
+    p(ctx, px+3,  py+15, 4,  3,  '#5a3418');
+    p(ctx, px+17, py+15, 4,  3,  '#5a3418');
+    // Egg
+    ctx.fillStyle = `rgba(255,200,0,${pulse})`;
+    ctx.fillRect(px+8, py+6, 8, 10);
+    p(ctx, px+9,  py+5,  6, 10, `rgba(255,220,50,${pulse})`);
+    p(ctx, px+10, py+4,  4, 10, '#ffe050');
+    // Egg highlight
+    p(ctx, px+10, py+6,  2, 3,  '#ffffff');
+    // Glow halo
+    ctx.fillStyle = `rgba(255,180,0,${pulse*0.3})`;
+    ctx.fillRect(px+4, py+2, 16, 18);
+  }
+
+  if (tile === T.FLOWER) {
+    // Flower patch — multiple blooms
+    const fswap = Math.floor(af*0.02+mx) % 2;
+    const fcol  = fswap ? '#ff66aa' : '#ffaa22';
+    const fcol2 = fswap ? '#cc3388' : '#cc8800';
+    p(ctx, px+3,  py+8,  3, 3, fcol);
+    p(ctx, px+4,  py+7,  1, 1, '#ffffff');
+    p(ctx, px+12, py+10, 3, 3, fcol2);
+    p(ctx, px+13, py+9,  1, 1, '#ffffff');
+    p(ctx, px+7,  py+14, 3, 3, fcol);
+    p(ctx, px+8,  py+13, 1, 1, '#ffffff');
+    p(ctx, px+18, py+7,  3, 3, fcol2);
+    // Stems
+    p(ctx, px+4,  py+11, 1, 4, '#2a7010');
+    p(ctx, px+13, py+13, 1, 3, '#2a7010');
+    p(ctx, px+8,  py+17, 1, 4, '#2a7010');
+    p(ctx, px+19, py+10, 1, 5, '#2a7010');
+  }
+
+  if (tile === T.TOWN) {
+    // Cobblestone plaza
+    const row2 = my % 2, col2 = mx % 2;
+    p(ctx, px, py, T24, T24, row2===col2 ? '#8a7858' : '#9a8868');
+    p(ctx, px, py, T24, 2, '#aa9878');
+    p(ctx, px, py, 2, T24, '#aa9878');
+    p(ctx, px+T24-2, py, 2, T24, '#6a5838');
+    p(ctx, px, py+T24-2, T24, 2, '#6a5838');
+    // Cobble joints
+    p(ctx, px+11, py, 2, T24, '#6a5030');
+    p(ctx, px, py+11, T24, 2, '#6a5030');
+  }
+
+  if (tile === T.BRIDGE) {
+    // Wooden bridge planks
+    p(ctx, px, py+4, T24, T24-8, '#8a6030');
+    for(let i=0;i<4;i++) p(ctx,px+i*6,py+4,4,T24-8,'#9a7040');
+    p(ctx, px, py+4, T24, 3, '#aa8848');
+    p(ctx, px, py+T24-7, T24, 3, '#6a4820');
+    // Rope rails
+    p(ctx, px, py+2, T24, 2, '#cc9944');
+    p(ctx, px, py+T24-4, T24, 2, '#cc9944');
+  }
+
+  if (tile === T.SIGN) {
+    p(ctx, px+10, py+8, 4, 14, '#6a4820');
+    p(ctx, px+6, py+4, 12, 10, '#aa8030');
+    p(ctx, px+7, py+5, 10, 8, '#cc9a40');
+    const a = (af*0.02)%1;
+    p(ctx, px+8, py+6, 8, 2, `rgba(255,220,100,${0.3+a*0.2})`);
+    p(ctx, px+8, py+9, 6, 1, `rgba(180,140,60,0.4)`);
+  }
+
+  if (tile === T.MINIBOSS) {
+    // Red danger floor
+    p(ctx, px, py, T24, T24, '#200404');
+    const pulse = Math.sin(af*0.08)*0.3+0.5;
+    ctx.fillStyle=`rgba(255,50,20,${pulse*0.4})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Skull marks
+    p(ctx, px+8, py+6, 8, 6, `rgba(255,80,40,${pulse})`);
+    p(ctx, px+10, py+8, 4, 3, '#000000');
+    // Warning border
+    ctx.strokeStyle=`rgba(255,80,20,${pulse})`;
+    ctx.lineWidth=2;
+    ctx.strokeRect(px+1,py+1,T24-2,T24-2);
+    // Pulsing exclamation
+    p(ctx, px+11, py+3, 2, 8, `rgba(255,200,0,${pulse})`);
+    p(ctx, px+11, py+13, 2, 3, `rgba(255,200,0,${pulse})`);
+  }
+
+  if (tile === T.BOSS) {
+    // Dark menacing floor
+    p(ctx, px, py, T24, T24, '#100008');
+    const pulse = Math.sin(af*0.06)*0.4+0.6;
+    ctx.fillStyle=`rgba(220,0,60,${pulse*0.5})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Concentric rings
+    for(let r=2;r<12;r+=3){
+      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/14)})`;
+      ctx.lineWidth=1;
+      ctx.strokeRect(px+r,py+r,T24-r*2,T24-r*2);
+    }
+    // Boss crown symbol
+    p(ctx, px+6, py+14, 12, 6, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+6, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+11, py+6, 2, 10, `rgba(255,100,0,${pulse})`);
+    p(ctx, px+16, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+  }
+
+  if (tile === T.SAND) {
+    // Desert sand with ripples
+    const rip  = Math.floor(af*0.02+mx+my) % T24;
+    p(ctx, px+0,  py+rip%8,     T24, 2, pal.hi);
+    p(ctx, px+0,  py+(rip%8)+10,T24, 2, pal.acc);
+    // Small rocks
+    const sr = (mx*9+my*7)%7;
+    if (sr<3) p(ctx, px+4, py+10, 4, 3, pal.sh);
+    if (sr<5) p(ctx, px+16,py+16, 3, 2, pal.sh);
+  }
+}
+
+// ── 16-BIT PLAYER SPRITE ─────────────────────────────────
+function drawPlayer(ctx) {
+  const sx  = (state.px - state.camX) * TILE;
+  const sy  = (state.py - state.camY) * TILE;
+  if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
+
+  const af    = animFrame;
+  const step  = Math.floor(af * 0.14) % 4; // 4-frame walk cycle
+  const bob   = (step === 1 || step === 3) ? -1 : 0;
+  const legA  = (step < 2) ? 1 : -1;
+  const dir   = state.playerDir;
+  const isMoving = Object.values(state.keys).some(v=>v);
+
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Scarf / cape (behind body) — direction specific
+  if (dir === 'down' || dir === 'right' || dir === 'left') {
+    p(ctx, sx+7, sy+7+bob, 10, 2, '#cc2200');
+    p(ctx, sx+8, sy+9+bob, 8,  3, '#ee3300');
+  }
+
+  // Backpack
+  if (dir === 'down') {
+    // no backpack visible from front
+  } else if (dir === 'up') {
+    p(ctx, sx+6,  sy+8+bob, 4, 8, '#8844aa');
+    p(ctx, sx+7,  sy+7+bob, 3, 7, '#9955bb');
+    p(ctx, sx+14, sy+8+bob, 4, 8, '#8844aa');
+  }
+
+  // Legs — walking animation
+  if (dir === 'down' || dir === 'up') {
+    // Left leg
+    p(ctx, sx+8,  sy+16+bob,       4, 6+legA, '#2244aa');
+    p(ctx, sx+8,  sy+22+bob+legA,  4, 2,      '#3355cc');
+    // Right leg
+    p(ctx, sx+12, sy+16+bob,       4, 6-legA, '#2244aa');
+    p(ctx, sx+12, sy+22+bob-legA,  4, 2,      '#3355cc');
+  } else {
+    p(ctx, sx+8,  sy+16+bob,    4, 7, '#2244aa');
+    p(ctx, sx+12, sy+16+bob,    4, 7, '#2244aa');
+    p(ctx, sx+7+legA,  sy+22+bob, 4, 2, '#3355cc');
+    p(ctx, sx+13+legA, sy+22+bob, 4, 2, '#3355cc');
+  }
+
+  // Shoes
+  p(ctx, sx+7,  sy+22+bob, 5, 2, '#221100');
+  p(ctx, sx+12, sy+22+bob, 5, 2, '#221100');
+
+  // Body / jacket
+  p(ctx, sx+6,  sy+8+bob,  12, 9, '#1a66cc');   // jacket main
+  p(ctx, sx+7,  sy+8+bob,  10, 7, '#2277dd');   // jacket front
+  p(ctx, sx+9,  sy+9+bob,  6,  5, '#3388ee');   // highlight
+  p(ctx, sx+10, sy+8+bob,  4,  1, '#ffdd00');   // collar accent
+
+  // Arms
+  if (dir === 'left' || dir === 'right') {
+    const armSwing = isMoving ? legA * 2 : 0;
+    p(ctx, sx+4,  sy+9+bob+armSwing,  4, 7, '#1a55bb');
+    p(ctx, sx+16, sy+9+bob-armSwing, 4, 7, '#1a55bb');
+    // Hands
+    p(ctx, sx+4,  sy+15+bob+armSwing, 4, 3, '#ffccaa');
+    p(ctx, sx+16, sy+15+bob-armSwing, 4, 3, '#ffccaa');
+  } else {
+    p(ctx, sx+3,  sy+9+bob, 4, 7, '#1a55bb');
+    p(ctx, sx+17, sy+9+bob, 4, 7, '#1a55bb');
+    p(ctx, sx+3,  sy+15+bob, 4, 3, '#ffccaa');
+    p(ctx, sx+17, sy+15+bob, 4, 3, '#ffccaa');
+  }
+
+  // Neck
+  p(ctx, sx+10, sy+5+bob, 4, 4, '#ffccaa');
+
+  // Head
+  p(ctx, sx+6,  sy+1+bob,  12, 8, '#ffddbb');  // head base
+  p(ctx, sx+7,  sy+1+bob,  10, 7, '#ffccaa');  // face
+  p(ctx, sx+8,  sy+2+bob,  8,  5, '#ffd8aa');  // face highlight
+
+  // Hair
+  p(ctx, sx+6,  sy+1+bob,  12, 3, '#4a2800');  // dark hair base
+  p(ctx, sx+7,  sy+1+bob,  10, 2, '#6a3c10');  // hair highlight
+  p(ctx, sx+6,  sy+1+bob,  3,  4, '#4a2800');  // side hair L
+  p(ctx, sx+15, sy+1+bob,  3,  4, '#4a2800');  // side hair R
+
+  // Eyes — direction aware
+  if (dir === 'up') {
+    // back of head, no eyes
+    p(ctx, sx+6, sy+1+bob, 12, 6, '#4a2800');
+  } else if (dir === 'left') {
+    p(ctx, sx+8, sy+4+bob, 2, 2, '#000000');
+    p(ctx, sx+9, sy+4+bob, 1, 1, '#ffffff');
+  } else if (dir === 'right') {
+    p(ctx, sx+14, sy+4+bob, 2, 2, '#000000');
+    p(ctx, sx+14, sy+4+bob, 1, 1, '#ffffff');
+  } else { // down / front
+    p(ctx, sx+8,  sy+4+bob, 2, 2, '#222222');
+    p(ctx, sx+14, sy+4+bob, 2, 2, '#222222');
+    p(ctx, sx+9,  sy+4+bob, 1, 1, '#ffffff');
+    p(ctx, sx+15, sy+4+bob, 1, 1, '#ffffff');
+    // Smile
+    p(ctx, sx+9,  sy+7+bob, 1, 1, '#cc7755');
+    p(ctx, sx+10, sy+8+bob, 4, 1, '#cc7755');
+    p(ctx, sx+13, sy+7+bob, 1, 1, '#cc7755');
+  }
+
+  // Hat — iconic trainer style
+  p(ctx, sx+5,  sy-2+bob, 14, 5, '#dd2200');  // hat brim
+  p(ctx, sx+7,  sy-5+bob, 10, 5, '#ee3300');  // hat crown
+  p(ctx, sx+8,  sy-5+bob, 8,  3, '#ff4400');  // hat highlight
+  p(ctx, sx+4,  sy-1+bob, 16, 3, '#cc1100');  // brim underside shadow
+  p(ctx, sx+9,  sy-2+bob, 6,  2, '#ffffff');  // hat logo band
+  p(ctx, sx+10, sy-2+bob, 4,  1, '#ffcc00');  // logo detail
+}
+
+function drawMinimap() {
+  const S   = 90;
+  const s   = Math.max(1, Math.floor(S/MAP_W));
+  const off = Math.floor((S - MAP_W*s)/2);
+
+  // Fog background
+  mmCtx.fillStyle = '#020008';
+  mmCtx.fillRect(0, 0, S, S);
+
+  // Boss proximity reveal radius (tiles) — bosses show up when within 20 tiles
+  const BOSS_REVEAL  = 20;
+  // Build a set of boss positions for distance check
+  const bossPositions = [];
+  for(let y=0;y<MAP_H;y++)
+    for(let x=0;x<MAP_W;x++)
+      if(state.map[y]?.[x]===T.BOSS||state.map[y]?.[x]===T.MINIBOSS)
+        bossPositions.push({x,y,tile:state.map[y][x]});
+
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      const tile = state.map[y]?.[x];
+      const key  = `${x},${y}`;
+      const explored = state.exploredTiles.has(key);
+
+      // Check if near a boss
+      let nearBoss = false, nearFinal = false;
+      for(const b of bossPositions) {
+        const dist = Math.sqrt((x-b.x)**2+(y-b.y)**2);
+        if(dist<=BOSS_REVEAL) { nearBoss=true; if(b.tile===T.BOSS) nearFinal=true; }
+      }
+
+      // Boss tiles — always visible once within range, pulse red
+      if(nearBoss && (tile===T.BOSS||tile===T.MINIBOSS)) {
+        const pulse = Math.sin(Date.now()*0.004)*0.4+0.6;
+        mmCtx.fillStyle = tile===T.BOSS
+          ? `rgba(255,0,60,${pulse})`
+          : `rgba(200,40,0,${pulse*0.8})`;
+        mmCtx.fillRect(x*s+off, y*s+off, Math.max(2,s), Math.max(2,s));
+        continue;
+      }
+
+      // Explored tiles — show terrain in muted tones
+      if(explored) {
+        let color = '#1a2010';
+        if(tile===T.WALL||tile===T.TREE) color='#161008';
+        if(tile===T.WATER)  color='#0e1840';
+        if(tile===T.GRASS)  color='#142808';
+        if(tile===T.PATH)   color='#2a1e10';
+        if(tile===T.TOWN)   color='#4a3c28';
+        if(tile===T.BRIDGE) color='#3a2818';
+        mmCtx.fillStyle = color;
+        if(s>=1) mmCtx.fillRect(x*s+off, y*s+off, Math.max(1,s), Math.max(1,s));
+        continue;
+      }
+
+      // Unexplored but near boss — show faint red haze as warning
+      if(nearBoss) {
+        const d = bossPositions.reduce((mn,b)=>Math.min(mn,Math.sqrt((x-b.x)**2+(y-b.y)**2)),999);
+        const intensity = Math.max(0, 1 - d/BOSS_REVEAL) * 0.15;
+        mmCtx.fillStyle = `rgba(255,0,40,${intensity})`;
+        mmCtx.fillRect(x*s+off, y*s+off, Math.max(1,s), Math.max(1,s));
+      }
+      // Everything else stays as fog (no drawing)
+    }
+  }
+
+  // Player dot — always visible
+  mmCtx.fillStyle = '#ff6644';
+  const pd = Math.max(2, s+1);
+  mmCtx.fillRect(state.px*s+off - 1, state.py*s+off - 1, pd, pd);
+
+  // View rect outline
+  mmCtx.strokeStyle = 'rgba(255,255,255,0.25)';
+  mmCtx.lineWidth   = 1;
+  mmCtx.strokeRect(state.camX*s+off, state.camY*s+off, VIEW_W*s, VIEW_H*s);
+
+  // Legend — only show boss indicator if any are near
+  const anyNearBoss = bossPositions.some(b=>
+    Math.sqrt((state.px-b.x)**2+(state.py-b.y)**2)<=BOSS_REVEAL
+  );
+  if(anyNearBoss) {
+    mmCtx.fillStyle='rgba(255,0,60,0.8)';
+    mmCtx.fillRect(2, 2, 5, 5);
+    mmCtx.fillStyle='rgba(255,100,100,0.9)';
+    mmCtx.font='5px monospace';
+    mmCtx.fillText('BOSS', 9, 7);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SKILL & STAT LEVELING SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+// Stat upgrade costs (skill points)
+const STAT_UPGRADE = {
+  hp:      { label:'HP',      cost:1, max:20, barColor:'#44ff88', desc:'Max hit points' },
+  attack:  { label:'ATK',     cost:1, max:20, barColor:'#ff6644', desc:'Damage dealt'   },
+  defense: { label:'DEF',     cost:1, max:20, barColor:'#4488ff', desc:'Damage reduced' },
+  speed:   { label:'SPD',     cost:1, max:20, barColor:'#ffcc00', desc:'Turn priority'  },
+};
+
+// Skill tree nodes per element type
+const SKILL_TREES = {
+  fire: [
+    {id:'ember_fang',   name:'Ember Fang',    desc:'Fire attacks deal +15% dmg',   cost:2, maxRank:3, effect:{atkMult:0.15}},
+    {id:'heat_shell',   name:'Heat Shell',    desc:'Defense +8 vs ice attacks',     cost:2, maxRank:3, effect:{defBonus:8}},
+    {id:'blaze_dash',   name:'Blaze Dash',    desc:'Speed +5, energy gains +10%',   cost:3, maxRank:2, effect:{spdBonus:5}},
+    {id:'inferno_core', name:'Inferno Core',  desc:'All fire moves crit on 18+',    cost:4, maxRank:1, effect:{critBoost:true}},
+    {id:'phoenix_will', name:'Phoenix Will',  desc:'Survive one KO at 1 HP (once)', cost:5, maxRank:1, effect:{survive:true}},
+  ],
+  ice: [
+    {id:'frost_bite',   name:'Frost Bite',    desc:'Chance to slow enemy on hit',   cost:2, maxRank:3, effect:{slowChance:0.2}},
+    {id:'ice_armor',    name:'Ice Armor',     desc:'Defense +10 vs fire',           cost:2, maxRank:3, effect:{defBonus:10}},
+    {id:'chill_step',   name:'Chill Step',    desc:'Freeze chance on crits',        cost:3, maxRank:2, effect:{freezeOnCrit:true}},
+    {id:'glacier_body', name:'Glacier Body',  desc:'HP +20 permanently',            cost:3, maxRank:2, effect:{hpFlat:20}},
+    {id:'absolute_zero',name:'Absolute Zero', desc:'Once per battle: skip enemy turn',cost:5,maxRank:1,effect:{skipTurn:true}},
+  ],
+  nature: [
+    {id:'thorn_hide',   name:'Thorn Hide',    desc:'Attacker takes 5 dmg on hit',   cost:2, maxRank:3, effect:{thornDmg:5}},
+    {id:'root_pulse',   name:'Root Pulse',    desc:'Regen 5 HP each turn',          cost:3, maxRank:3, effect:{regenHp:5}},
+    {id:'verdant_rush', name:'Verdant Rush',  desc:'First attack each battle +25%', cost:3, maxRank:2, effect:{firstAtkBoost:0.25}},
+    {id:'ancient_bark', name:'Ancient Bark',  desc:'Defense +15 permanently',       cost:4, maxRank:1, effect:{defFlat:15}},
+    {id:'world_root',   name:'World Root',    desc:'Fully heal once per region',    cost:5, maxRank:1, effect:{regionHeal:true}},
+  ],
+  spirit: [
+    {id:'phase_step',   name:'Phase Step',    desc:'10% chance to dodge any hit',   cost:2, maxRank:3, effect:{dodgeChance:0.1}},
+    {id:'soul_strike',  name:'Soul Strike',   desc:'Attacks ignore 30% defense',    cost:3, maxRank:2, effect:{defPen:0.3}},
+    {id:'light_body',   name:'Light Body',    desc:'Speed +8 permanently',          cost:2, maxRank:3, effect:{spdFlat:8}},
+    {id:'spirit_link',  name:'Spirit Link',   desc:'Share 20% dmg with all allies', cost:4, maxRank:1, effect:{dmgShare:true}},
+    {id:'astral_form',  name:'Astral Form',   desc:'Become invincible for 1 turn',  cost:5, maxRank:1, effect:{invincible:true}},
+  ],
+  dark: [
+    {id:'shadow_claw',  name:'Shadow Claw',   desc:'ATK +10, always hits',          cost:3, maxRank:3, effect:{atkFlat:10}},
+    {id:'void_mantle',  name:'Void Mantle',   desc:'Reduce incoming dmg by 15%',    cost:3, maxRank:2, effect:{dmgReduce:0.15}},
+    {id:'ink_trail',    name:'Ink Trail',     desc:'Enemy accuracy -20% for 2 turns',cost:2,maxRank:3,effect:{accReduce:0.2}},
+    {id:'mimic_aura',   name:'Mimic Aura',    desc:'Copy enemy element for 1 hit',  cost:4, maxRank:1, effect:{mimic:true}},
+    {id:'sovereign_veil',name:'Sovereign Veil',desc:'Immune to status effects',     cost:5, maxRank:1, effect:{statusImmune:true}},
+  ],
+  storm: [
+    {id:'thunder_rush', name:'Thunder Rush',  desc:'Speed +6, first to act each turn',cost:2,maxRank:3,effect:{spdFlat:6}},
+    {id:'static_field', name:'Static Field',  desc:'Attacker paralysed 10% chance', cost:3, maxRank:2, effect:{paralyseChance:0.1}},
+    {id:'storm_surge',  name:'Storm Surge',   desc:'Every 3rd hit deals double dmg', cost:3, maxRank:2, effect:{surgeHit:true}},
+    {id:'eye_of_storm', name:'Eye of Storm',  desc:'Ignore weather penalties',      cost:2, maxRank:1, effect:{weatherImmune:true}},
+    {id:'lightning_rod','name':'Lightning Rod',desc:'Absorb storm dmg as HP',       cost:5, maxRank:1, effect:{absorbStorm:true}},
+  ],
+  water: [
+    {id:'tidal_flow',   name:'Tidal Flow',    desc:'HP regen +3 each turn',         cost:2, maxRank:3, effect:{regenHp:3}},
+    {id:'deep_current', name:'Deep Current',  desc:'Speed +5 on water tiles',       cost:2, maxRank:2, effect:{spdBonus:5}},
+    {id:'pressure_wave',name:'Pressure Wave', desc:'ATK +8, pushes enemy back',     cost:3, maxRank:3, effect:{atkFlat:8}},
+    {id:'seafoam_guard','name':'Seafoam Guard',desc:'Defense +12 permanently',      cost:4, maxRank:1, effect:{defFlat:12}},
+    {id:'abyssal_surge','name':'Abyssal Surge',desc:'Unleash full HP as dmg once',  cost:5, maxRank:1, effect:{hpBurst:true}},
+  ],
+  sand: [
+    {id:'dust_cloak',   name:'Dust Cloak',    desc:'Dodge chance +15% in deserts',  cost:2, maxRank:3, effect:{dodgeChance:0.15}},
+    {id:'dune_shell',   name:'Dune Shell',    desc:'Defense +10 permanently',       cost:3, maxRank:2, effect:{defFlat:10}},
+    {id:'sandblast',    name:'Sandblast',     desc:'Enemy accuracy -30% for 1 turn',cost:3,maxRank:2, effect:{blindChance:true}},
+    {id:'buried_trap',  name:'Buried Trap',   desc:'Counter attack on dodge',       cost:4, maxRank:1, effect:{counterDodge:true}},
+    {id:'desert_king',  name:'Desert King',   desc:'All stats +5 in sand regions',  cost:5, maxRank:1, effect:{regionBoost:true}},
+  ],
+  magma: [
+    {id:'lava_coat',    name:'Lava Coat',     desc:'Attackers take 8 burn dmg',     cost:2, maxRank:3, effect:{thornDmg:8}},
+    {id:'molten_core',  name:'Molten Core',   desc:'ATK +12 permanently',           cost:3, maxRank:3, effect:{atkFlat:12}},
+    {id:'eruption',     name:'Eruption',      desc:'AoE blast once per battle',     cost:4, maxRank:2, effect:{eruption:true}},
+    {id:'magma_skin',   name:'Magma Skin',    desc:'Immune to burn status',         cost:3, maxRank:1, effect:{burnImmune:true}},
+    {id:'titan_force',  name:'Titan Force',   desc:'Next hit triples in power',     cost:5, maxRank:1, effect:{titanHit:true}},
+  ],
+  crystal: [
+    {id:'gem_shard',    name:'Gem Shard',     desc:'Crits shatter: hit 2 turns',    cost:3, maxRank:2, effect:{shatterCrit:true}},
+    {id:'crystal_wall', name:'Crystal Wall',  desc:'Defense +14 permanently',       cost:3, maxRank:3, effect:{defFlat:14}},
+    {id:'refraction',   name:'Refraction',    desc:'20% chance to reflect spells',  cost:4, maxRank:2, effect:{reflect:0.2}},
+    {id:'prismatic',    name:'Prismatic',     desc:'Attacks hit all elements at 1x', cost:4, maxRank:1, effect:{allElement:true}},
+    {id:'peak_form',    name:'Peak Form',     desc:'All stats +8 permanently',      cost:5, maxRank:1, effect:{allStats:8}},
+  ],
+};
+
+// Fallback skill tree for undefined elements
+SKILL_TREES.default = SKILL_TREES.dark;
+
+function initCreatureSkills(c) {
+  if (c.skillPoints !== undefined) return; // already init'd
+  c.skillPoints   = 0;           // unspent skill points
+  c.statUpgrades  = { hp:0, attack:0, defense:0, speed:0 }; // times each stat upgraded
+  c.skills        = {};          // { skill_id: rank }
+  c.usedSurvive   = false;
+  c.usedRegionHeal = false;
+}
+
+function xpToNextLevel(level) {
+  return Math.floor(80 * Math.pow(1.4, level - 1));
+}
+
+function grantXP(creature, amount) {
+  initCreatureSkills(creature);
+  creature.xp = (creature.xp || 0) + amount;
+  let leveled  = false;
+  while (creature.xp >= xpToNextLevel(creature.level)) {
+    creature.xp   -= xpToNextLevel(creature.level);
+    creature.level += 1;
+    creature.skillPoints += 1;  // 1 skill point per level
+    // Auto stat gains on level-up
+    const hpGain  = 3 + Math.floor(Math.random() * 4);
+    const atkGain = 1 + Math.floor(Math.random() * 2);
+    creature.hp      += hpGain;
+    creature.maxHp   = creature.hp;
+    creature.attack  += atkGain;
+    creature.defense += Math.floor(Math.random() * 2);
+    creature.speed   += Math.floor(Math.random() * 2);
+    creature.currentHp = Math.min(creature.currentHp + hpGain, creature.hp);
+    leveled = true;
+  }
+  return leveled;
+}
+
+// ── SKILL PANEL UI ────────────────────────────────────────
+let skillPanelCreatureIdx = -1;
+
+function openSkillPanel() {
+  closeDialog();
+  if (!state.creatures.length) {
+    showDialog('NO CREATURES', 'Hatch or catch creatures first!', [{label:'OK',fn:closeDialog}]);
+    return;
+  }
+  state.inDialog = true;
+  skillPanelCreatureIdx = state.activeCreatureIdx >= 0 ? state.activeCreatureIdx : 0;
+  document.getElementById('skill-panel').classList.add('show');
+  renderSkillPanel();
+}
+
+function closeSkillPanel() {
+  state.inDialog = false;
+  document.getElementById('skill-panel').classList.remove('show');
+  updateHUD();
+}
+
+function renderSkillPanel() {
+  const listEl = document.getElementById('sp-creature-list');
+  const mainEl = document.getElementById('sp-main-content');
+  listEl.innerHTML = '';
+  mainEl.innerHTML = '';
+
+  // Creature list
+  state.creatures.forEach((c, i) => {
+    initCreatureSkills(c);
+    const btn  = document.createElement('button');
+    btn.className = 'sp-c-btn' + (i === skillPanelCreatureIdx ? ' active' : '');
+    btn.innerHTML = `${c.name.substring(0,12)}<br><span style="color:#553377">Lv${c.level} ${c.element.toUpperCase()}</span><br><span style="color:#228844">${c.currentHp}/${c.hp} HP</span>`;
+    btn.onclick   = () => { skillPanelCreatureIdx = i; renderSkillPanel(); };
+    listEl.appendChild(btn);
+  });
+
+  const c = state.creatures[skillPanelCreatureIdx];
+  if (!c) return;
+  initCreatureSkills(c);
+
+  const xpNext = xpToNextLevel(c.level);
+  const xpPct  = Math.min(100, Math.round(((c.xp||0) / xpNext) * 100));
+
+  // XP & skill points card
+  const xpCard = document.createElement('div');
+  xpCard.className = 'sp-card';
+  xpCard.innerHTML = `
+    <div class="sp-card-title">${c.name} — Lv${c.level}</div>
+    <div class="sp-xp-bar-wrap"><div class="sp-xp-bar" style="width:${xpPct}%"></div></div>
+    <div class="sp-xp-label">XP: ${c.xp||0} / ${xpNext} &nbsp;|&nbsp; <span style="color:#ffcc44">SP: ${c.skillPoints} unspent</span></div>
+  `;
+  mainEl.appendChild(xpCard);
+
+  // Stat upgrades card
+  const statsCard = document.createElement('div');
+  statsCard.className = 'sp-card';
+  statsCard.innerHTML = '<div class="sp-card-title">STAT UPGRADES  <span style="color:#553377;font-size:5px">(1 SP each)</span></div>';
+
+  const STAT_MAX_DISP = { hp: c.hp, attack: c.attack, defense: c.defense, speed: c.speed };
+  const BASE_MAX      = 200;
+
+  Object.entries(STAT_UPGRADE).forEach(([key, info]) => {
+    const curVal  = c[key] || 0;
+    const upgrades = c.statUpgrades[key] || 0;
+    const atMax   = upgrades >= info.max;
+    const pct     = Math.min(100, Math.round((curVal / BASE_MAX) * 100));
+
+    const row = document.createElement('div');
+    row.className = 'sp-stat-row';
+    row.innerHTML = `
+      <div class="sp-stat-name">${info.label}</div>
+      <div class="sp-stat-bar-wrap"><div class="sp-stat-bar" style="width:${pct}%;background:${info.barColor}"></div></div>
+      <div class="sp-stat-val">${curVal}</div>
+      <button class="sp-stat-up-btn" ${(atMax||c.skillPoints<1)?'disabled':''} onclick="upgradeStatSP('${key}',${skillPanelCreatureIdx})">
+        ${atMax ? 'MAX' : '+1'}
+      </button>
+    `;
+    statsCard.appendChild(row);
+  });
+  mainEl.appendChild(statsCard);
+
+  // Skill tree card
+  const tree   = SKILL_TREES[c.element] || SKILL_TREES.default;
+  const skillCard = document.createElement('div');
+  skillCard.className = 'sp-card';
+  skillCard.innerHTML = '<div class="sp-card-title">SKILL TREE  <span style="color:#553377;font-size:5px">(SP cost varies)</span></div>';
+
+  const treeWrap = document.createElement('div');
+  treeWrap.className = 'skill-tree';
+
+  tree.forEach(skill => {
+    const rank    = c.skills[skill.id] || 0;
+    const maxed   = rank >= skill.maxRank;
+    const canAfford = c.skillPoints >= skill.cost;
+    const node    = document.createElement('div');
+    node.className = 'skill-node' + (maxed ? ' maxed' : rank > 0 ? ' unlocked' : canAfford ? '' : ' locked');
+    node.innerHTML = `
+      <span class="skill-node-name">${skill.name}</span>
+      <div class="skill-node-rank">${'★'.repeat(rank)}${'☆'.repeat(skill.maxRank - rank)}</div>
+      <span class="skill-node-cost">${maxed ? 'MAXED' : `${skill.cost} SP`}</span>
+    `;
+    if (!maxed && canAfford) {
+      node.onclick = () => unlockSkill(skill.id, skillPanelCreatureIdx);
+      node.title   = skill.desc;
+    }
+    // Tooltip on hover
+    node.addEventListener('mouseenter', () => {
+      document.getElementById('rest-info').textContent = `${skill.name}: ${skill.desc}`;
+    });
+    treeWrap.appendChild(node);
+  });
+
+  skillCard.appendChild(treeWrap);
+  mainEl.appendChild(skillCard);
+}
+
+function upgradeStatSP(stat, idx) {
+  const c = state.creatures[idx];
+  if (!c || c.skillPoints < 1) return;
+  initCreatureSkills(c);
+  const info = STAT_UPGRADE[stat];
+  if ((c.statUpgrades[stat] || 0) >= info.max) return;
+
+  c.skillPoints -= 1;
+  c.statUpgrades[stat] = (c.statUpgrades[stat] || 0) + 1;
+
+  // Apply stat increase
+  const gain = stat === 'hp' ? 8 : stat === 'attack' ? 4 : stat === 'defense' ? 4 : 3;
+  c[stat]    += gain;
+  if (stat === 'hp') { c.maxHp = c.hp; c.currentHp = Math.min(c.currentHp + gain, c.hp); }
+  if (stat === 'attack' && battleData && battleData.player.id === c.id) battleData.player.attack = c.attack;
+
+  renderSkillPanel();
+  updateHUD();
+}
+
+function unlockSkill(skillId, idx) {
+  const c = state.creatures[idx];
+  if (!c) return;
+  initCreatureSkills(c);
+  const tree  = SKILL_TREES[c.element] || SKILL_TREES.default;
+  const skill = tree.find(s => s.id === skillId);
+  if (!skill) return;
+
+  const rank = c.skills[skillId] || 0;
+  if (rank >= skill.maxRank || c.skillPoints < skill.cost) return;
+
+  c.skillPoints        -= skill.cost;
+  c.skills[skillId]     = rank + 1;
+
+  // Apply permanent effects immediately
+  const fx = skill.effect;
+  if (fx.hpFlat)   { c.hp += fx.hpFlat;  c.maxHp = c.hp; c.currentHp = Math.min(c.currentHp + fx.hpFlat, c.hp); }
+  if (fx.atkFlat)  c.attack   += fx.atkFlat;
+  if (fx.defFlat)  c.defense  += fx.defFlat;
+  if (fx.spdFlat)  c.speed    += fx.spdFlat;
+  if (fx.allStats) { c.hp+=fx.allStats; c.attack+=fx.allStats; c.defense+=fx.allStats; c.speed+=fx.allStats; c.maxHp=c.hp; }
+
+  renderSkillPanel();
+  updateHUD();
+}
+
+// ── REST & HEAL SYSTEM ────────────────────────────────────
+function doRest(type) {
+  const infoEl = document.getElementById('rest-info');
+
+  if (type === 'camp') {
+    // Free rest — heals 50% HP for all creatures
+    let msg = '';
+    state.creatures.forEach(c => {
+      const heal = Math.floor(c.hp * 0.5);
+      c.currentHp = Math.min(c.hp, c.currentHp + heal);
+      msg += `${c.name}: +${heal} HP  `;
+    });
+    infoEl.textContent = `Camped! ${msg}`;
+    // Time skip to morning
+    state.time = 7;
+  }
+
+  else if (type === 'inn') {
+    // Inn — full heal + status clear, costs 30 coins
+    if (state.coins < 30) { infoEl.textContent = 'Not enough coins! Need 30.'; return; }
+    state.coins -= 30;
+    state.creatures.forEach(c => {
+      c.currentHp = c.hp;
+      c.status    = null;
+    });
+    infoEl.textContent = 'All creatures fully healed and status cleared! (-30 coins)';
+    state.time = 7;
+  }
+
+  else if (type === 'potion') {
+    // Potion — 30 HP to active creature, costs 20 coins
+    if (state.coins < 20) { infoEl.textContent = 'Not enough coins! Need 20.'; return; }
+    const pc = state.creatures[state.activeCreatureIdx];
+    if (!pc) { infoEl.textContent = 'No active creature!'; return; }
+    state.coins -= 20;
+    const heal = 30;
+    pc.currentHp = Math.min(pc.hp, pc.currentHp + heal);
+    infoEl.textContent = `${pc.name} restored ${heal} HP! (-20 coins)`;
+  }
+
+  updateHUD();
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+//  ATTACK CUTSCENE SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+
+
+// ═══════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+// ═══════════════════════════════════════════════════════════
+// ── MAIN LOOP ─────────────────────────────────────────────
+let lastTime = 0;
+
+function gameLoop(timestamp) {
+  const dt = timestamp - lastTime;
+  lastTime  = timestamp;
+
+  if (!state.inBattle && !state.inDialog) {
+    handleMovement(dt);
+  }
+  updateTimeWeather(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  OPENING MENU SYSTEM
+//  All buttons wired here — no inline onclick attributes
+// ══════════════════════════════════════════════════════════
+
+const MENU_REGIONS = {
+  suncrest_expanse:   { name:'Suncrest Expanse',   elem:'fire',    icon:'🔥', tag:'FIRE · WEST COAST',    color:'#ff6600' },
+  sakurami_highlands: { name:'Sakurami Highlands',  elem:'spirit',  icon:'✨', tag:'SPIRIT · JAPAN',       color:'#ffcc44' },
+  frostspire_reach:   { name:'Frostspire Reach',    elem:'ice',     icon:'❄️', tag:'ICE · SCANDINAVIA',    color:'#88ddff' },
+  shadowmere_hollows: { name:'Shadowmere Hollows',  elem:'dark',    icon:'🌑', tag:'DARK · CARPATHIANS',   color:'#aa44ff' },
+};
+
+// Egg colors by rarity
+const EGG_COLORS = {
+  common:    { hi:'#d0c8c0', mid:'#888078', sh:'#443c38', glow:'rgba(200,190,180,0.4)',  spk:'rgba(0,0,0,0.18)' },
+  uncommon:  { hi:'#90c8ff', mid:'#3870cc', sh:'#0a2060', glow:'rgba(80,140,255,0.5)',   spk:'rgba(0,20,80,0.2)' },
+  rare:      { hi:'#e090ff', mid:'#9030cc', sh:'#380060', glow:'rgba(160,60,255,0.55)',  spk:'rgba(40,0,80,0.2)' },
+  legendary: { hi:'#ffe060', mid:'#cc8800', sh:'#502800', glow:'rgba(255,200,0,0.7)',    spk:'rgba(80,40,0,0.2)' },
+};
+
+let menuSelectedRegion = null;
+let menuRolledCreature  = null;
+
+function menuScreen(show) {
+  document.getElementById('menu-title').style.display   = show==='title'   ? 'flex' : 'none';
+  document.getElementById('menu-regions').style.display = show==='regions' ? 'flex' : 'none';
+  document.getElementById('menu-dice').style.display    = show==='dice'    ? 'flex' : 'none';
+}
+
+// ── Stars background ──────────────────────────────────────
+function menuDrawStars() {
+  const cv = document.getElementById('menu-stars');
+  if(!cv) return;
+  cv.width  = window.innerWidth;
+  cv.height = window.innerHeight;
+  const c   = cv.getContext('2d');
+  c.fillStyle = '#080010';
+  c.fillRect(0,0,cv.width,cv.height);
+  for(let i=0;i<120;i++){
+    const x = Math.abs(Math.sin(i*127.1)*cv.width*10)  % cv.width;
+    const y = Math.abs(Math.cos(i*311.7)*cv.height*10) % cv.height;
+    const r = i%7===0 ? 2 : 1;
+    const a = 0.2 + (i%4)*0.18;
+    c.fillStyle = `rgba(255,255,220,${a})`;
+    c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
+  }
+}
+
+// ── Globe animation on title ──────────────────────────────
+let globeFrame = 0;
+function menuDrawGlobe() {
+  const cv = document.getElementById('menu-globe');
+  if(!cv||document.getElementById('menu-title').style.display==='none') return;
+  const c = cv.getContext('2d');
+  const W=200, H=200, cx=100, cy=100, r=70;
+  c.fillStyle='#080010'; c.fillRect(0,0,W,H);
+  // glow
+  const grd = c.createRadialGradient(cx,cy,20,cx,cy,r);
+  grd.addColorStop(0,'#2a0660'); grd.addColorStop(1,'#080010');
+  c.fillStyle=grd; c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.fill();
+  // grid lines
+  c.strokeStyle='rgba(200,150,0,0.25)'; c.lineWidth=1;
+  const off = (globeFrame*0.3)%40;
+  for(let lat=0;lat<=180;lat+=30){
+    const ry=Math.sin(lat*Math.PI/180)*r;
+    const rx=Math.cos(lat*Math.PI/180)*r;
+    c.beginPath(); c.ellipse(cx,cy,rx,Math.abs(ry*0.3),0,0,Math.PI*2); c.stroke();
+  }
+  for(let lon=0;lon<360;lon+=30){
+    const a=(lon+off)*Math.PI/180;
+    const perspective=Math.cos(a);
+    if(perspective<0) continue;
+    c.globalAlpha=perspective*0.5;
+    c.beginPath(); c.ellipse(cx,cy,r*perspective,r,0,0,Math.PI*2); c.stroke();
+    c.globalAlpha=1;
+  }
+  // border
+  c.strokeStyle='#c8960c'; c.lineWidth=2;
+  c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
+  globeFrame++;
+  if(document.getElementById('menu-overlay').style.display!=='none')
+    requestAnimationFrame(menuDrawGlobe);
+}
+
+// ── Build region grid ─────────────────────────────────────
+function menuBuildRegions() {
+  const grid = document.getElementById('menu-regions-grid');
+  grid.innerHTML='';
+  Object.entries(MENU_REGIONS).forEach(([id, r])=>{
+    const card = document.createElement('div');
+    card.className='region-card';
+    card.innerHTML=`<div class="rc-elem">${r.icon}</div><div class="rc-name">${r.name}</div><div class="rc-tag">${r.tag}</div>`;
+    card.onclick = ()=>{
+      menuSelectedRegion = id;
+      document.querySelectorAll('.region-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      const btn = document.getElementById('menu-choose-btn');
+      btn.classList.add('ready');
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ── Egg coloring ──────────────────────────────────────────
+function menuColorEgg(rarity) {
+  const col = EGG_COLORS[rarity] || EGG_COLORS.common;
+  const hi  = document.getElementById('egg-hi');
+  const mid = document.getElementById('egg-mid');
+  const sh  = document.getElementById('egg-sh');
+  const glow= document.getElementById('egg-glow');
+  const spks= ['spk1','spk2','spk3','spk4','spk5'];
+  if(hi)  hi.setAttribute('stop-color',  col.hi);
+  if(mid) mid.setAttribute('stop-color', col.mid);
+  if(sh)  sh.setAttribute('stop-color',  col.sh);
+  if(glow){ glow.style.background=`radial-gradient(ellipse,${col.glow} 0%,transparent 70%)`; }
+  spks.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.setAttribute('fill', col.spk);
+  });
+}
+
+// ── Dice roll ─────────────────────────────────────────────
+function menuRollDice() {
+  const stage   = document.getElementById('egg-stage');
+  const rollEl  = document.getElementById('dice-roll-display');
+  const revealEl= document.getElementById('creature-reveal');
+  const beginBtn= document.getElementById('dice-begin-btn');
+  const rerollBtn=document.getElementById('dice-reroll-btn');
+  const rollBtn = document.getElementById('menu-roll-trigger');
+
+  // Reset
+  stage.classList.remove('spinning','revealed');
+  revealEl.style.display='none';
+  beginBtn.style.display='none';
+  rerollBtn.style.display='none';
+  rollEl.textContent='';
+  menuColorEgg('common');
+  if(rollBtn) rollBtn.style.display='none';
+
+  // Get region creatures
+  const region   = REGIONS[menuSelectedRegion];
+  if(!region) return;
+  const pool     = region.creatures;
+  const WEIGHTS  = {common:40,uncommon:20,rare:8,legendary:2};
+
+  // Spin egg
+  stage.classList.add('spinning');
+
+  // Cycle egg colors while spinning
+  const rarities = ['common','uncommon','rare','legendary'];
+  let colorIdx=0;
+  const colorSpin = setInterval(()=>{
+    menuColorEgg(rarities[colorIdx++ % rarities.length]);
+  }, 120);
+
+  // Count down display
+  let countdown=20;
+  const countInterval=setInterval(()=>{
+    rollEl.textContent=`D20 — ${countdown--}`;
+    if(countdown<0) clearInterval(countInterval);
+  }, 80);
+
+  setTimeout(()=>{
+    clearInterval(colorSpin);
+    clearInterval(countInterval);
+    stage.classList.remove('spinning');
+
+    // Actual D20 roll
+    const roll = Math.floor(Math.random()*20)+1;
+    rollEl.textContent=`D20 — ${roll}`;
+
+    // Map roll → creature by rarity weight
+    const bucket=[];
+    pool.forEach(c=>{ for(let i=0;i<(WEIGHTS[c.rarity]||10);i++) bucket.push(c); });
+    const idx=Math.min(Math.floor((roll/20)*bucket.length), bucket.length-1);
+    menuRolledCreature={...bucket[idx]};
+
+    // Color egg by rarity
+    menuColorEgg(menuRolledCreature.rarity);
+    stage.classList.add('revealed');
+
+    // Show result
+    const ICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
+    const RARITY_EGGS={common:'🥚',uncommon:'🔵',rare:'🟣',legendary:'🌟'};
+    document.getElementById('cr-egg-icon').textContent = RARITY_EGGS[menuRolledCreature.rarity]||'🥚';
+    document.getElementById('cr-name').textContent     = menuRolledCreature.name.toUpperCase();
+    document.getElementById('cr-elem').textContent     = `${ICONS[menuRolledCreature.element]||''} ${menuRolledCreature.element.toUpperCase()}`;
+    const rarEl = document.getElementById('cr-rarity');
+    rarEl.textContent  = menuRolledCreature.rarity.toUpperCase();
+    rarEl.className    = `cr-rarity ${menuRolledCreature.rarity}`;
+    document.getElementById('cr-desc').textContent =
+      `HP:${menuRolledCreature.hp}  ATK:${menuRolledCreature.atk||menuRolledCreature.attack||'?'}  SPD:${menuRolledCreature.spd||menuRolledCreature.speed||'?'}`;
+
+    revealEl.style.display='flex';
+    beginBtn.style.display='block';
+    rerollBtn.style.display='block';
+  }, 1800);
+}
+
+// ── Begin game ────────────────────────────────────────────
+function menuBeginGame() {
+  if(!menuRolledCreature||!menuSelectedRegion) return;
+  const c0 = menuRolledCreature;
+  const starter={
+    ...c0,
+    hp:      c0.hp,
+    currentHp:c0.hp,
+    maxHp:   c0.hp,
+    attack:  c0.atk||c0.attack||15,
+    defense: c0.def||c0.defense||10,
+    speed:   c0.spd||c0.speed||12,
+    xp:0, level:1, energy:0, status:null, id:Date.now()
+  };
+  initCreatureSkills(starter);
+  state.creatures         = [starter];
+  state.activeCreatureIdx = 0;
+  state.currentRegion     = menuSelectedRegion;
+  state.homeRegion        = menuSelectedRegion;
+  state.mapSeed           = Date.now() % 99991;
+  state.map               = generateMap(menuSelectedRegion, state.mapSeed);
+
+  const INIT_R=8;
+  for(let ey=-INIT_R;ey<=INIT_R;ey++)
+    for(let ex=-INIT_R;ex<=INIT_R;ex++)
+      if(ex*ex+ey*ey<=INIT_R*INIT_R)
+        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
+  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
+
+  document.getElementById('menu-overlay').style.display='none';
+  document.getElementById('world').style.pointerEvents='all';
+  updateHUD();
+}
+
+// ── Wire everything — called at bottom of init() ──────────
+function menuInit() {
+  menuDrawStars();
+  menuBuildRegions();
+  menuScreen('title');
+  requestAnimationFrame(menuDrawGlobe);
+
+  // Title → Region select
+  document.getElementById('menu-start-btn').onclick = ()=>{
+    menuScreen('regions');
+  };
+
+  // Region confirmed → Dice
+  document.getElementById('menu-choose-btn').onclick = ()=>{
+    if(!menuSelectedRegion) return;
+    const rn = MENU_REGIONS[menuSelectedRegion]?.name || menuSelectedRegion;
+    document.getElementById('dice-region-label').textContent = rn.toUpperCase();
+
+    // Add roll button dynamically once
+    const diceDiv = document.getElementById('menu-dice');
+    let rb = document.getElementById('menu-roll-trigger');
+    if(!rb){
+      rb = document.createElement('button');
+      rb.id='menu-roll-trigger';
+      rb.textContent='ROLL DICE 🎲';
+      rb.style.cssText="font-family:'Press Start 2P',monospace;font-size:9px;background:#0a0018;color:#ffcc44;border:2px solid #cc8800;padding:11px 22px;cursor:pointer;border-radius:3px;box-shadow:0 0 12px rgba(255,200,0,0.3);";
+      rb.onclick=menuRollDice;
+      diceDiv.insertBefore(rb, diceDiv.lastElementChild);
+    } else {
+      rb.style.display='block';
+    }
+    menuScreen('dice');
+  };
+
+  // Reroll
+  document.getElementById('dice-reroll-btn').onclick = menuRollDice;
+
+  // Begin
+  document.getElementById('dice-begin-btn').onclick = menuBeginGame;
+
+  // Back button on regions (ESC)
+  window.addEventListener('keydown', e=>{
+    if(e.key==='Escape'&&document.getElementById('menu-overlay').style.display!=='none'){
+      if(document.getElementById('menu-regions').style.display!=='none') menuScreen('title');
+      else if(document.getElementById('menu-dice').style.display!=='none')  menuScreen('regions');
+      e.preventDefault();
+    }
+  },{capture:true});
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Generate starting map with random seed
+  state.mapSeed = Date.now() % 99991;
+  state.map  = generateMap(state.currentRegion, state.mapSeed);
+  state.camX = Math.max(0, state.px - Math.floor(VIEW_W / 2));
+  state.camY = Math.max(0, state.py - Math.floor(VIEW_H / 2));
+
+  document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
+
+  // Starter creature given by opening menu (menuBeginGame)
+
+  // Show opening menu (wires all buttons, then waits for player)
+  menuInit();
+
+  // Mobile D-pad wiring
+  function wireDpad(id, key) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', e => {
+      const menuOpen = document.getElementById('menu-overlay') &&
+                       document.getElementById('menu-overlay').style.display !== 'none';
+      if (menuOpen) return;
+      state.keys[key] = true;
+      e.preventDefault();
+    }, {passive:false});
+    el.addEventListener('touchend',   e => { state.keys[key] = false; e.preventDefault(); }, {passive:false});
+    el.addEventListener('touchcancel',e => { state.keys[key] = false; }, {passive:false});
+    // Also work with mouse for desktop testing
+    el.addEventListener('mousedown',  e => { state.keys[key] = true;  });
+    el.addEventListener('mouseup',    e => { state.keys[key] = false; });
+    el.addEventListener('mouseleave', e => { state.keys[key] = false; });
+  }
+  wireDpad('dpad-up',    'arrowup');
+  wireDpad('dpad-down',  'arrowdown');
+  wireDpad('dpad-left',  'arrowleft');
+  wireDpad('dpad-right', 'arrowright');
+
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  if (menuBtn) menuBtn.addEventListener('touchstart', e => { handleEsc(); e.preventDefault(); }, {passive:false});
+  const actBtn  = document.getElementById('mobile-interact-btn');
+  if (actBtn)  actBtn.addEventListener('touchstart',  e => { handleInteract(); e.preventDefault(); }, {passive:false});
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+
+init();
+</script>
+
+
+<!-- ── MOBILE D-PAD ── -->
+<div id="dpad">
+  <div id="dpad-center"></div>
+  <div class="dpad-btn" id="dpad-up">▲</div>
+  <div class="dpad-btn" id="dpad-down">▼</div>
+  <div class="dpad-btn" id="dpad-left">◀</div>
+  <div class="dpad-btn" id="dpad-right">▶</div>
+</div>
+<div id="mobile-btns">
+  <button class="mobile-action-btn" id="mobile-menu-btn">MENU</button>
+  <button class="mobile-action-btn" id="mobile-interact-btn">ACTION</button>
+</div>
+</body>
+</html>
   font-size:12px;color:#cc44ff;
   text-shadow:0 0 12px rgba(200,50,255,0.8),0 0 24px rgba(200,50,255,0.4);
   z-index:10;
