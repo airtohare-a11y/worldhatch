@@ -1,1 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>WORLDHATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:#080010;font-family:'Press Start 2P',monospace;}
+body{display:flex;flex-direction:column;align-items:center;position:fixed;top:0;left:0;touch-action:none;}
 
+/* ── OPENING MENU ─────────────────────────────────────── */
+#menu{position:fixed;inset:0;z-index:9999;background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;overflow-y:auto;}
+#menu.hidden{display:none;}
+.menu-logo{font-size:clamp(16px,5vw,26px);color:#ffcc44;letter-spacing:4px;text-shadow:0 0 30px rgba(255,200,0,0.5);text-align:center;}
+.menu-sub{font-size:8px;color:#553388;letter-spacing:2px;}
+#menu-globe{border:2px solid #c8960c;border-radius:50%;background:#0a0018;}
+.menu-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:#0e0022;color:#ffcc44;border:2px solid #cc8800;padding:14px 28px;cursor:pointer;border-radius:4px;transition:all 0.15s;}
+.menu-btn:hover,.menu-btn:active{background:#1a1000;box-shadow:0 0 16px rgba(255,200,0,0.3);}
+.menu-section{width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;}
+.menu-section-title{font-size:8px;color:#ffcc44;letter-spacing:2px;text-align:center;margin-bottom:4px;}
+.region-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.region-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#0a0018;color:#cc88ff;border:2px solid #330055;padding:10px 8px;cursor:pointer;border-radius:4px;text-align:left;line-height:2;}
+.region-btn:hover{background:#140028;border-color:#8833cc;}
+.region-btn.sel{border-color:#ffcc44;color:#ffcc44;background:#1a1000;}
+.region-elem{font-size:14px;display:block;}
+/* Egg + Dice */
+#egg-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:480px;}
+#egg-svg{cursor:pointer;display:block;}
+.dice-num{font-size:24px;color:#ffcc44;text-align:center;min-height:36px;text-shadow:0 0 12px rgba(255,200,0,0.7);}
+.result-card{width:100%;background:#0a0018;border:3px solid #c8960c;border-radius:8px;padding:12px 16px;display:none;flex-direction:row;align-items:center;gap:12px;}
+.rc-icon{font-size:36px;}
+.rc-name{font-size:9px;color:#ffcc44;margin-bottom:4px;}
+.rc-elem{font-size:6px;color:#cc88ff;margin-bottom:4px;}
+.rc-rarity{font-size:6px;}
+.rc-rarity.common{color:#aaaacc;}.rc-rarity.uncommon{color:#4488ff;}.rc-rarity.rare{color:#cc44ff;}.rc-rarity.legendary{color:#ffcc00;}
+.rc-stats{font-size:5px;color:#553377;margin-top:4px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.sm-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:#0a0018;color:#cc88ff;border:2px solid #440088;padding:9px 14px;cursor:pointer;border-radius:4px;}
+.sm-btn:hover{background:#140028;}
+.sm-btn.primary{color:#44ff88;border-color:#228844;}
+.sm-btn.primary:hover{background:#081808;}
+
+/* ── GAME LAYOUT ─────────────────────────────────────── */
+#game{width:100%;max-width:800px;display:flex;flex-direction:column;height:100vh;}
+#top-bar{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:#0d001a;border-bottom:2px solid #440088;flex-shrink:0;}
+#top-region{font-size:8px;color:#ffcc44;}
+#top-player{font-size:6px;color:#cc88ff;}
+#top-time{font-size:6px;color:#553388;text-align:right;}
+#canvas-wrap{position:relative;flex:1;overflow:hidden;background:#000;min-height:0;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+#hud{display:flex;gap:6px;padding:5px 8px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;flex-shrink:0;}
+.hb{background:#12002a;border:1px solid #330055;border-radius:3px;padding:4px 7px;font-size:5px;}
+.hb-label{color:#553366;margin-bottom:2px;}
+.hb-val{color:#cc88ff;font-size:6px;}
+.bar-wrap{height:5px;background:#1a0030;border-radius:2px;width:70px;margin-top:2px;overflow:hidden;}
+.hp-fill{height:100%;background:#44ff88;border-radius:2px;transition:width 0.2s;}
+.en-fill{height:100%;background:#ffcc00;border-radius:2px;transition:width 0.2s;}
+
+/* ── DIALOG ──────────────────────────────────────────── */
+#dialog{position:absolute;bottom:0;left:0;right:0;background:rgba(8,0,20,0.97);border-top:3px solid #cc44ff;padding:12px 14px;display:none;z-index:50;}
+#dlg-name{font-size:8px;color:#ff88ff;margin-bottom:6px;}
+#dlg-text{font-size:7px;color:#e0d0ff;line-height:1.8;margin-bottom:8px;}
+#dlg-opts{display:flex;gap:8px;flex-wrap:wrap;}
+.d-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#cc88ff;border:1px solid #660099;padding:8px 12px;cursor:pointer;border-radius:3px;touch-action:manipulation;}
+.d-btn:hover,.d-btn:active{background:#2a0050;}
+
+/* ── BATTLE ──────────────────────────────────────────── */
+#battle{position:absolute;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:8px;background:linear-gradient(160deg,#080018,#0e0028,#060010);}
+#battle.show{display:flex;}
+#battle-scene{width:100%;max-width:500px;height:130px;position:relative;display:flex;border:2px solid #440088;border-radius:6px;overflow:hidden;}
+.b-side{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:6px;position:relative;z-index:2;}
+.b-art-frame{flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);border-radius:4px;}
+.b-canvas{image-rendering:pixelated;width:80px;height:80px;display:block;}
+.b-name{font-size:5px;color:#eeccff;margin-bottom:2px;}
+.b-bars{width:100%;display:flex;flex-direction:column;gap:2px;}
+.b-bar-row{display:flex;align-items:center;gap:3px;}
+.b-bar-lbl{font-size:4px;color:#664488;width:10px;}
+.b-bar-track{flex:1;height:6px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.b-bar-fill{height:100%;border-radius:1px;transition:width 0.3s;}
+.b-hp{background:linear-gradient(90deg,#22cc44,#44ff88);}
+.b-en{background:linear-gradient(90deg,#cc8800,#ffcc00);}
+.b-bar-val{font-size:4px;color:#664488;width:24px;text-align:right;}
+.vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;color:#cc44ff;z-index:10;background:rgba(8,0,20,0.7);padding:3px 7px;border-radius:3px;border:1px solid #440088;}
+.b-arena-bg{position:absolute;inset:0;z-index:0;}
+#battle-log{width:100%;max-width:500px;height:70px;overflow-y:auto;background:#08001a;border:1px solid #330055;border-radius:4px;padding:6px;}
+.blog{font-size:6px;color:#8866aa;line-height:1.8;}
+.blog.l-hit{color:#ffaa44;}.blog.l-crit{color:#ff4444;}.blog.l-miss{color:#888866;}.blog.l-info{color:#4488cc;}.blog.l-heal{color:#44cc88;}
+#dice-disp{font-size:9px;color:#ffcc44;text-align:center;min-height:20px;}
+#move-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;max-width:500px;}
+.move-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#0e0022;color:#cc88ff;border:2px solid #440088;padding:8px 10px;cursor:pointer;border-radius:3px;touch-action:manipulation;}
+.move-btn:hover,.move-btn:active{background:#1a0040;}
+.move-btn.special{border-color:#ffcc44;color:#ffcc44;}
+.move-btn:disabled{opacity:0.4;pointer-events:none;}
+
+/* ── SKILL PANEL ─────────────────────────────────────── */
+#skill-panel{position:absolute;inset:0;z-index:110;display:none;flex-direction:column;background:#060010;}
+#skill-panel.show{display:flex;}
+#sp-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#0d001a;border-bottom:2px solid #440088;}
+#sp-top-title{font-size:8px;color:#ffcc44;}
+#sp-close{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0030;color:#ff6666;border:1px solid #882222;padding:5px 10px;cursor:pointer;border-radius:2px;touch-action:manipulation;}
+#sp-body{display:flex;flex:1;overflow:hidden;}
+#sp-list{width:120px;overflow-y:auto;background:#08001a;border-right:1px solid #330055;padding:6px;}
+.sp-c-btn{font-family:'Press Start 2P',monospace;font-size:5px;width:100%;background:#0a0018;color:#cc88ff;border:1px solid #330055;padding:6px 5px;cursor:pointer;border-radius:3px;margin-bottom:4px;text-align:left;line-height:1.8;touch-action:manipulation;}
+.sp-c-btn.active{border-color:#ffcc44;color:#ffcc44;background:#1a1000;}
+#sp-main{flex:1;overflow-y:auto;padding:10px;}
+.sp-stat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sp-stat-lbl{font-size:6px;color:#cc88ff;width:40px;}
+.sp-stat-bar-wrap{flex:1;height:8px;background:#1a0030;border-radius:2px;overflow:hidden;}
+.sp-stat-bar{height:100%;border-radius:2px;transition:width 0.3s;}
+.sp-stat-val{font-size:6px;color:#664488;width:30px;text-align:right;}
+.sp-upgrade-btn{font-family:'Press Start 2P',monospace;font-size:5px;background:#1a0030;color:#ffcc44;border:1px solid #cc8800;padding:4px 8px;cursor:pointer;border-radius:2px;touch-action:manipulation;}
+.sp-upgrade-btn:disabled{opacity:0.4;pointer-events:none;}
+.sp-pts{font-size:7px;color:#44ff88;margin-bottom:10px;}
+.sp-xp-bar-wrap{height:6px;background:#1a0030;border-radius:2px;overflow:hidden;margin-bottom:10px;}
+.sp-xp-bar{height:100%;background:linear-gradient(90deg,#4466ff,#88aaff);border-radius:2px;transition:width 0.3s;}
+.sp-skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.sp-skill-btn{font-family:'Press Start 2P',monospace;font-size:5px;background:#0a0018;color:#cc88ff;border:1px solid #330055;padding:6px 8px;cursor:pointer;border-radius:3px;text-align:left;line-height:1.8;touch-action:manipulation;}
+.sp-skill-btn:hover{background:#140028;border-color:#8833cc;}
+.sp-skill-btn.owned{border-color:#44ff88;color:#44ff88;background:#081808;}
+.sp-skill-btn:disabled{opacity:0.4;pointer-events:none;}
+.sp-rest-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+
+/* ── MOBILE BUTTONS ───────────────────────────────────── */
+#mob-btns{position:fixed;bottom:20px;right:14px;z-index:200;display:flex;flex-direction:column;gap:10px;}
+.mob-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:rgba(10,0,30,0.88);color:#cc88ff;border:2px solid #5522aa;padding:12px 16px;border-radius:8px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.mob-btn:active{background:rgba(80,0,160,0.9);}
+</style>
+</head>
+<body>
+
+<!-- ══ OPENING MENU ══════════════════════════════════ -->
+<div id="menu">
+  <div class="menu-logo">WORLDHATCH</div>
+  <div class="menu-sub">HATCH · BATTLE · EXPLORE</div>
+  <canvas id="menu-globe" width="160" height="160"></canvas>
+
+  <!-- Region Select -->
+  <div class="menu-section" id="sec-region">
+    <div class="menu-section-title">CHOOSE YOUR REGION</div>
+    <div class="region-grid" id="region-grid"></div>
+  </div>
+
+  <!-- Egg Dice -->
+  <div id="egg-wrap" style="display:none;">
+    <div class="menu-section-title" id="egg-region-name">YOUR STARTER EGG</div>
+    <svg id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
+      <defs>
+        <radialGradient id="eg" cx="35%" cy="30%" r="65%">
+          <stop offset="0%" id="egg-hi" stop-color="#d0c8c0"/>
+          <stop offset="60%" id="egg-mid" stop-color="#887870"/>
+          <stop offset="100%" id="egg-sh" stop-color="#443c38"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eg)"/>
+      <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+      <circle cx="44" cy="58" r="3" fill="rgba(0,0,0,0.12)" id="sp1"/>
+      <circle cx="72" cy="50" r="2" fill="rgba(0,0,0,0.12)" id="sp2"/>
+      <circle cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"  id="sp3"/>
+      <circle cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.1)" id="sp4"/>
+    </svg>
+    <div class="dice-num" id="dice-num"></div>
+    <div class="result-card" id="result-card">
+      <div class="rc-icon" id="rc-icon">🥚</div>
+      <div>
+        <div class="rc-name" id="rc-name"></div>
+        <div class="rc-elem" id="rc-elem"></div>
+        <div class="rc-rarity" id="rc-rarity"></div>
+        <div class="rc-stats" id="rc-stats"></div>
+      </div>
+    </div>
+    <div class="btn-row" id="dice-btns">
+      <button class="sm-btn primary" id="btn-roll">ROLL DICE 🎲</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME ══════════════════════════════════════════ -->
+<div id="game">
+  <div id="top-bar">
+    <div id="top-region">SUNCREST EXPANSE</div>
+    <div id="top-player">TRAINER</div>
+    <div id="top-time">12:00 ☀</div>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="world"></canvas>
+    <div id="dialog">
+      <div id="dlg-name"></div>
+      <div id="dlg-text"></div>
+      <div id="dlg-opts"></div>
+    </div>
+    <div id="battle">
+      <div id="battle-scene">
+        <div class="b-arena-bg" id="b-arena-bg"></div>
+        <div class="b-side">
+          <div class="b-art-frame"><canvas class="b-canvas" id="b-player-cv"></canvas></div>
+          <div class="b-name" id="b-pname"></div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <div class="b-bar-lbl">HP</div>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-php"></div></div>
+              <div class="b-bar-val" id="b-php-v"></div>
+            </div>
+            <div class="b-bar-row">
+              <div class="b-bar-lbl">EN</div>
+              <div class="b-bar-track"><div class="b-bar-fill b-en" id="b-pen"></div></div>
+              <div class="b-bar-val" id="b-pen-v"></div>
+            </div>
+          </div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="b-side" style="align-items:flex-end;">
+          <div class="b-art-frame"><canvas class="b-canvas" id="b-enemy-cv"></canvas></div>
+          <div class="b-name" id="b-ename"></div>
+          <div class="b-bars">
+            <div class="b-bar-row">
+              <div class="b-bar-lbl">HP</div>
+              <div class="b-bar-track"><div class="b-bar-fill b-hp" id="b-ehp"></div></div>
+              <div class="b-bar-val" id="b-ehp-v"></div>
+            </div>
+            <div class="b-bar-row">
+              <div class="b-bar-lbl">EN</div>
+              <div class="b-bar-track"><div class="b-bar-fill b-en" id="b-een"></div></div>
+              <div class="b-bar-val" id="b-een-v"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="dice-disp"></div>
+      <div id="battle-log"></div>
+      <div id="move-btns"></div>
+    </div>
+    <div id="skill-panel">
+      <div id="sp-top">
+        <div id="sp-top-title">SKILLS & STATS</div>
+        <button id="sp-close">CLOSE</button>
+      </div>
+      <div id="sp-body">
+        <div id="sp-list"></div>
+        <div id="sp-main"></div>
+      </div>
+    </div>
+  </div>
+  <div id="hud">
+    <div class="hb"><div class="hb-label">CREATURE</div><div class="hb-val" id="hud-name">—</div></div>
+    <div class="hb"><div class="hb-label">HP</div><div class="bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div></div>
+    <div class="hb"><div class="hb-label">ENERGY</div><div class="bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div></div>
+    <div class="hb"><div class="hb-label">LV</div><div class="hb-val" id="hud-lv">1</div></div>
+    <div class="hb"><div class="hb-label">COINS</div><div class="hb-val" id="hud-coins">200</div></div>
+  </div>
+</div>
+
+<!-- ── MOBILE BUTTONS ────────────────────────────── -->
+<div id="mob-btns">
+  <button class="mob-btn" id="mob-menu">MENU</button>
+  <button class="mob-btn" id="mob-action">ACTION</button>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// GAME DATA
+// ═══════════════════════════════════════════════════════
+
+const REGIONS = {
+  suncrest_expanse: {
+    name:'Suncrest Expanse', element:'fire', icon:'🔥',
+    creatures:[
+      {id:'emberback',  name:'Emberback',  element:'fire',   rarity:'common',   hp:32,atk:14,def:10,spd:12},
+      {id:'sandlurk',   name:'Sandlurk',   element:'sand',   rarity:'common',   hp:28,atk:12,def:12,spd:14},
+      {id:'blazetail',  name:'Blazetail',  element:'fire',   rarity:'uncommon', hp:36,atk:18,def:10,spd:16},
+      {id:'dustmane',   name:'Dustmane',   element:'sand',   rarity:'uncommon', hp:40,atk:14,def:16,spd:10},
+      {id:'cindersoar', name:'Cindersoar', element:'fire',   rarity:'rare',     hp:44,atk:22,def:12,spd:18},
+      {id:'glassback',  name:'Glassback',  element:'crystal',rarity:'rare',     hp:42,atk:20,def:18,spd:12},
+      {id:'emberlord',  name:'Emberlord',  element:'magma',  rarity:'legendary',hp:60,atk:28,def:18,spd:16},
+    ]
+  },
+  sakurami_highlands: {
+    name:'Sakurami Highlands', element:'spirit', icon:'✨',
+    creatures:[
+      {id:'petalwing',  name:'Petalwing',  element:'spirit', rarity:'common',   hp:30,atk:12,def:10,spd:16},
+      {id:'mosswhisper',name:'Mosswhisper',element:'nature', rarity:'common',   hp:34,atk:10,def:14,spd:12},
+      {id:'shimmerfly', name:'Shimmerfly', element:'spirit', rarity:'uncommon', hp:32,atk:16,def:10,spd:20},
+      {id:'rootwarden', name:'Rootwarden', element:'nature', rarity:'uncommon', hp:44,atk:12,def:20,spd:8},
+      {id:'veilstag',   name:'Veilstag',   element:'spirit', rarity:'rare',     hp:40,atk:20,def:14,spd:18},
+      {id:'thorncoat',  name:'Thorncoat',  element:'nature', rarity:'rare',     hp:50,atk:16,def:22,spd:10},
+      {id:'sakuragod',  name:'Sakuragod',  element:'spirit', rarity:'legendary',hp:58,atk:24,def:20,spd:20},
+    ]
+  },
+  frostspire_reach: {
+    name:'Frostspire Reach', element:'ice', icon:'❄️',
+    creatures:[
+      {id:'frostpup',   name:'Frostpup',   element:'ice',    rarity:'common',   hp:32,atk:12,def:12,spd:14},
+      {id:'sleetstep',  name:'Sleetstep',  element:'ice',    rarity:'common',   hp:28,atk:14,def:10,spd:18},
+      {id:'glacierfang',name:'Glacierfang',element:'ice',    rarity:'uncommon', hp:40,atk:18,def:14,spd:12},
+      {id:'rimewolve',  name:'Rimewolve',  element:'ice',    rarity:'uncommon', hp:44,atk:16,def:16,spd:14},
+      {id:'avalanche',  name:'Avalanche',  element:'ice',    rarity:'rare',     hp:52,atk:22,def:18,spd:10},
+      {id:'crystalback',name:'Crystalback',element:'crystal',rarity:'rare',     hp:46,atk:20,def:22,spd:12},
+      {id:'frostlord',  name:'Frostlord',  element:'ice',    rarity:'legendary',hp:62,atk:26,def:22,spd:14},
+    ]
+  },
+  shadowmere_hollows: {
+    name:'Shadowmere Hollows', element:'dark', icon:'🌑',
+    creatures:[
+      {id:'inkfox',     name:'Inkfox',     element:'dark',   rarity:'common',   hp:30,atk:14,def:10,spd:18},
+      {id:'voidmoth',   name:'Voidmoth',   element:'dark',   rarity:'common',   hp:26,atk:16,def:8, spd:20},
+      {id:'shadowcat',  name:'Shadowcat',  element:'dark',   rarity:'uncommon', hp:36,atk:20,def:12,spd:18},
+      {id:'grimspore',  name:'Grimspore',  element:'dark',   rarity:'uncommon', hp:42,atk:14,def:18,spd:12},
+      {id:'nightreaper',name:'Nightreaper',element:'dark',   rarity:'rare',     hp:44,atk:24,def:14,spd:20},
+      {id:'cursedthorn',name:'Cursedthorn',element:'dark',   rarity:'rare',     hp:48,atk:20,def:20,spd:14},
+      {id:'voidlord',   name:'Voidlord',   element:'dark',   rarity:'legendary',hp:60,atk:28,def:18,spd:22},
+    ]
+  },
+};
+
+const CREATURE_ART = { inkfox:'art_inkfox.png' };
+
+const EGG_COLS = {
+  common:    {hi:'#d0c8c0',mid:'#887870',sh:'#443c38'},
+  uncommon:  {hi:'#90c8ff',mid:'#3870cc',sh:'#0a2060'},
+  rare:      {hi:'#e090ff',mid:'#9030cc',sh:'#380060'},
+  legendary: {hi:'#ffe060',mid:'#cc8800',sh:'#502800'},
+};
+
+const ELEM_CIRCLE = ['fire','nature','ice','storm','spirit','dark','water','sand','magma','crystal'];
+
+const SKILL_TREES = {
+  fire:[
+    {id:'ember_fang',  name:'Ember Fang',  desc:'Fire ATK +15%',cost:2,maxRank:3},
+    {id:'heat_shell',  name:'Heat Shell',  desc:'DEF +8 vs ice', cost:2,maxRank:3},
+    {id:'blaze_dash',  name:'Blaze Dash',  desc:'SPD +5',        cost:3,maxRank:2},
+    {id:'inferno_core',name:'Inferno Core',desc:'Crit on 18+',   cost:4,maxRank:1},
+    {id:'phoenix_will',name:'Phoenix Will',desc:'Survive KO once',cost:5,maxRank:1},
+  ],
+  ice:[
+    {id:'frost_bite',  name:'Frost Bite',  desc:'Slow on hit',   cost:2,maxRank:3},
+    {id:'ice_armor',   name:'Ice Armor',   desc:'DEF +10 vs fire',cost:2,maxRank:3},
+    {id:'chill_step',  name:'Chill Step',  desc:'Freeze on crit',cost:3,maxRank:2},
+    {id:'glacier_body',name:'Glacier Body',desc:'HP +20',        cost:3,maxRank:2},
+    {id:'absolute_zero',name:'Abs. Zero',  desc:'Skip enemy turn',cost:5,maxRank:1},
+  ],
+  spirit:[
+    {id:'aura_shield', name:'Aura Shield', desc:'Reduce all dmg 10%',cost:2,maxRank:3},
+    {id:'soul_link',   name:'Soul Link',   desc:'Heal 5% per turn', cost:3,maxRank:2},
+    {id:'spirit_burst',name:'Spirit Burst',desc:'Special +20% dmg', cost:3,maxRank:2},
+    {id:'dreamwalk',   name:'Dreamwalk',   desc:'Dodge 20% hits',  cost:4,maxRank:1},
+    {id:'ascension',   name:'Ascension',   desc:'All stats +5',    cost:5,maxRank:1},
+  ],
+  dark:[
+    {id:'void_claw',   name:'Void Claw',   desc:'ATK +15%',      cost:2,maxRank:3},
+    {id:'shadow_veil', name:'Shadow Veil', desc:'Dodge +15%',    cost:3,maxRank:2},
+    {id:'curse_mark',  name:'Curse Mark',  desc:'Enemy DEF -8',  cost:3,maxRank:2},
+    {id:'life_drain',  name:'Life Drain',  desc:'Steal HP on hit',cost:4,maxRank:1},
+    {id:'void_form',   name:'Void Form',   desc:'Immune to status',cost:5,maxRank:1},
+  ],
+  nature:[
+    {id:'thorn_skin',  name:'Thorn Skin',  desc:'Reflect 10% dmg',cost:2,maxRank:3},
+    {id:'root_bind',   name:'Root Bind',   desc:'Slow enemy 20%', cost:2,maxRank:3},
+    {id:'spore_cloud', name:'Spore Cloud', desc:'Poison on hit',  cost:3,maxRank:2},
+    {id:'overgrowth',  name:'Overgrowth',  desc:'HP regen +10',   cost:3,maxRank:2},
+    {id:'ancient_bark',name:'Ancient Bark',desc:'DEF +15',        cost:5,maxRank:1},
+  ],
+};
+SKILL_TREES.sand=SKILL_TREES.fire;
+SKILL_TREES.storm=SKILL_TREES.ice;
+SKILL_TREES.water=SKILL_TREES.spirit;
+SKILL_TREES.magma=SKILL_TREES.fire;
+SKILL_TREES.crystal=SKILL_TREES.dark;
+
+// ═══════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════
+
+const T={GROUND:0,GRASS:1,WALL:2,WATER:3,SAND:4,PATH:5,TREE:6,
+  FLOWER:7,CAVE:8,SHRINE:9,RUIN:10,NEST:11,CHEST:12,TOWN:13,
+  MINIBOSS:14,BOSS:15,SIGN:16,BRIDGE:17};
+
+const TILE=24, VIEW_W=15, VIEW_H=13, MAP_W=128, MAP_H=128;
+
+function rng(seed,i){let x=Math.sin(seed*9301+i*49297+233)*23456;return x-Math.floor(x);}
+
+function generateMap(regionId,seed){
+  const map=Array.from({length:MAP_H},()=>new Array(MAP_W).fill(T.GROUND));
+  const W=MAP_W,H=MAP_H,CX=W>>1,CY=H>>1;
+  const reg=REGIONS[regionId];
+
+  function s(x,y,w,h,t){for(let dy=0;dy<h;dy++)for(let dx=0;dx<w;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H)map[ny][nx]=t;}}
+  function safe(cx,cy,r){for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const nx=cx+dx,ny=cy+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H)map[ny][nx]=T.GROUND;}}
+
+  // Town
+  s(CX-6,CY-6,13,13,T.TOWN);
+  safe(CX,CY,4);
+
+  // Spokes + features
+  const spoke=[{dx:0,dy:-1,len:30,tile:T.CAVE,miniboss:[CX,CY-28]},
+               {dx:1,dy:0, len:30,tile:T.RUIN,miniboss:[CX+28,CY]},
+               {dx:-1,dy:0,len:30,tile:T.SHRINE,miniboss:[CX-28,CY]},
+               {dx:0,dy:1, len:30,tile:T.BOSS,miniboss:[CX,CY+30]}];
+  spoke.forEach(({dx,dy,len,tile,miniboss},si)=>{
+    for(let i=6;i<len;i++){
+      const px=CX+dx*i,py=CY+dy*i;
+      if(px>1&&px<W-2&&py>1&&py<H-2){
+        map[py][px]=T.PATH;
+        if(dy===0)map[py-1][px]=T.GROUND,map[py+1][px]=T.GROUND;
+        else map[py][px-1]=T.GROUND,map[py][px+1]=T.GROUND;
+      }
+    }
+    const [mx,my]=miniboss;
+    if(mx>1&&mx<W-2&&my>1&&my<H-2)map[my][mx]=T.MINIBOSS;
+    // POI at spoke end
+    const ex=CX+dx*(len-1),ey=CY+dy*(len-1);
+    if(ex>1&&ex<W-2&&ey>1&&ey<H-2)map[ey][ex]=tile;
+  });
+
+  // Boss arena
+  s(CX-4,CY+31,9,6,T.PATH);
+  map[CY+34][CX]=T.BOSS;
+
+  // Nests
+  for(let i=0;i<7;i++){
+    const nx=Math.floor(rng(seed,i*2+10)*MAP_W);
+    const ny=Math.floor(rng(seed,i*2+11)*MAP_H);
+    if(nx>4&&nx<W-5&&ny>4&&ny<H-5&&map[ny][nx]===T.GROUND)map[ny][nx]=T.NEST;
+  }
+
+  // Trees, flowers, water
+  for(let i=0;i<200;i++){
+    const tx=Math.floor(rng(seed,i+100)*W),ty=Math.floor(rng(seed,i+200)*H);
+    if(map[ty]&&map[ty][tx]===T.GROUND){
+      map[ty][tx]=rng(seed,i+300)<0.15?T.FLOWER:T.TREE;
+    }
+  }
+  for(let i=0;i<60;i++){
+    const tx=Math.floor(rng(seed,i+400)*W),ty=Math.floor(rng(seed,i+401)*H);
+    if(map[ty]&&map[ty][tx]===T.GROUND)map[ty][tx]=T.GRASS;
+  }
+  for(let i=0;i<20;i++){
+    const tx=Math.floor(rng(seed,i+500)*(W-8))+4,ty=Math.floor(rng(seed,i+501)*(H-8))+4;
+    if(map[ty]&&map[ty][tx]===T.GROUND){s(tx,ty,3,3,T.WATER);}
+  }
+
+  // Chests
+  for(let i=0;i<8;i++){
+    const tx=Math.floor(rng(seed,i+600)*W),ty=Math.floor(rng(seed,i+601)*H);
+    if(map[ty]&&map[ty][tx]===T.GROUND)map[ty][tx]=T.CHEST;
+  }
+
+  // Border
+  for(let x=0;x<W;x++){map[0][x]=T.WALL;map[H-1][x]=T.WALL;}
+  for(let y=0;y<H;y++){map[y][0]=T.WALL;map[y][W-1]=T.WALL;}
+  safe(CX,CY,5);
+
+  return map;
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAWING HELPERS
+// ═══════════════════════════════════════════════════════
+
+const REGION_COLORS={
+  suncrest_expanse:{
+    [T.GROUND]:'#6a4a10',[T.GRASS]:'#7a8820',[T.TREE]:'#4a8010',[T.PATH]:'#8a6838',
+    [T.WATER]:'#2258c8',[T.SAND]:'#d4a840',[T.FLOWER]:'#e0409a',
+  },
+  sakurami_highlands:{
+    [T.GROUND]:'#2a4020',[T.GRASS]:'#306018',[T.TREE]:'#204a10',[T.PATH]:'#5a4838',
+    [T.WATER]:'#1838a0',[T.SAND]:'#a08840',[T.FLOWER]:'#ff88cc',
+  },
+  frostspire_reach:{
+    [T.GROUND]:'#1a2840',[T.GRASS]:'#1a3a4a',[T.TREE]:'#1a3050',[T.PATH]:'#4a5860',
+    [T.WATER]:'#6898d8',[T.SAND]:'#c0d0e0',[T.FLOWER]:'#88ccff',
+  },
+  shadowmere_hollows:{
+    [T.GROUND]:'#1a0828',[T.GRASS]:'#1e0a2a',[T.TREE]:'#140620',[T.PATH]:'#3a2848',
+    [T.WATER]:'#0e1838',[T.SAND]:'#3a2840',[T.FLOWER]:'#8822cc',
+  },
+};
+
+function getTileColor(tile,regionId,frame){
+  const rc=REGION_COLORS[regionId]||{};
+  const base={
+    [T.WALL]:'#2a1428',[T.WATER]:'#1840a8',[T.NEST]:'#3a2800',
+    [T.CHEST]:'#4a3800',[T.TOWN]:'#7a6a50',[T.PATH]:'#6a5838',
+    [T.MINIBOSS]:'#3a0808',[T.BOSS]:'#200008',[T.SIGN]:'#6a5838',
+    [T.BRIDGE]:'#8a7050',[T.CAVE]:'#1a0828',[T.SHRINE]:'#553300',
+    [T.RUIN]:'#484840',
+  };
+  const col=rc[tile]||base[tile]||rc[T.GROUND]||'#3a5c20';
+  // Animate water/nest/shrine
+  if(tile===T.WATER){const p=Math.sin(frame*0.05)*0.15;return shiftColor(col,p);}
+  if(tile===T.NEST){ const p=Math.sin(frame*0.08)*0.2; return shiftColor('#c89800',p);}
+  if(tile===T.SHRINE){const p=Math.sin(frame*0.06)*0.2;return shiftColor('#cc8820',p);}
+  return col;
+}
+
+function shiftColor(hex,amount){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.min(255,Math.max(0,Math.round(r*(1+amount))));
+  g=Math.min(255,Math.max(0,Math.round(g*(1+amount))));
+  b=Math.min(255,Math.max(0,Math.round(b*(1+amount))));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+// Procedural creature sprite
+function drawCreatureSprite(canvas,element,flip=false){
+  const c=canvas.getContext('2d');
+  c.clearRect(0,0,canvas.width,canvas.height);
+  if(flip){c.save();c.scale(-1,1);c.translate(-canvas.width,0);}
+  const W=canvas.width,H=canvas.height;
+  const ELEM_BODY={
+    fire:['#ff4400','#ff8800'],ice:['#4488ff','#88ccff'],
+    spirit:['#cc44ff','#ffaaff'],dark:['#220033','#664488'],
+    nature:['#228822','#44cc44'],water:['#1144cc','#4488ee'],
+    sand:['#cc8822','#ffcc44'],storm:['#4422cc','#8866ff'],
+    magma:['#cc2200','#ff6600'],crystal:['#44aacc','#88ddff'],
+  };
+  const [body,hi]=ELEM_BODY[element]||['#aa88cc','#cc88ff'];
+  // Body
+  c.fillStyle=body; c.beginPath(); c.ellipse(W/2,H*0.55,W*0.32,H*0.3,0,0,Math.PI*2); c.fill();
+  // Head
+  c.fillStyle=hi; c.beginPath(); c.ellipse(W/2,H*0.28,W*0.22,H*0.2,0,0,Math.PI*2); c.fill();
+  // Eyes
+  c.fillStyle='#ffffff'; c.fillRect(W*0.38,H*0.22,W*0.1,H*0.08); c.fillRect(W*0.52,H*0.22,W*0.1,H*0.08);
+  c.fillStyle='#000'; c.fillRect(W*0.41,H*0.24,W*0.06,H*0.05); c.fillRect(W*0.55,H*0.24,W*0.06,H*0.05);
+  // Legs
+  c.fillStyle=body; c.fillRect(W*0.3,H*0.78,W*0.12,H*0.15); c.fillRect(W*0.58,H*0.78,W*0.12,H*0.15);
+  // Tail
+  c.beginPath(); c.moveTo(W*0.75,H*0.55); c.quadraticCurveTo(W*0.95,H*0.4,W*0.82,H*0.3);
+  c.strokeStyle=hi; c.lineWidth=3; c.stroke();
+  if(flip) c.restore();
+}
+
+// Player sprite — simple trainer
+function drawPlayerSprite(ctx,sx,sy,dir,frame){
+  const p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(sx+x,sy+y,w,h);};
+  const walkOff=frame%2===0?0:1;
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.3)';
+  ctx.beginPath();ctx.ellipse(sx+12,sy+23,7,3,0,0,Math.PI*2);ctx.fill();
+  // Body
+  p(6,8,12,9,'#1a66cc');   // jacket
+  p(5,1,12,8,'#ffddbb');   // head
+  p(6,1,12,3,'#4a2800');   // hat
+  // Legs
+  if(dir==='left'||dir==='right'){
+    p(6, 17+walkOff,5,7,'#223388');
+    p(11,17-walkOff,5,7,'#223388');
+  } else {
+    p(6,17,5,7,'#223388');
+    p(11,17,5,7,'#223388');
+  }
+  // Arms
+  p(2, 9,4,6,'#ffddbb');
+  p(18,9,4,6,'#ffddbb');
+  // Eyes
+  const eyeX=dir==='left'?6:dir==='right'?10:8;
+  p(eyeX,4,2,2,'#000');
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+const state={
+  px:64,py:64,playerDir:'down',walkFrame:0,
+  camX:0,camY:0,
+  map:null,mapSeed:0,currentRegion:'suncrest_expanse',
+  time:8,timeSpeed:0.00015,weather:'clear',
+  eggs:[],creatures:[],activeCreatureIdx:-1,coins:200,
+  inBattle:false,inDialog:false,
+  exploredTiles:new Set(),
+  tapTarget:null,
+  keys:{},
+};
+
+// ═══════════════════════════════════════════════════════
+// CANVAS SETUP
+// ═══════════════════════════════════════════════════════
+
+const canvas=document.getElementById('world');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+
+function resizeCanvas(){
+  const wrap=document.getElementById('canvas-wrap');
+  canvas.width=VIEW_W*TILE;
+  canvas.height=VIEW_H*TILE;
+  const w=wrap.clientWidth||300;
+  const h=wrap.clientHeight||200;
+  // Fit canvas keeping aspect ratio
+  const scaleX=w/(VIEW_W*TILE), scaleY=h/(VIEW_H*TILE);
+  const scale=Math.min(scaleX,scaleY);
+  canvas.style.width=(VIEW_W*TILE*scale)+'px';
+  canvas.style.height=(VIEW_H*TILE*scale)+'px';
+}
+
+// ═══════════════════════════════════════════════════════
+// INPUT — keyboard
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('menu')&&!document.getElementById('menu').classList.contains('hidden'))return;
+  state.keys[e.key.toLowerCase()]=true;
+  state.tapTarget=null;
+  if(e.key==='e'||e.key==='E')handleInteract();
+  if(e.key==='Escape')handleEsc();
+  e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  state.keys[e.key.toLowerCase()]=false;
+});
+
+// ═══════════════════════════════════════════════════════
+// TAP TO MOVE
+// ═══════════════════════════════════════════════════════
+
+function handleCanvasTap(cx,cy){
+  if(state.inBattle||state.inDialog)return;
+  const m=document.getElementById('menu');
+  if(m&&!m.classList.contains('hidden'))return;
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=(VIEW_W*TILE)/rect.width, scaleY=(VIEW_H*TILE)/rect.height;
+  const tx=Math.floor((cx-rect.left)*scaleX/TILE)+state.camX;
+  const ty=Math.floor((cy-rect.top)*scaleY/TILE)+state.camY;
+  state.tapTarget={x:tx,y:ty};
+}
+canvas.addEventListener('click',e=>handleCanvasTap(e.clientX,e.clientY));
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX,e.touches[0].clientY);
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX,e.touches[0].clientY);
+},{passive:false});
+
+// ═══════════════════════════════════════════════════════
+// MOVEMENT
+// ═══════════════════════════════════════════════════════
+
+let moveTimer=0;
+const MOVE_DELAY=150;
+
+function canWalk(x,y){
+  if(x<0||y<0||x>=MAP_W||y>=MAP_H)return false;
+  const t=state.map[y][x];
+  return t!==T.WALL&&t!==T.TREE&&t!==T.WATER;
+}
+
+function handleMovement(dt){
+  if(state.inBattle||state.inDialog)return;
+  moveTimer+=dt;
+  if(moveTimer<MOVE_DELAY)return;
+
+  let dx=0,dy=0;
+  const k=state.keys;
+  if(k['arrowleft']||k['a']){dx=-1;state.playerDir='left';}
+  if(k['arrowright']||k['d']){dx=1;state.playerDir='right';}
+  if(k['arrowup']||k['w']){dy=-1;state.playerDir='up';}
+  if(k['arrowdown']||k['s']){dy=1;state.playerDir='down';}
+
+  // Tap-to-move
+  if(dx===0&&dy===0&&state.tapTarget){
+    const tdx=state.tapTarget.x-state.px;
+    const tdy=state.tapTarget.y-state.py;
+    if(Math.abs(tdx)<1&&Math.abs(tdy)<1){state.tapTarget=null;}
+    else if(Math.abs(tdx)>=Math.abs(tdy)){dx=tdx>0?1:-1;state.playerDir=dx>0?'right':'left';}
+    else{dy=tdy>0?1:-1;state.playerDir=dy>0?'down':'up';}
+  }
+
+  if(dx===0&&dy===0)return;
+  moveTimer=0;
+  state.walkFrame++;
+
+  const nx=state.px+dx, ny=state.py+dy;
+  if(!canWalk(nx,ny)){state.tapTarget=null;return;}
+
+  state.px=nx; state.py=ny;
+
+  // Camera
+  state.camX=Math.max(0,Math.min(MAP_W-VIEW_W,state.px-Math.floor(VIEW_W/2)));
+  state.camY=Math.max(0,Math.min(MAP_H-VIEW_H,state.py-Math.floor(VIEW_H/2)));
+
+  // Fog reveal
+  const R=6;
+  for(let ey=-R;ey<=R;ey++)for(let ex=-R;ex<=R;ex++)
+    if(ex*ex+ey*ey<=R*R)state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  // Tile triggers
+  checkTileTrigger();
+}
+
+function checkTileTrigger(){
+  const tile=state.map[state.py][state.px];
+  if(tile===T.NEST){
+    state.map[state.py][state.px]=T.GROUND;
+    triggerEggFind();
+  } else if(tile===T.CHEST){
+    state.map[state.py][state.px]=T.GROUND;
+    const coins=20+Math.floor(Math.random()*40);
+    state.coins+=coins;
+    showDialog('TREASURE!',`Found ${coins} coins!`,[{label:'Take it!',fn:closeDialog}]);
+  } else if(tile===T.GRASS&&Math.random()<0.1){
+    triggerEncounter();
+  } else if(tile===T.MINIBOSS){
+    state.map[state.py][state.px]=T.PATH;
+    triggerMiniBoss();
+  } else if(tile===T.BOSS){
+    state.map[state.py][state.px]=T.PATH;
+    triggerFinalBoss();
+  } else if(tile===T.CAVE||tile===T.SHRINE||tile===T.RUIN){
+    triggerPoI(tile);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ENCOUNTERS
+// ═══════════════════════════════════════════════════════
+
+function pickWild(lvlBonus=0){
+  const reg=REGIONS[state.currentRegion];
+  const W={common:40,uncommon:20,rare:6,legendary:1};
+  const pool=[];
+  reg.creatures.forEach(c=>{for(let i=0;i<(W[c.rarity]||10);i++)pool.push(c);});
+  const tpl=pool[Math.floor(Math.random()*pool.length)];
+  const lv=1+lvlBonus+Math.floor(Math.random()*3);
+  const m=1+(lv-1)*0.1;
+  return {
+    ...tpl,level:lv,
+    hp:Math.round(tpl.hp*m),currentHp:Math.round(tpl.hp*m),maxHp:Math.round(tpl.hp*m),
+    attack:Math.round(tpl.atk*m),defense:Math.round(tpl.def*m),speed:tpl.spd,
+    energy:0,status:null,xp:0,
+  };
+}
+
+function triggerEncounter(){
+  if(state.activeCreatureIdx<0||!state.creatures.length)return;
+  const pc=state.creatures[state.activeCreatureIdx];
+  if(!pc||pc.currentHp<=0)return;
+  startBattle(pc,pickWild());
+}
+
+function triggerMiniBoss(){
+  const wild=pickWild(3);
+  wild.name='Mini-Boss '+wild.name;
+  wild.hp=Math.round(wild.hp*2);
+  wild.currentHp=wild.hp;wild.maxHp=wild.hp;
+  wild.attack=Math.round(wild.attack*1.3);
+  showDialog('MINI-BOSS!',`A powerful ${wild.name} blocks the path!`,[
+    {label:'FIGHT!',fn:()=>{closeDialog();if(state.activeCreatureIdx>=0)startBattle(state.creatures[state.activeCreatureIdx],wild);}},
+    {label:'Flee',fn:()=>{closeDialog();state.py++;}}
+  ]);
+}
+
+function triggerFinalBoss(){
+  const wild=pickWild(8);
+  wild.name='BOSS: '+wild.name;
+  wild.hp=Math.round(wild.hp*3);
+  wild.currentHp=wild.hp;wild.maxHp=wild.hp;
+  wild.attack=Math.round(wild.attack*1.5);
+  showDialog('FINAL BOSS!',`The legendary ${wild.name} rises!\n\nThis is the ultimate challenge!`,[
+    {label:'FACE IT!',fn:()=>{closeDialog();if(state.activeCreatureIdx>=0)startBattle(state.creatures[state.activeCreatureIdx],wild,true);}},
+  ]);
+}
+
+function triggerPoI(tile){
+  const names={[T.CAVE]:'CAVE',[T.SHRINE]:'SHRINE',[T.RUIN]:'RUINS'};
+  const texts={
+    [T.CAVE]:'A dark cave entrance. Creatures lurk within...\nExplore to find rare eggs and treasures.',
+    [T.SHRINE]:'An ancient shrine glows softly. Your creature is healed!',
+    [T.RUIN]:'Crumbled ruins hide ancient secrets. You find some coins.',
+  };
+  const nm=names[tile]||'PLACE';
+  const tx=texts[tile]||'An interesting place.';
+
+  const opts=[{label:'Leave',fn:closeDialog}];
+  if(tile===T.SHRINE&&state.activeCreatureIdx>=0){
+    const c=state.creatures[state.activeCreatureIdx];
+    c.currentHp=Math.min(c.hp,c.currentHp+Math.floor(c.hp*0.5));
+    updateHUD();
+  }
+  if(tile===T.RUIN){const g=10+Math.floor(Math.random()*30);state.coins+=g;}
+  showDialog(nm,tx,opts);
+}
+
+function triggerEggFind(){
+  const reg=REGIONS[state.currentRegion];
+  const W={common:40,uncommon:20,rare:6,legendary:1};
+  const pool=[];
+  reg.creatures.forEach(c=>{for(let i=0;i<(W[c.rarity]||10);i++)pool.push(c);});
+  const tpl=pool[Math.floor(Math.random()*pool.length)];
+  state.eggs.push({...tpl,fromRegion:state.currentRegion});
+  showDialog('EGG FOUND!',`You found a ${tpl.rarity} ${tpl.name} egg!\n\nHatch it from the MENU → Hatch Egg.`,[{label:'Nice!',fn:closeDialog}]);
+}
+
+// ═══════════════════════════════════════════════════════
+// BATTLE SYSTEM
+// ═══════════════════════════════════════════════════════
+
+let battleData=null;
+
+function getTypeMult(atkElem,defElem){
+  const i=ELEM_CIRCLE.indexOf(atkElem),j=ELEM_CIRCLE.indexOf(defElem);
+  if(i<0||j<0)return 1;
+  const diff=(i-j+ELEM_CIRCLE.length)%ELEM_CIRCLE.length;
+  if(diff===1)return 1.5;
+  if(diff===ELEM_CIRCLE.length-1)return 0.67;
+  return 1;
+}
+
+function rollD20(){return Math.floor(Math.random()*20)+1;}
+
+function getOutcome(roll){
+  if(roll===1) return{label:'MISS!',      mult:0,   energy:0,  cls:'l-miss'};
+  if(roll<=5)  return{label:'Weak Hit',   mult:0.25,energy:5,  cls:'l-info'};
+  if(roll<=10) return{label:'Hit',        mult:0.75,energy:10, cls:'l-info'};
+  if(roll<=15) return{label:'Strong!',    mult:1.0, energy:15, cls:'l-hit'};
+  if(roll<=19) return{label:'Heavy!!',    mult:1.25,energy:20, cls:'l-hit'};
+  return            {label:'CRITICAL!!!', mult:2.0, energy:35, cls:'l-crit'};
+}
+
+function startBattle(playerCreature,wildCreature,isBoss=false){
+  if(!playerCreature||playerCreature.currentHp<=0)return;
+
+  battleData={
+    player:{...playerCreature,
+      energy:playerCreature.energy||0,
+      currentHp:playerCreature.currentHp||playerCreature.hp,
+      maxHp:playerCreature.hp,
+      attack:playerCreature.attack||playerCreature.atk||15,
+      defense:playerCreature.defense||playerCreature.def||10,
+      speed:playerCreature.speed||playerCreature.spd||12,
+    },
+    enemy:{...wildCreature},
+    turn:'player',over:false,isBoss,
+  };
+
+  state.inBattle=true;
+  document.getElementById('battle').classList.add('show');
+
+  // Draw sprites
+  drawCreatureSprite(document.getElementById('b-player-cv'),battleData.player.element,false);
+  const art=CREATURE_ART[battleData.player.id];
+  if(art){const img=new Image();img.onload=()=>{const c=document.getElementById('b-player-cv');const cx=c.getContext('2d');cx.clearRect(0,0,c.width,c.height);cx.drawImage(img,0,0,c.width,c.height);};img.src=art;}
+
+  drawCreatureSprite(document.getElementById('b-enemy-cv'),battleData.enemy.element,true);
+
+  // Arena background
+  const ARENA_BG={fire:'linear-gradient(135deg,#1a0800,#2a1000)',
+    ice:'linear-gradient(135deg,#001828,#002040)',spirit:'linear-gradient(135deg,#1a0020,#0a0830)',
+    dark:'linear-gradient(135deg,#060010,#0e0020)',nature:'linear-gradient(135deg,#081808,#0a2008)',
+    water:'linear-gradient(135deg,#060e20,#0a1428)',sand:'linear-gradient(135deg,#1e1000,#2e1800)',
+    magma:'linear-gradient(135deg,#1a0200,#2c0400)',crystal:'linear-gradient(135deg,#060e18,#0a1424)',
+    storm:'linear-gradient(135deg,#060414,#0e061c)'};
+  document.getElementById('b-arena-bg').style.background=ARENA_BG[battleData.enemy.element]||'linear-gradient(135deg,#0a0018,#140030)';
+
+  document.getElementById('battle-log').innerHTML='';
+  blogLog(`Wild ${wildCreature.name} (Lv${wildCreature.level}) appeared!`,'l-info');
+  blogLog(`${playerCreature.name} Lv${playerCreature.level||1} vs ${wildCreature.name}`,'l-info');
+
+  updateBattleUI();
+  buildMoveButtons();
+
+  // Initiative
+  const pr=rollD20(),er=rollD20();
+  blogLog(`Initiative — You:${pr} Enemy:${er}`,'l-info');
+  if(er>pr){battleData.turn='enemy';blogLog(`${wildCreature.name} goes first!`,'l-info');setTimeout(enemyTurn,1200);}
+  else blogLog(`${playerCreature.name} goes first!`,'l-info');
+}
+
+function blogLog(msg,cls=''){
+  const el=document.getElementById('battle-log');
+  const d=document.createElement('div');
+  d.className='blog '+(cls||'');
+  d.textContent=msg;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+}
+
+function updateBattleUI(){
+  if(!battleData)return;
+  const p=battleData.player,e=battleData.enemy;
+  document.getElementById('b-pname').textContent=p.name.toUpperCase();
+  document.getElementById('b-ename').textContent=e.name.toUpperCase();
+  const php=Math.max(0,Math.round((p.currentHp/p.maxHp)*100));
+  const ehp=Math.max(0,Math.round((e.currentHp/e.maxHp)*100));
+  document.getElementById('b-php').style.width=php+'%';
+  document.getElementById('b-php-v').textContent=p.currentHp+'/'+p.maxHp;
+  document.getElementById('b-ehp').style.width=ehp+'%';
+  document.getElementById('b-ehp-v').textContent=e.currentHp+'/'+e.maxHp;
+  document.getElementById('b-pen').style.width=(p.energy||0)+'%';
+  document.getElementById('b-pen-v').textContent=(p.energy||0);
+  document.getElementById('b-een').style.width=(e.energy||0)+'%';
+  document.getElementById('b-een-v').textContent=(e.energy||0);
+}
+
+function buildMoveButtons(){
+  const wrap=document.getElementById('move-btns');
+  wrap.innerHTML='';
+  if(!battleData||battleData.turn!=='player')return;
+  const btns=[
+    {label:'ATTACK',id:'atk',cls:''},
+    {label:'SPECIAL ⚡'+(battleData.player.energy>=100?'':' ['+(battleData.player.energy||0)+']'),id:'special',cls:'special',disabled:(battleData.player.energy||0)<100},
+    {label:'RUN AWAY',id:'run',cls:''},
+  ];
+  btns.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='move-btn '+b.cls;
+    btn.textContent=b.label;
+    btn.disabled=b.disabled||false;
+    btn.onclick=()=>playerAction(b.id);
+    wrap.appendChild(btn);
+  });
+}
+
+function disableMoveButtons(){
+  document.querySelectorAll('.move-btn').forEach(b=>b.disabled=true);
+}
+
+function showDice(roll,label){
+  return new Promise(res=>{
+    const el=document.getElementById('dice-disp');
+    let i=0;
+    const iv=setInterval(()=>{
+      el.textContent=`${label}: [${Math.floor(Math.random()*20)+1}]`;
+      i++;
+      if(i>10){clearInterval(iv);el.textContent=`${label}: [${roll}] — ${getOutcome(roll).label}`;res();}
+    },70);
+  });
+}
+
+async function playerAction(actionId){
+  if(!battleData||battleData.turn!=='player'||battleData.over)return;
+  battleData.turn='resolving';
+  disableMoveButtons();
+
+  if(actionId==='run'){
+    const roll=rollD20()+Math.floor((battleData.player.speed||12)/10);
+    if(battleData.isBoss){blogLog('Cannot flee from a boss!','l-miss');}
+    else if(roll>=10){blogLog('Got away safely!','l-info');endBattle(false,false);return;}
+    else{
+      const dmg=Math.max(1,Math.round(battleData.enemy.attack/2));
+      battleData.player.currentHp=Math.max(0,battleData.player.currentHp-dmg);
+      const eg=Math.min(25,Math.max(8,Math.floor(dmg/4)));
+      battleData.player.energy=Math.min(100,(battleData.player.energy||0)+eg);
+      blogLog(`Failed to flee! Took ${dmg} dmg (+${eg} energy)!`,'l-hit');
+      updateBattleUI();
+      if(battleData.player.currentHp<=0){blogLog(`${battleData.player.name} fainted!`,'l-miss');endBattle(false,false);return;}
+    }
+    battleData.turn='enemy';setTimeout(enemyTurn,600);return;
+  }
+
+  const roll=rollD20();
+  await showDice(roll,'YOUR ATTACK');
+  const outcome=getOutcome(roll);
+  blogLog(`Roll: ${roll} — ${outcome.label}`,outcome.cls);
+
+  if(outcome.mult>0){
+    const p=battleData.player,e=battleData.enemy;
+    const typeMult=getTypeMult(p.element,e.element);
+    if(typeMult>1)blogLog('Super effective!','l-crit');
+    let dmg=Math.max(1,Math.round(((p.attack||15)/Math.max(1,e.defense||10))*12*outcome.mult*typeMult));
+    if(actionId==='special'&&(p.energy||0)>=100){dmg=Math.round(dmg*2.5);blogLog('SPECIAL MOVE!','l-crit');}
+    e.currentHp=Math.max(0,e.currentHp-dmg);
+    blogLog(`${p.name} deals ${dmg} damage!`,'l-hit');
+    p.energy=Math.min(100,(p.energy||0)+outcome.energy);
+    if(actionId==='special')p.energy=0;
+    // Sync HP
+    if(state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+      state.creatures[state.activeCreatureIdx].energy=p.energy;
+    }
+  }
+
+  updateBattleUI();
+  if(battleData.enemy.currentHp<=0){
+    blogLog(`${battleData.enemy.name} fainted!`,'l-crit');
+    // XP
+    const xpGain=10+battleData.enemy.level*5;
+    blogLog(`${battleData.player.name} gained ${xpGain} XP!`,'l-heal');
+    if(state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+      const leveled=grantXP(state.creatures[state.activeCreatureIdx],xpGain);
+      if(leveled)blogLog(`${battleData.player.name} leveled up!`,'l-heal');
+    }
+    endBattle(true,false);return;
+  }
+  battleData.turn='enemy';
+  setTimeout(enemyTurn,600);
+}
+
+async function enemyTurn(){
+  if(!battleData||battleData.over)return;
+  const e=battleData.enemy,p=battleData.player;
+
+  const roll=rollD20();
+  await showDice(roll,`${e.name} ATTACKS`);
+  const outcome=getOutcome(roll);
+  blogLog(`${e.name}: ${roll} — ${outcome.label}`,outcome.cls);
+
+  if(outcome.mult>0){
+    const typeMult=getTypeMult(e.element,p.element);
+    if(typeMult>1)blogLog('Super effective!','l-crit');
+    const dmg=Math.max(1,Math.round(((e.attack||15)/Math.max(1,p.defense||10))*12*outcome.mult*typeMult));
+    p.currentHp=Math.max(0,p.currentHp-dmg);
+    // Taking damage builds energy
+    const eg=Math.min(25,Math.max(8,Math.floor(dmg/4)));
+    p.energy=Math.min(100,(p.energy||0)+eg);
+    if(state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+      state.creatures[state.activeCreatureIdx].currentHp=p.currentHp;
+      state.creatures[state.activeCreatureIdx].energy=p.energy;
+    }
+    blogLog(`${e.name} deals ${dmg} damage! (+${eg} energy)`,'l-hit');
+    // Enemy energy too
+    e.energy=Math.min(100,(e.energy||0)+outcome.energy);
+  }
+
+  updateBattleUI();
+  updateHUD();
+
+  if(p.currentHp<=0){
+    blogLog(`${p.name} fainted!`,'l-miss');
+    endBattle(false,false);return;
+  }
+  battleData.turn='player';
+  buildMoveButtons();
+}
+
+function endBattle(won,caught){
+  if(!battleData)return;
+  battleData.over=true;
+  state.inBattle=false;
+
+  setTimeout(()=>{
+    document.getElementById('battle').classList.remove('show');
+    document.getElementById('battle-log').innerHTML='';
+    document.getElementById('dice-disp').textContent='';
+
+    // Sync energy back to creature
+    if(battleData&&state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+      state.creatures[state.activeCreatureIdx].energy=battleData.player.energy||0;
+    }
+    battleData=null;
+
+    if(!won&&!caught){
+      if(state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+        const c=state.creatures[state.activeCreatureIdx];
+        c.currentHp=Math.max(1,Math.floor(c.hp*0.3));
+        c.energy=0;
+      }
+    }
+    updateHUD();
+  },1500);
+}
+
+// ═══════════════════════════════════════════════════════
+// SKILL SYSTEM
+// ═══════════════════════════════════════════════════════
+
+function initCreatureSkills(c){
+  if(c.skillPoints!==undefined)return;
+  c.skillPoints=0;
+  c.statUpgrades={hp:0,attack:0,defense:0,speed:0};
+  c.skills={};
+  c.xp=c.xp||0;
+  c.level=c.level||1;
+  c.energy=c.energy||0;
+}
+
+function xpToNextLevel(lv){return Math.floor(80*Math.pow(1.4,lv-1));}
+
+function grantXP(creature,amount){
+  initCreatureSkills(creature);
+  creature.xp=(creature.xp||0)+amount;
+  let leveled=false;
+  while(creature.xp>=xpToNextLevel(creature.level)){
+    creature.xp-=xpToNextLevel(creature.level);
+    creature.level++;
+    creature.skillPoints++;
+    creature.hp+=3+Math.floor(Math.random()*4);
+    creature.maxHp=creature.hp;
+    creature.attack+=1+Math.floor(Math.random()*2);
+    creature.defense+=Math.floor(Math.random()*2);
+    creature.speed+=Math.floor(Math.random()*2);
+    creature.currentHp=Math.min(creature.currentHp+4,creature.hp);
+    leveled=true;
+  }
+  return leveled;
+}
+
+function openSkillPanel(){
+  if(!state.creatures.length){showDialog('NO CREATURES','Hatch an egg first!',[{label:'OK',fn:closeDialog}]);return;}
+  state.inDialog=true;
+  document.getElementById('skill-panel').classList.add('show');
+  renderSkillPanel(state.activeCreatureIdx>=0?state.activeCreatureIdx:0);
+}
+
+function closeSkillPanel(){
+  state.inDialog=false;
+  document.getElementById('skill-panel').classList.remove('show');
+  updateHUD();
+}
+
+let spIdx=0;
+function renderSkillPanel(idx){
+  spIdx=idx;
+  const listEl=document.getElementById('sp-list');
+  const mainEl=document.getElementById('sp-main');
+  listEl.innerHTML='';mainEl.innerHTML='';
+
+  state.creatures.forEach((c,i)=>{
+    initCreatureSkills(c);
+    const btn=document.createElement('button');
+    btn.className='sp-c-btn'+(i===spIdx?' active':'');
+    btn.innerHTML=`${c.name.slice(0,10)}<br><span style="color:#553377">Lv${c.level} ${c.element}</span><br><span style="color:#228844">${c.currentHp}/${c.hp}HP</span>`;
+    btn.onclick=()=>renderSkillPanel(i);
+    listEl.appendChild(btn);
+  });
+
+  const c=state.creatures[spIdx];
+  if(!c)return;
+  initCreatureSkills(c);
+
+  const xpNext=xpToNextLevel(c.level);
+  const xpPct=Math.min(100,Math.round(((c.xp||0)/xpNext)*100));
+
+  mainEl.innerHTML=`
+    <div style="font-size:8px;color:#ffcc44;margin-bottom:6px;">${c.name.toUpperCase()} — Lv${c.level}</div>
+    <div class="sp-pts">Skill Points: ${c.skillPoints||0}</div>
+    <div style="font-size:6px;color:#553377;margin-bottom:4px;">XP: ${c.xp||0}/${xpNext}</div>
+    <div class="sp-xp-bar-wrap"><div class="sp-xp-bar" style="width:${xpPct}%"></div></div>
+    <div style="font-size:7px;color:#cc88ff;margin:8px 0 4px;">STATS</div>
+  `;
+
+  const STATS=[{k:'hp',label:'HP',max:20,col:'#44ff88'},{k:'attack',label:'ATK',max:20,col:'#ff6644'},
+               {k:'defense',label:'DEF',max:20,col:'#4488ff'},{k:'speed',label:'SPD',max:20,col:'#ffcc00'}];
+  STATS.forEach(s=>{
+    const val=c.statUpgrades[s.k]||0;
+    const pct=Math.min(100,Math.round((val/s.max)*100));
+    const row=document.createElement('div');
+    row.className='sp-stat-row';
+    row.innerHTML=`
+      <div class="sp-stat-lbl">${s.label}</div>
+      <div class="sp-stat-bar-wrap"><div class="sp-stat-bar" style="width:${pct}%;background:${s.col};"></div></div>
+      <div class="sp-stat-val">${val}/${s.max}</div>
+      <button class="sp-upgrade-btn" ${(c.skillPoints||0)<1||val>=s.max?'disabled':''}>+1 (1SP)</button>
+    `;
+    row.querySelector('.sp-upgrade-btn').onclick=()=>{
+      if((c.skillPoints||0)<1||val>=s.max)return;
+      c.skillPoints--;
+      c.statUpgrades[s.k]=(c.statUpgrades[s.k]||0)+1;
+      if(s.k==='hp'){c.hp+=8;c.maxHp=c.hp;c.currentHp=Math.min(c.currentHp+8,c.hp);}
+      if(s.k==='attack')c.attack+=4;
+      if(s.k==='defense')c.defense+=4;
+      if(s.k==='speed')c.speed+=3;
+      renderSkillPanel(spIdx);
+    };
+    mainEl.appendChild(row);
+  });
+
+  // Skills
+  const treeKey=c.element||'dark';
+  const tree=SKILL_TREES[treeKey]||SKILL_TREES.dark;
+  const skillTitle=document.createElement('div');
+  skillTitle.style.cssText='font-size:7px;color:#cc88ff;margin:10px 0 6px;';
+  skillTitle.textContent='SKILLS';
+  mainEl.appendChild(skillTitle);
+
+  const grid=document.createElement('div');
+  grid.className='sp-skill-grid';
+  tree.forEach(sk=>{
+    const rank=(c.skills&&c.skills[sk.id])||0;
+    const owned=rank>=sk.maxRank;
+    const btn=document.createElement('button');
+    btn.className='sp-skill-btn'+(owned?' owned':'');
+    btn.disabled=owned||(c.skillPoints||0)<sk.cost;
+    btn.innerHTML=`${sk.name}<br><span style="color:#664488">${sk.desc}</span><br><span style="color:${owned?'#44ff88':'#ffcc44'}">${owned?'MAX':'Cost:'+sk.cost+'SP'} Rank:${rank}/${sk.maxRank}</span>`;
+    btn.onclick=()=>{
+      if((c.skillPoints||0)<sk.cost||owned)return;
+      c.skillPoints-=sk.cost;
+      if(!c.skills)c.skills={};
+      c.skills[sk.id]=(c.skills[sk.id]||0)+1;
+      renderSkillPanel(spIdx);
+    };
+    grid.appendChild(btn);
+  });
+  mainEl.appendChild(grid);
+
+  // Rest options
+  const restRow=document.createElement('div');
+  restRow.className='sp-rest-row';
+  restRow.innerHTML=`
+    <button class="sp-upgrade-btn" id="btn-rest-camp">Camp (Free — 50% heal)</button>
+    <button class="sp-upgrade-btn" id="btn-rest-inn">Inn (30c — Full heal)</button>
+    <button class="sp-upgrade-btn" id="btn-rest-potion">Potion (20c — 30HP)</button>
+  `;
+  restRow.querySelector('#btn-rest-camp').onclick=()=>{
+    const c=state.creatures[spIdx];
+    c.currentHp=Math.min(c.hp,Math.floor(c.hp*0.5)+c.currentHp);
+    renderSkillPanel(spIdx);
+  };
+  restRow.querySelector('#btn-rest-inn').onclick=()=>{
+    if(state.coins<30){alert('Not enough coins!');return;}
+    state.coins-=30;
+    state.creatures[spIdx].currentHp=state.creatures[spIdx].hp;
+    state.creatures[spIdx].status=null;
+    updateHUD();renderSkillPanel(spIdx);
+  };
+  restRow.querySelector('#btn-rest-potion').onclick=()=>{
+    if(state.coins<20){alert('Not enough coins!');return;}
+    state.coins-=20;
+    const c=state.creatures[spIdx];
+    c.currentHp=Math.min(c.hp,c.currentHp+30);
+    updateHUD();renderSkillPanel(spIdx);
+  };
+  mainEl.appendChild(restRow);
+}
+
+// ═══════════════════════════════════════════════════════
+// DIALOG
+// ═══════════════════════════════════════════════════════
+
+function showDialog(name,text,options){
+  state.inDialog=true;
+  document.getElementById('dialog').style.display='block';
+  document.getElementById('dlg-name').textContent=name;
+  document.getElementById('dlg-text').textContent=text;
+  const wrap=document.getElementById('dlg-opts');
+  wrap.innerHTML='';
+  options.forEach(o=>{
+    const btn=document.createElement('button');
+    btn.className='d-btn';
+    btn.textContent=o.label;
+    btn.onclick=o.fn;
+    wrap.appendChild(btn);
+  });
+}
+
+function closeDialog(){
+  state.inDialog=false;
+  document.getElementById('dialog').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN MENU
+// ═══════════════════════════════════════════════════════
+
+function handleEsc(){
+  if(state.inBattle)return;
+  if(document.getElementById('skill-panel').classList.contains('show')){closeSkillPanel();return;}
+  if(state.inDialog){closeDialog();return;}
+  showMainMenu();
+}
+
+function handleInteract(){
+  if(state.inBattle)return;
+  const tile=state.map?.[state.py]?.[state.px];
+  if(tile===T.CAVE||tile===T.SHRINE||tile===T.RUIN)triggerPoI(tile);
+}
+
+function showMainMenu(){
+  const pc=state.creatures[state.activeCreatureIdx];
+  showDialog('WORLDHATCH',
+    `Coins: ${state.coins}  Creatures: ${state.creatures.length}  Eggs: ${state.eggs.length}${pc?`\nActive: ${pc.name} Lv${pc.level}`:''}\n\nWASD/Arrows to move\nTap map to walk`,
+    [
+      {label:'Skills & Rest',fn:()=>{closeDialog();openSkillPanel();}},
+      {label:'Switch Creature',fn:()=>showCreatureMenu()},
+      {label:'Hatch Egg',fn:()=>showHatchMenu()},
+      {label:'Change Region',fn:()=>showRegionMenu()},
+      {label:'Close',fn:closeDialog},
+    ]
+  );
+}
+
+function showCreatureMenu(){
+  if(!state.creatures.length){showDialog('NO CREATURES','Hatch an egg first!',[{label:'OK',fn:closeDialog}]);return;}
+  closeDialog();
+  showDialog('CHOOSE CREATURE','',
+    [...state.creatures.map((c,i)=>({
+      label:`${c.name} Lv${c.level} ${c.currentHp}/${c.hp}HP`,
+      fn:()=>{state.activeCreatureIdx=i;updateHUD();closeDialog();}
+    })),{label:'Cancel',fn:closeDialog}]
+  );
+}
+
+function showHatchMenu(){
+  if(!state.eggs.length){showDialog('NO EGGS','Find eggs by exploring the map!',[ {label:'OK',fn:closeDialog}]);return;}
+  closeDialog();
+  showDialog('HATCH EGG',`You have ${state.eggs.length} egg(s). Hatch one?`,
+    [...state.eggs.map((e,i)=>({
+      label:`${e.name} (${e.rarity}) — ${e.element}`,
+      fn:()=>{
+        const c={...e,hp:e.hp,currentHp:e.hp,maxHp:e.hp,attack:e.atk||e.attack||15,
+          defense:e.def||e.defense||10,speed:e.spd||e.speed||12,
+          xp:0,level:1,energy:0,status:null,id:Date.now()};
+        initCreatureSkills(c);
+        state.creatures.push(c);
+        state.eggs.splice(i,1);
+        if(state.activeCreatureIdx<0)state.activeCreatureIdx=state.creatures.length-1;
+        updateHUD();
+        closeDialog();
+        showDialog('HATCHED!',`${c.name} hatched from its egg!\nHP:${c.hp} ATK:${c.attack} DEF:${c.defense} SPD:${c.speed}`,[{label:'Awesome!',fn:closeDialog}]);
+      }
+    })),{label:'Cancel',fn:closeDialog}]
+  );
+}
+
+function showRegionMenu(){
+  closeDialog();
+  showDialog('CHANGE REGION','Travel to another region? Your map will change.',
+    [...Object.entries(REGIONS).map(([id,r])=>({
+      label:`${r.icon} ${r.name}`,
+      fn:()=>{
+        state.currentRegion=id;
+        state.mapSeed=Date.now()%99991;
+        state.map=generateMap(id,state.mapSeed);
+        state.exploredTiles.clear();
+        const R=8;
+        for(let ey=-R;ey<=R;ey++)for(let ex=-R;ex<=R;ex++)
+          if(ex*ex+ey*ey<=R*R)state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+        document.getElementById('top-region').textContent=r.name;
+        closeDialog();
+      }
+    })),{label:'Cancel',fn:closeDialog}]
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// HUD
+// ═══════════════════════════════════════════════════════
+
+function updateHUD(){
+  const pc=state.activeCreatureIdx>=0?state.creatures[state.activeCreatureIdx]:null;
+  document.getElementById('hud-name').textContent=pc?pc.name:'—';
+  document.getElementById('hud-lv').textContent=pc?pc.level:1;
+  document.getElementById('hud-coins').textContent=state.coins;
+  if(pc){
+    document.getElementById('hud-hp').style.width=Math.max(0,Math.round((pc.currentHp/pc.hp)*100))+'%';
+    document.getElementById('hud-en').style.width=(pc.energy||0)+'%';
+  } else {
+    document.getElementById('hud-hp').style.width='100%';
+    document.getElementById('hud-en').style.width='0%';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TIME / WEATHER
+// ═══════════════════════════════════════════════════════
+
+function updateTimeWeather(dt){
+  state.time=(state.time+dt*state.timeSpeed)%24;
+  const h=Math.floor(state.time);
+  const ampm=h<12?'AM':'PM';
+  const dh=h%12||12;
+  const icons={clear:'☀',rain:'🌧',fog:'🌫',storm:'⛈'};
+  document.getElementById('top-time').textContent=`${dh}:00${ampm} ${icons[state.weather]||'☀'}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// MINIMAP
+// ═══════════════════════════════════════════════════════
+
+function drawMinimap(ctx,x,y,size=90){
+  const s=size/MAP_W;
+  ctx.fillStyle='rgba(8,0,20,0.85)';
+  ctx.fillRect(x-2,y-2,size+4,size+4);
+  ctx.strokeStyle='#440088';ctx.lineWidth=1;
+  ctx.strokeRect(x-2,y-2,size+4,size+4);
+
+  for(let ty=0;ty<MAP_H;ty++)for(let tx=0;tx<MAP_W;tx++){
+    if(!state.exploredTiles.has(`${tx},${ty}`)){
+      ctx.fillStyle='#04000a';ctx.fillRect(x+tx*s,y+ty*s,Math.max(1,s),Math.max(1,s));
+      continue;
+    }
+    const t=state.map[ty][tx];
+    const cols={[T.WALL]:'#1a0828',[T.GRASS]:'#1e6010',[T.TREE]:'#1a5008',
+      [T.WATER]:'#1840a8',[T.PATH]:'#6a5838',[T.TOWN]:'#c8b080',
+      [T.NEST]:'#c89800',[T.CHEST]:'#aa8800',[T.MINIBOSS]:'#aa1008',
+      [T.BOSS]:'#ff0044',[T.CAVE]:'#440066',[T.SHRINE]:'#cc8820',[T.RUIN]:'#686860',
+      [T.GROUND]:'#3a4020',[T.FLOWER]:'#c84090',[T.SAND]:'#c8a840',[T.BRIDGE]:'#8a7050',
+    };
+    ctx.fillStyle=cols[t]||'#3a4020';
+    ctx.fillRect(x+tx*s,y+ty*s,Math.max(1,s),Math.max(1,s));
+  }
+  // Player dot
+  ctx.fillStyle='#ff6644';
+  ctx.fillRect(x+state.px*s-1,y+state.py*s-1,3,3);
+  // Camera rect
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=0.5;
+  ctx.strokeRect(x+state.camX*s,y+state.camY*s,VIEW_W*s,VIEW_H*s);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+
+let animFrame=0;
+
+function render(){
+  if(state.inBattle)return;
+  animFrame++;
+
+  // Time-of-day overlay
+  const h=state.time;
+  let overlay='rgba(0,0,0,0)';
+  if(h<6||h>=22)overlay='rgba(0,0,30,0.6)';
+  else if(h<8)overlay='rgba(0,0,20,0.3)';
+  else if(h>=19)overlay='rgba(0,0,20,0.3)';
+
+  ctx.imageSmoothingEnabled=false;
+
+  for(let ty=0;ty<VIEW_H;ty++){
+    for(let tx=0;tx<VIEW_W;tx++){
+      const mx=state.camX+tx, my=state.camY+ty;
+      if(mx<0||my<0||mx>=MAP_W||my>=MAP_H){ctx.fillStyle='#000';ctx.fillRect(tx*TILE,ty*TILE,TILE,TILE);continue;}
+      const tile=state.map[my][mx];
+      // Fog
+      const explored=state.exploredTiles.has(`${mx},${my}`);
+      ctx.fillStyle=getTileColor(tile,state.currentRegion,animFrame);
+      ctx.fillRect(tx*TILE,ty*TILE,TILE,TILE);
+      if(!explored){ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(tx*TILE,ty*TILE,TILE,TILE);}
+
+      // Tile details
+      drawTileDetail(ctx,tx*TILE,ty*TILE,tile,animFrame);
+    }
+  }
+
+  // Tap target indicator
+  if(state.tapTarget){
+    const ttx=(state.tapTarget.x-state.camX)*TILE;
+    const tty=(state.tapTarget.y-state.camY)*TILE;
+    if(ttx>=0&&tty>=0&&ttx<VIEW_W*TILE&&tty<VIEW_H*TILE){
+      const pulse=Math.sin(animFrame*0.25)*0.3+0.7;
+      ctx.strokeStyle=`rgba(200,140,255,${pulse})`;
+      ctx.lineWidth=2;
+      ctx.strokeRect(ttx+2,tty+2,TILE-4,TILE-4);
+    }
+  }
+
+  // Player
+  const psx=(state.px-state.camX)*TILE;
+  const psy=(state.py-state.camY)*TILE;
+  drawPlayerSprite(ctx,psx,psy,state.playerDir,state.walkFrame);
+
+  // Time overlay
+  if(overlay!=='rgba(0,0,0,0)'){
+    ctx.fillStyle=overlay;
+    ctx.fillRect(0,0,VIEW_W*TILE,VIEW_H*TILE);
+  }
+
+  // Minimap
+  drawMinimap(ctx,VIEW_W*TILE-94,4);
+}
+
+function drawTileDetail(ctx,px,py,tile,frame){
+  const p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(px+x,py+y,w,h);};
+
+  if(tile===T.WALL){
+    p(0,0,TILE,2,'rgba(255,255,255,0.06)');
+    p(0,0,2,TILE,'rgba(255,255,255,0.04)');
+  }
+  if(tile===T.GRASS){
+    p(4,16,2,4,'#2a8810');p(9,14,2,6,'#228810');p(16,15,2,5,'#338810');
+  }
+  if(tile===T.TREE){
+    const g=0.3+Math.sin(frame*0.02+px)*0.05;
+    p(6,2,12,14,`rgba(20,80,0,${g+0.6})`);
+    p(9,1,6,4,`rgba(30,100,0,${g+0.7})`);
+    p(9,14,4,9,'#5a3810');
+  }
+  if(tile===T.FLOWER){
+    p(4,16,2,4,'#2a8810');
+    p(8,12,4,4,'#ff60aa');p(5,14,4,3,'#ff88bb');p(14,13,4,4,'#ff40cc');
+  }
+  if(tile===T.WATER){
+    const w=Math.sin(frame*0.05+px*0.1)*0.3+0.5;
+    p(2,8,20,2,`rgba(100,160,255,${w*0.4})`);
+    p(4,14,16,2,`rgba(80,140,255,${w*0.3})`);
+  }
+  if(tile===T.PATH){
+    p(2,10,20,4,'rgba(200,180,120,0.15)');
+  }
+  if(tile===T.NEST){
+    const glow=0.5+Math.sin(frame*0.08)*0.3;
+    p(4,4,16,18,'rgba(200,150,0,0.15)');
+    p(7,6,10,14,`rgba(255,200,0,${glow*0.4})`);
+    p(9,8,6,10,'rgba(255,220,100,0.5)');
+    // Egg icon
+    ctx.fillStyle='#ffdd88';
+    ctx.beginPath();ctx.ellipse(px+12,py+11,4,5,0,0,Math.PI*2);ctx.fill();
+  }
+  if(tile===T.CHEST){
+    p(4,9,16,11,'#aa8800');p(4,9,16,4,'#cc9900');p(4,8,16,3,'#885500');
+    p(10,12,4,3,'#ffcc00');
+  }
+  if(tile===T.TOWN){
+    if(px%48===0&&py%48===0)p(2,2,20,20,'rgba(200,180,120,0.1)');
+  }
+  if(tile===T.MINIBOSS){
+    const b=0.5+Math.sin(frame*0.1)*0.3;
+    p(2,2,20,20,`rgba(255,50,0,${b*0.3})`);
+    p(8,6,8,12,'rgba(255,80,0,0.6)');
+    p(10,4,4,4,'rgba(255,100,0,0.8)');
+  }
+  if(tile===T.BOSS){
+    const b=0.5+Math.sin(frame*0.12)*0.4;
+    p(0,0,TILE,TILE,`rgba(255,0,40,${b*0.25})`);
+    p(6,4,12,16,'rgba(255,0,60,0.5)');
+    p(9,2,6,6,'rgba(255,0,80,0.7)');
+  }
+  if(tile===T.CAVE){
+    p(6,2,12,16,'rgba(0,0,0,0.5)');p(4,4,4,12,'rgba(100,0,150,0.3)');p(16,4,4,10,'rgba(80,0,120,0.3)');
+    p(8,0,8,6,'rgba(0,0,0,0.7)');
+  }
+  if(tile===T.SHRINE){
+    const g=0.4+Math.sin(frame*0.06)*0.3;
+    p(8,2,8,18,'rgba(200,150,0,0.4)');p(4,18,16,4,'rgba(120,80,0,0.6)');
+    p(10,4,4,12,`rgba(255,200,50,${g})`);
+  }
+  if(tile===T.RUIN){
+    p(2,2,8,8,'rgba(100,100,80,0.5)');p(14,4,6,10,'rgba(80,80,60,0.4)');
+    p(4,14,4,8,'rgba(80,80,60,0.5)');p(16,16,6,6,'rgba(90,90,70,0.4)');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// OPENING MENU
+// ═══════════════════════════════════════════════════════
+
+let globeFrame=0;
+let menuSelectedRegion=null;
+let menuRolledCreature=null;
+
+function drawGlobe(){
+  const cv=document.getElementById('menu-globe');
+  const m=document.getElementById('menu');
+  if(!cv||!m||m.classList.contains('hidden'))return;
+  const c=cv.getContext('2d');
+  const W=160,H=160,cx=80,cy=80,r=68;
+  c.fillStyle='#080010';c.fillRect(0,0,W,H);
+  // Stars
+  for(let i=0;i<40;i++){
+    const sx=Math.abs(Math.sin(i*127.1)*W*10)%W;
+    const sy=Math.abs(Math.cos(i*311.7)*H*10)%H;
+    c.fillStyle=`rgba(255,255,220,${0.1+(i%4)*0.1})`;
+    c.fillRect(sx,sy,i%5===0?2:1,i%5===0?2:1);
+  }
+  // Globe body
+  c.fillStyle='#1a0838';
+  c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.fill();
+  // Grid
+  c.strokeStyle='rgba(200,150,0,0.2)';c.lineWidth=1;
+  const off=(globeFrame*0.5)%40;
+  for(let lat=30;lat<180;lat+=30){
+    const ry=Math.sin(lat*Math.PI/180)*r;
+    const rx=Math.cos(lat*Math.PI/180)*r;
+    if(Math.abs(rx)<1)continue;
+    c.beginPath();c.ellipse(cx,cy,Math.abs(rx),Math.abs(ry*0.3)||1,0,0,Math.PI*2);c.stroke();
+  }
+  for(let lon=0;lon<360;lon+=30){
+    const a=(lon+off)*Math.PI/180;
+    const perspective=Math.cos(a);
+    if(perspective<0.05)continue;
+    c.globalAlpha=perspective*0.5;
+    const rp=r*perspective;
+    if(rp<1){c.globalAlpha=1;continue;}
+    c.beginPath();c.ellipse(cx,cy,rp,r,0,0,Math.PI*2);c.stroke();
+    c.globalAlpha=1;
+  }
+  c.strokeStyle='#c8960c';c.lineWidth=2;c.globalAlpha=1;
+  c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.stroke();
+  globeFrame++;
+  requestAnimationFrame(drawGlobe);
+}
+
+function buildRegionGrid(){
+  const grid=document.getElementById('region-grid');
+  grid.innerHTML='';
+  Object.entries(REGIONS).forEach(([id,r])=>{
+    const btn=document.createElement('button');
+    btn.className='region-btn';
+    btn.dataset.rid=id;
+    btn.innerHTML=`<span class="region-elem">${r.icon}</span>${r.name}<br><span style="color:#440066;">${r.element.toUpperCase()}</span>`;
+    btn.onclick=()=>{
+      menuSelectedRegion=id;
+      document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      // Show egg section
+      document.getElementById('egg-wrap').style.display='flex';
+      document.getElementById('egg-region-name').textContent=r.name.toUpperCase()+' — ROLL FOR STARTER';
+      colorEgg('common');
+      document.getElementById('dice-num').textContent='';
+      document.getElementById('result-card').style.display='none';
+      document.getElementById('dice-btns').innerHTML='<button class="sm-btn primary" id="btn-roll">ROLL DICE 🎲</button>';
+      document.getElementById('btn-roll').onclick=rollMenuDice;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function colorEgg(rarity){
+  const col=EGG_COLS[rarity]||EGG_COLS.common;
+  document.getElementById('egg-hi').setAttribute('stop-color',col.hi);
+  document.getElementById('egg-mid').setAttribute('stop-color',col.mid);
+  document.getElementById('egg-sh').setAttribute('stop-color',col.sh);
+}
+
+function rollMenuDice(){
+  if(!menuSelectedRegion)return;
+  const btn=document.getElementById('btn-roll');
+  if(btn)btn.disabled=true;
+  document.getElementById('result-card').style.display='none';
+
+  const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  const W={common:40,uncommon:20,rare:8,legendary:2};
+  let ci=0;
+  const rars=['common','uncommon','rare','legendary'];
+  const spinInt=setInterval(()=>{
+    document.getElementById('dice-num').textContent=FACES[ci%FACES.length];
+    colorEgg(rars[ci%4]);
+    ci++;
+  },100);
+
+  setTimeout(()=>{
+    clearInterval(spinInt);
+    const roll=Math.floor(Math.random()*20)+1;
+    document.getElementById('dice-num').textContent=`D20 — ${roll}`;
+
+    const reg=REGIONS[menuSelectedRegion];
+    const pool=[];
+    reg.creatures.forEach(c=>{for(let i=0;i<(W[c.rarity]||10);i++)pool.push(c);});
+    const idx=Math.min(Math.floor((roll/20)*pool.length),pool.length-1);
+    menuRolledCreature={...pool[idx]};
+    colorEgg(menuRolledCreature.rarity);
+
+    // Show result
+    const ICONS={fire:'🔥',ice:'❄️',spirit:'✨',dark:'🌑',nature:'🌿',water:'💧',sand:'🏜️',storm:'⚡',magma:'🌋',crystal:'💎'};
+    const RICONS={common:'🥚',uncommon:'🔵',rare:'🟣',legendary:'🌟'};
+    const rc=document.getElementById('result-card');
+    document.getElementById('rc-icon').textContent=RICONS[menuRolledCreature.rarity]||'🥚';
+    document.getElementById('rc-name').textContent=menuRolledCreature.name.toUpperCase();
+    document.getElementById('rc-elem').textContent=`${ICONS[menuRolledCreature.element]||''} ${menuRolledCreature.element.toUpperCase()}`;
+    const rarEl=document.getElementById('rc-rarity');
+    rarEl.textContent=menuRolledCreature.rarity.toUpperCase();
+    rarEl.className='rc-rarity '+menuRolledCreature.rarity;
+    document.getElementById('rc-stats').textContent=`HP:${menuRolledCreature.hp} ATK:${menuRolledCreature.atk} DEF:${menuRolledCreature.def} SPD:${menuRolledCreature.spd}`;
+    rc.style.display='flex';
+
+    // Buttons
+    document.getElementById('dice-btns').innerHTML=`
+      <button class="sm-btn" id="btn-reroll">↺ REROLL</button>
+      <button class="sm-btn primary" id="btn-begin">BEGIN ▶</button>
+    `;
+    document.getElementById('btn-reroll').onclick=rollMenuDice;
+    document.getElementById('btn-begin').onclick=beginGame;
+  },1800);
+}
+
+function beginGame(){
+  if(!menuRolledCreature||!menuSelectedRegion)return;
+  const c0=menuRolledCreature;
+  const starter={
+    ...c0,
+    hp:c0.hp,currentHp:c0.hp,maxHp:c0.hp,
+    attack:c0.atk||c0.attack||15,
+    defense:c0.def||c0.defense||10,
+    speed:c0.spd||c0.speed||12,
+    xp:0,level:1,energy:0,status:null,id:Date.now(),
+  };
+  initCreatureSkills(starter);
+  state.creatures=[starter];
+  state.activeCreatureIdx=0;
+  state.currentRegion=menuSelectedRegion;
+  state.mapSeed=Date.now()%99991;
+  state.map=generateMap(menuSelectedRegion,state.mapSeed);
+
+  const R=8;
+  for(let ey=-R;ey<=R;ey++)for(let ex=-R;ex<=R;ex++)
+    if(ex*ex+ey*ey<=R*R)state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  const reg=REGIONS[menuSelectedRegion];
+  document.getElementById('top-region').textContent=reg.name;
+  document.getElementById('top-player').textContent='TRAINER — '+reg.name.toUpperCase();
+  document.getElementById('menu').classList.add('hidden');
+  updateHUD();
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN LOOP
+// ═══════════════════════════════════════════════════════
+
+let lastTime=0;
+function gameLoop(ts){
+  const dt=ts-lastTime;lastTime=ts;
+  if(!state.inBattle&&!state.inDialog&&state.map)handleMovement(dt);
+  updateTimeWeather(dt);
+  if(state.map)render();
+  requestAnimationFrame(gameLoop);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+function init(){
+  resizeCanvas();
+  window.addEventListener('resize',resizeCanvas);
+
+  // Build menu
+  buildRegionGrid();
+  drawGlobe();
+
+  // Mobile buttons
+  document.getElementById('mob-menu').addEventListener('click',handleEsc);
+  document.getElementById('mob-menu').addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false});
+  document.getElementById('mob-action').addEventListener('click',handleInteract);
+  document.getElementById('mob-action').addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false});
+
+  // Skill panel close
+  document.getElementById('sp-close').addEventListener('click',closeSkillPanel);
+
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+
+init();
+</script>
+</body>
+</html>
