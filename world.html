@@ -345,78 +345,28 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 </style>
 </head>
 <body>
-<!-- ══ OPENING SCREEN — buttons wired in JS after load ══ -->
-<div id="opening">
-  <!-- Panel 0: Title -->
-  <div class="ob-panel active" id="ob-p0">
-    <div class="ob-art"><canvas id="ob-title-canvas" width="480" height="180"></canvas></div>
-    <div class="ob-text-box">
-      <div class="ob-speaker">WORLDHATCH</div>
-      <div class="ob-line" id="ob-line-0"></div>
+<!-- ══ OPENING SCREEN ══ -->
+<div id="opening" style="position:fixed;inset:0;background:#080010;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;">
+  <div id="ob-inner" style="width:100%;max-width:500px;padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+
+    <!-- ART AREA -->
+    <canvas id="ob-art" width="460" height="160" style="width:100%;border:2px solid #c8960c;border-radius:6px;background:#0a0018;display:block;"></canvas>
+
+    <!-- TEXT BOX -->
+    <div id="ob-box" style="width:100%;background:#08001a;border:2px solid #6622aa;border-radius:4px;padding:12px 14px;">
+      <div id="ob-speaker" style="font-size:7px;color:#ffcc44;margin-bottom:8px;letter-spacing:1px;">WORLDHATCH</div>
+      <div id="ob-line" style="font-size:7px;color:#e0d0ff;line-height:2;min-height:28px;"></div>
     </div>
-    <div class="ob-nav">
-      <button class="ob-btn primary" id="ob-next-0">NEXT ▶</button>
-    </div>
-  </div>
-  <!-- Panel 1: Lore -->
-  <div class="ob-panel" id="ob-p1">
-    <div class="ob-art"><canvas id="ob-lore-canvas" width="480" height="180"></canvas></div>
-    <div class="ob-text-box">
-      <div class="ob-speaker">THE ELDER SPEAKS</div>
-      <div class="ob-line" id="ob-line-1"></div>
-    </div>
-    <div class="ob-nav">
-      <button class="ob-btn" id="ob-prev-1">◀ BACK</button>
-      <button class="ob-btn primary" id="ob-next-1">NEXT ▶</button>
-    </div>
-  </div>
-  <!-- Panel 2: Choose Region -->
-  <div class="ob-panel" id="ob-p2">
-    <div class="ob-text-box" style="margin-bottom:10px;">
-      <div class="ob-speaker">CHOOSE YOUR HOME REGION</div>
-      <div class="ob-line" id="ob-line-2">Each region shapes the creatures you will bond with. Choose wisely — your first companion awaits.</div>
-    </div>
-    <div id="region-select"></div>
-    <div class="ob-nav">
-      <button class="ob-btn" id="ob-prev-2">◀ BACK</button>
-      <button class="ob-btn primary" id="ob-choose-btn" disabled>CHOOSE ▶</button>
-    </div>
-  </div>
-  <!-- Panel 3: Dice Roll -->
-  <div class="ob-panel" id="ob-p3">
-    <div class="ob-text-box" style="margin-bottom:10px;">
-      <div class="ob-speaker">YOUR FIRST COMPANION</div>
-      <div class="ob-line" id="ob-line-3">The dice of fate determine which creature hatches for you...</div>
-    </div>
-    <div id="dice-reveal">
-      <div class="dice-face" id="ob-dice">🎲</div>
-      <div class="dice-roll-num" id="ob-roll-num" style="display:none"></div>
-      <div class="dice-result-card" id="ob-result-card" style="display:none">
-        <div class="dice-creature-art"><canvas id="ob-creature-canvas" width="48" height="48" style="width:80px;height:80px;"></canvas></div>
-        <div class="dice-creature-info">
-          <div class="dice-creature-name" id="ob-cname">—</div>
-          <div class="dice-creature-elem" id="ob-celem">—</div>
-          <div class="dice-creature-rarity" id="ob-crarity">—</div>
-        </div>
-      </div>
-      <button class="ob-btn primary" id="ob-roll-btn">ROLL THE DICE ▶</button>
-    </div>
-  </div>
-  <!-- Panel 4: Confirm -->
-  <div class="ob-panel" id="ob-p4">
-    <div class="ob-art"><canvas id="ob-confirm-canvas" width="480" height="180"></canvas></div>
-    <div class="ob-text-box">
-      <div class="ob-speaker">YOUR JOURNEY BEGINS</div>
-      <div class="ob-line" id="ob-line-4"></div>
-    </div>
-    <div class="ob-nav">
-      <button class="ob-btn" id="ob-prev-4">◀ REROLL</button>
-      <button class="ob-btn primary" id="ob-begin-btn">BEGIN! ▶</button>
-    </div>
+
+    <!-- EXTRA CONTENT (region list / dice) -->
+    <div id="ob-extra" style="width:100%;display:none;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+
+    <!-- NAV BUTTONS -->
+    <div id="ob-nav" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;"></div>
   </div>
 </div>
 
-<!-- ══ ATTACK CUTSCENE ══ -->
+<!-- ══ ATTACK CUTSCENE ══ --><!-- ══ ATTACK CUTSCENE ══ -->
 <div id="attack-cutscene">
   <div class="cut-split">
     <div class="cut-panel cut-panel-left" id="cut-left">
@@ -3173,269 +3123,311 @@ function doRest(type) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  OPENING SCREEN SYSTEM
+//  OPENING SCREEN — clean state machine, no inline onclicks
 // ═══════════════════════════════════════════════════════════
 
-const OB_PANELS = [
-  { text: "In the world of WORLDHATCH, creatures of elemental power roam vast and mysterious realms. Ancient regions pulse with life — fire, ice, shadow and stone." },
-  { text: "For generations, Trainers have journeyed across the realms to hatch, battle and trade these wondrous beings. Now it is your time. The first egg awaits." },
-  null, // region select
-  null, // dice
-  null, // confirm — filled dynamically
-];
-
-let obCurrentPanel  = 0;
+let obPanel          = 0;   // 0=title 1=lore 2=regions 3=dice 4=confirm
 let obSelectedRegion = null;
 let obStarterCreature = null;
 let obTypeTimer      = null;
 
-function obTypeText(elId, text, speed=38) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  el.innerHTML = '';
-  let i = 0;
+const OB_NARRATION = [
+  "In the world of WORLDHATCH, creatures of elemental power roam vast and mysterious realms — fire, ice, shadow and stone.",
+  "For generations, Trainers have journeyed to hatch, battle and trade these wondrous beings. Now it is your time. An egg awaits.",
+  "Choose your home region. Each shapes the creatures you will encounter and the companion that hatches for you.",
+  "The dice of fate will determine which creature hatches. Roll well, Trainer.",
+  "",  // filled dynamically on confirm
+];
+
+function obType(text, speed=35) {
+  const el = document.getElementById('ob-line');
+  if(!el) return;
+  el.textContent = '';
   clearInterval(obTypeTimer);
-  obTypeTimer = setInterval(() => {
-    el.innerHTML = text.substring(0,i) + '<span class="ob-cursor"></span>';
-    i++;
-    if (i > text.length) {
-      el.innerHTML = text;
-      clearInterval(obTypeTimer);
-    }
+  let i = 0;
+  obTypeTimer = setInterval(()=>{
+    el.textContent = text.slice(0, i++);
+    if(i > text.length) clearInterval(obTypeTimer);
   }, speed);
 }
 
-function drawOpeningArt(canvasId, panelIdx) {
-  const cv = document.getElementById(canvasId);
-  if (!cv) return;
-  const c = cv.getContext('2d');
-  const W = cv.width, H = cv.height;
-  c.fillStyle = '#080010'; c.fillRect(0,0,W,H);
-
-  // Stars (all panels)
-  for(let i=0;i<60;i++){
-    const sx = Math.abs(Math.sin(i*127.1+panelIdx)*43758) % W;
-    const sy = Math.abs(Math.cos(i*311.7+panelIdx)*43758) % H;
-    const br = 0.2 + (i%3)*0.2;
-    c.fillStyle = `rgba(255,255,220,${br})`;
-    c.fillRect(sx, sy, i%4===0?2:1, i%4===0?2:1);
-  }
-
-  if (panelIdx === 0) {
-    // Globe
-    c.fillStyle='#1a0838';
-    c.beginPath(); c.arc(W/2,H/2+10,80,0,Math.PI*2); c.fill();
-    c.strokeStyle='#c8960c'; c.lineWidth=3;
-    c.stroke();
-    c.strokeStyle='rgba(200,150,0,0.25)'; c.lineWidth=1;
-    for(let i=1;i<4;i++){
-      c.beginPath(); c.arc(W/2,H/2+10,80*(i/4),0,Math.PI*2); c.stroke();
-    }
-    for(let i=0;i<6;i++){
-      const a=i*Math.PI/3;
-      c.beginPath();
-      c.moveTo(W/2,H/2+10);
-      c.lineTo(W/2+Math.cos(a)*80,H/2+10+Math.sin(a)*80);
-      c.stroke();
-    }
-    // Title
-    c.fillStyle='#ffcc44';
-    c.font='bold 18px monospace';
-    c.textAlign='center';
-    c.fillText('WORLDHATCH',W/2,28);
-    c.font='9px monospace';
-    c.fillStyle='#8844cc';
-    c.fillText('HATCH  BATTLE  TRADE',W/2,46);
-  }
-
-  if (panelIdx === 1) {
-    // Moon
-    c.fillStyle='#ccddff';
-    c.beginPath(); c.arc(W-50,35,24,0,Math.PI*2); c.fill();
-    // Ground
-    c.fillStyle='#0c0628'; c.fillRect(0,H*0.7,W,H);
-    c.fillStyle='#14083a'; c.fillRect(0,H*0.68,W,H*0.04);
-    // Pillars
-    c.fillStyle='#180830';
-    c.fillRect(30,H*0.35,24,H*0.35);
-    c.fillRect(W-54,H*0.3,24,H*0.4);
-    // Egg glow
-    c.fillStyle='rgba(140,60,255,0.3)';
-    c.beginPath(); c.arc(W/2,H*0.55,50,0,Math.PI*2); c.fill();
-    c.fillStyle='#d8b0ff';
-    c.beginPath(); c.ellipse(W/2,H*0.57,15,22,0,0,Math.PI*2); c.fill();
-    c.fillStyle='rgba(255,255,255,0.7)';
-    c.beginPath(); c.ellipse(W/2-4,H*0.52,4,6,Math.PI/5,0,Math.PI*2); c.fill();
-  }
-}
-
-function obShowPanel(idx) {
-  document.querySelectorAll('.ob-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
-  obCurrentPanel = idx;
-
-  if(idx===0){ drawOpeningArt('ob-title-canvas',0); obTypeText('ob-line-0', OB_PANELS[0].text); }
-  if(idx===1){ drawOpeningArt('ob-lore-canvas',1);  obTypeText('ob-line-1', OB_PANELS[1].text); }
-  if(idx===2){ obBuildRegionSelect(); }
-  if(idx===3){ /* dice panel — ready to roll */ }
-  if(idx===4 && obStarterCreature){
-    const reg = REGIONS[obSelectedRegion];
-    // Draw confirm art (no drawCreatureSprite dependency — use element icon)
-    const cv4 = document.getElementById('ob-confirm-canvas');
-    if(cv4){
-      const c4=cv4.getContext('2d');
-      const ECOLS={fire:'#2a0800',ice:'#001828',nature:'#081808',spirit:'#1a1000',dark:'#060010',storm:'#060414',water:'#060e20',sand:'#1e1000',magma:'#1a0200',crystal:'#060e18'};
-      c4.fillStyle=ECOLS[reg?.element]||'#080010'; c4.fillRect(0,0,cv4.width,cv4.height);
-      for(let i=0;i<40;i++){
-        const sx=Math.abs(Math.sin(i*97)*cv4.width), sy=Math.abs(Math.cos(i*211)*cv4.height);
-        c4.fillStyle=`rgba(255,255,200,0.2)`; c4.fillRect(sx,sy,1,1);
-      }
-      const EICONS={fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
-      c4.font=`80px serif`; c4.textAlign='center';
-      c4.fillText(EICONS[reg?.element]||'🎲', cv4.width/2, cv4.height/2+20);
-    }
-    obTypeText('ob-line-4', `${obStarterCreature.name} has chosen you. Together you will explore the ${reg?.name||'realms'}. Your journey begins now.`);
-  }
-}
-
-function obNext() { if(obCurrentPanel<4) obShowPanel(obCurrentPanel+1); }
-function obPrev() { if(obCurrentPanel>0) obShowPanel(obCurrentPanel-1); }
-
-function obWireButtons() {
-  // Wire all opening screen buttons safely after JS is loaded
-  const wire = (id, fn) => { const el=document.getElementById(id); if(el) el.onclick=fn; };
-  wire('ob-next-0', ()=>obNext());
-  wire('ob-prev-1', ()=>obPrev());
-  wire('ob-next-1', ()=>obNext());
-  wire('ob-prev-2', ()=>obPrev());
-  wire('ob-choose-btn', ()=>obChooseRegion());
-  wire('ob-roll-btn',   ()=>obRollDice());
-  wire('ob-prev-4',     ()=>obPrev());
-  wire('ob-begin-btn',  ()=>obStartGame());
-}
-
-function obBuildRegionSelect() {
-  const wrap = document.getElementById('region-select');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-  const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
-  Object.entries(REGIONS).forEach(([id,reg])=>{
-    const btn = document.createElement('div');
-    btn.className = 'region-opt' + (obSelectedRegion===id?' selected':'');
-    btn.innerHTML = `<span>${reg.name}</span><span class="region-elem">${ELEM_ICONS[reg.element]||'?'} ${reg.element.toUpperCase()}</span>`;
-    btn.onclick = () => {
-      obSelectedRegion = id;
-      document.querySelectorAll('.region-opt').forEach(b=>b.classList.remove('selected'));
-      btn.classList.add('selected');
-      document.getElementById('ob-choose-btn').disabled = false;
-    };
-    wrap.appendChild(btn);
+function obSetNav(buttons) {
+  // buttons = [{label, primary, fn}]
+  const nav = document.getElementById('ob-nav');
+  nav.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    btn.style.cssText = `font-family:'Press Start 2P',monospace;font-size:7px;background:#0e0022;color:${b.primary?'#ffcc44':'#cc88ff'};border:2px solid ${b.primary?'#cc8800':'#440088'};padding:9px 14px;cursor:pointer;border-radius:3px;`;
+    btn.onmouseenter = ()=>{ btn.style.background='#1a0040'; };
+    btn.onmouseleave = ()=>{ btn.style.background='#0e0022'; };
+    btn.onclick = b.fn;
+    nav.appendChild(btn);
   });
 }
 
-function obChooseRegion() {
-  if(!obSelectedRegion) return;
-  obShowPanel(3); // go to dice
+function obSetExtra(content) {
+  const ex = document.getElementById('ob-extra');
+  ex.style.display = content ? 'flex' : 'none';
+  ex.style.flexDirection = 'column';
+  if(content) ex.innerHTML = content;
+  else ex.innerHTML = '';
+}
+
+function obDrawArt(panel) {
+  const cv = document.getElementById('ob-art');
+  if(!cv) return;
+  const c = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  c.fillStyle='#080010'; c.fillRect(0,0,W,H);
+
+  // Stars always
+  for(let i=0;i<50;i++){
+    const sx=Math.abs(Math.sin(i*127.1+panel*50)*W*10)%W;
+    const sy=Math.abs(Math.cos(i*311.7+panel*30)*H*10)%H;
+    c.fillStyle=`rgba(255,255,220,${0.15+i%3*0.15})`;
+    c.fillRect(sx,sy,i%5===0?2:1,i%5===0?2:1);
+  }
+
+  if(panel===0){
+    // Globe
+    c.fillStyle='#1a0838';
+    c.beginPath();c.arc(W/2,H/2,65,0,Math.PI*2);c.fill();
+    c.strokeStyle='#c8960c';c.lineWidth=3;c.stroke();
+    c.strokeStyle='rgba(200,150,0,0.2)';c.lineWidth=1;
+    for(let i=1;i<4;i++){c.beginPath();c.arc(W/2,H/2,65*i/4,0,Math.PI*2);c.stroke();}
+    for(let i=0;i<6;i++){const a=i*Math.PI/3;c.beginPath();c.moveTo(W/2,H/2);c.lineTo(W/2+Math.cos(a)*65,H/2+Math.sin(a)*65);c.stroke();}
+    c.fillStyle='#ffcc44';c.font='bold 14px monospace';c.textAlign='center';
+    c.fillText('W O R L D H A T C H',W/2,22);
+    c.fillStyle='#8833bb';c.font='8px monospace';
+    c.fillText('HATCH  ·  BATTLE  ·  TRADE',W/2,38);
+  }
+
+  if(panel===1){
+    c.fillStyle='#cce8ff';c.beginPath();c.arc(W-40,30,20,0,Math.PI*2);c.fill();
+    c.fillStyle='#0c0626';c.fillRect(0,H*0.68,W,H);
+    c.fillStyle='#16083a';c.fillRect(0,H*0.65,W,H*0.06);
+    c.fillStyle='#160828';c.fillRect(20,H*0.3,18,H*0.36);c.fillRect(W-38,H*0.26,18,H*0.4);
+    c.fillStyle='rgba(130,50,255,0.35)';c.beginPath();c.arc(W/2,H*0.52,38,0,Math.PI*2);c.fill();
+    c.fillStyle='#d8b0ff';c.beginPath();c.ellipse(W/2,H*0.55,13,19,0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,255,255,0.6)';c.beginPath();c.ellipse(W/2-4,H*0.48,3,5,0.4,0,Math.PI*2);c.fill();
+  }
+
+  if(panel===2||panel===3){
+    // Region map hint
+    const ECOLS={fire:'#ff4400',ice:'#88ddff',nature:'#44cc22',spirit:'#ffcc44',dark:'#aa44ff',storm:'#8866ff',water:'#2266ee',sand:'#cc9922',magma:'#ff4400',crystal:'#88ccff'};
+    Object.values(REGIONS).forEach((r,i)=>{
+      const angle=(i/Object.keys(REGIONS).length)*Math.PI*2-Math.PI/2;
+      const rx=W/2+Math.cos(angle)*50, ry=H/2+Math.sin(angle)*40;
+      c.fillStyle=ECOLS[r.element]||'#888';
+      c.beginPath();c.arc(rx,ry,8,0,Math.PI*2);c.fill();
+    });
+    c.fillStyle='#ffcc44';c.font='8px monospace';c.textAlign='center';
+    c.fillText(panel===2?'CHOOSE YOUR REGION':'ROLL THE DICE',W/2,H-12);
+  }
+
+  if(panel===4 && obSelectedRegion){
+    const reg=REGIONS[obSelectedRegion];
+    const EICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
+    c.font='70px serif';c.textAlign='center';
+    c.fillText(EICONS[reg.element]||'🎲',W/2,H/2+24);
+    c.fillStyle='#ffcc44';c.font='9px monospace';
+    c.fillText(reg.name.toUpperCase(),W/2,H-12);
+  }
+}
+
+function obGo(panel) {
+  obPanel = panel;
+  const speaker = document.getElementById('ob-speaker');
+
+  obDrawArt(panel);
+  obSetExtra(null);
+
+  if(panel===0){
+    speaker.textContent='WORLDHATCH';
+    obType(OB_NARRATION[0]);
+    obSetNav([
+      {label:'NEXT ▶', primary:true, fn:()=>obGo(1)}
+    ]);
+  }
+
+  else if(panel===1){
+    speaker.textContent='THE ELDER SPEAKS';
+    obType(OB_NARRATION[1]);
+    obSetNav([
+      {label:'◀ BACK', fn:()=>obGo(0)},
+      {label:'NEXT ▶', primary:true, fn:()=>obGo(2)}
+    ]);
+  }
+
+  else if(panel===2){
+    speaker.textContent='CHOOSE YOUR REGION';
+    obType(OB_NARRATION[2]);
+    // Build region list
+    const EICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
+    let extraHTML = '';
+    Object.entries(REGIONS).forEach(([id,r])=>{
+      extraHTML += `<div class="ob-region-opt" data-rid="${id}" style="font-family:'Press Start 2P',monospace;font-size:6px;background:#0a0018;color:#cc88ff;border:2px solid #330055;padding:8px 12px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+        <span>${r.name}</span>
+        <span style="font-size:14px;">${EICONS[r.element]||'?'}</span>
+      </div>`;
+    });
+    obSetExtra(extraHTML);
+    // Wire region clicks after inserting
+    document.querySelectorAll('.ob-region-opt').forEach(el=>{
+      el.onclick = ()=>{
+        obSelectedRegion = el.dataset.rid;
+        document.querySelectorAll('.ob-region-opt').forEach(e=>{
+          e.style.borderColor = e===el?'#ffcc44':'#330055';
+          e.style.color       = e===el?'#ffcc44':'#cc88ff';
+        });
+        // Enable choose button
+        const chooseBtn = document.querySelector('#ob-nav button:last-child');
+        if(chooseBtn){ chooseBtn.style.opacity='1'; chooseBtn.disabled=false; }
+      };
+    });
+    obSetNav([
+      {label:'◀ BACK', fn:()=>obGo(1)},
+      {label:'CHOOSE ▶', primary:true, fn:()=>{ if(obSelectedRegion) obGo(3); }}
+    ]);
+    // Dim choose button until region selected
+    setTimeout(()=>{
+      const chooseBtn=document.querySelector('#ob-nav button:last-child');
+      if(chooseBtn&&!obSelectedRegion){ chooseBtn.style.opacity='0.4'; }
+    },50);
+  }
+
+  else if(panel===3){
+    speaker.textContent='YOUR FIRST COMPANION';
+    obType(OB_NARRATION[3]);
+
+    const extraHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px;">
+        <div id="ob-dice" style="font-size:52px;text-align:center;cursor:pointer;user-select:none;">🎲</div>
+        <div id="ob-roll-num" style="font-size:18px;color:#ffcc44;min-height:28px;text-align:center;font-family:'Press Start 2P',monospace;text-shadow:0 0 12px rgba(255,200,0,0.7);"></div>
+        <div id="ob-result-card" style="display:none;width:100%;background:#0a0018;border:2px solid #c8960c;border-radius:6px;padding:10px;display:none;flex-direction:row;align-items:center;gap:10px;">
+          <canvas id="ob-creature-canvas" width="48" height="48" style="width:72px;height:72px;border:1px solid #440088;border-radius:4px;image-rendering:pixelated;flex-shrink:0;"></canvas>
+          <div>
+            <div id="ob-cname" style="font-family:'Press Start 2P',monospace;font-size:8px;color:#ffcc44;margin-bottom:4px;"></div>
+            <div id="ob-celem" style="font-family:'Press Start 2P',monospace;font-size:6px;color:#cc88ff;margin-bottom:4px;"></div>
+            <div id="ob-crarity" style="font-family:'Press Start 2P',monospace;font-size:6px;"></div>
+          </div>
+        </div>
+      </div>`;
+    obSetExtra(extraHTML);
+    obSetNav([
+      {label:'◀ BACK', fn:()=>obGo(2)},
+      {label:'ROLL DICE 🎲', primary:true, fn:obRollDice}
+    ]);
+  }
+
+  else if(panel===4){
+    speaker.textContent='YOUR JOURNEY BEGINS';
+    const reg = REGIONS[obSelectedRegion];
+    const line4 = `${obStarterCreature?.name||'Your companion'} is ready. Together you will explore the ${reg?.name||'realms'}. Good luck, Trainer.`;
+    obType(line4);
+    obSetNav([
+      {label:'◀ REROLL', fn:()=>obGo(3)},
+      {label:'BEGIN ▶', primary:true, fn:obStartGame}
+    ]);
+  }
 }
 
 function obRollDice() {
   if(!obSelectedRegion) return;
-  const btn = document.getElementById('ob-roll-btn');
-  btn.disabled = true;
-  const die = document.getElementById('ob-dice');
-  const numEl = document.getElementById('ob-roll-num');
-  const card  = document.getElementById('ob-result-card');
-  const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅','🎲'];
+  const diceEl   = document.getElementById('ob-dice');
+  const rollEl   = document.getElementById('ob-roll-num');
+  const cardEl   = document.getElementById('ob-result-card');
+  const FACES    = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+  if(!diceEl) return;
 
-  die.classList.add('dice-spinning');
-  card.style.display = 'none';
-  numEl.style.display = 'none';
+  // Disable roll button
+  const rollBtn = document.querySelector('#ob-nav button:last-child');
+  if(rollBtn) rollBtn.disabled = true;
 
-  let count = 0;
-  const spinInterval = setInterval(()=>{
-    die.textContent = FACES[count%FACES.length]; count++;
-  }, 80);
+  let t=0;
+  const spin = setInterval(()=>{
+    diceEl.textContent=FACES[t++%FACES.length];
+  },80);
 
   setTimeout(()=>{
-    clearInterval(spinInterval);
-    die.classList.remove('dice-spinning');
-
-    // Roll D20
+    clearInterval(spin);
     const roll = Math.floor(Math.random()*20)+1;
-    die.textContent = '🎲';
-    numEl.textContent = `D20 — ${roll}`;
-    numEl.style.display = 'block';
+    diceEl.textContent = '🎲';
+    if(rollEl) rollEl.textContent = `D20 — ${roll}`;
 
-    // Map roll to creature by rarity weight
-    const region = REGIONS[obSelectedRegion];
-    const pool   = region.creatures;
-    // Build weighted pool: common=40 uncommon=20 rare=8 legendary=2
+    // Pick creature by rarity weight
+    const region  = REGIONS[obSelectedRegion];
+    const pool    = region.creatures;
     const weights = {common:40,uncommon:20,rare:8,legendary:2};
-    const weighted = [];
-    pool.forEach(c=>{ for(let i=0;i<(weights[c.rarity]||10);i++) weighted.push(c); });
-    // Use roll to index into weighted pool
-    const idx = Math.floor((roll/20)*weighted.length);
-    obStarterCreature = {...weighted[Math.min(idx,weighted.length-1)]};
+    const bucket  = [];
+    pool.forEach(c=>{ for(let i=0;i<(weights[c.rarity]||10);i++) bucket.push(c); });
+    const idx = Math.floor((roll/20)*bucket.length);
+    obStarterCreature = {...bucket[Math.min(idx,bucket.length-1)]};
 
     // Show result
-    card.style.display = 'flex';
-    document.getElementById('ob-cname').textContent    = obStarterCreature.name.toUpperCase();
-    document.getElementById('ob-celem').textContent    = obStarterCreature.element.toUpperCase();
-    const rarEl = document.getElementById('ob-crarity');
-    rarEl.textContent = obStarterCreature.rarity.toUpperCase();
-    rarEl.className   = `dice-creature-rarity rarity-${obStarterCreature.rarity}`;
+    if(cardEl){
+      cardEl.style.display='flex';
+      const el = id=>document.getElementById(id);
+      if(el('ob-cname')) el('ob-cname').textContent = obStarterCreature.name.toUpperCase();
+      if(el('ob-celem')) el('ob-celem').textContent  = obStarterCreature.element.toUpperCase();
+      if(el('ob-crarity')){
+        const RCOLS={common:'#aaaacc',uncommon:'#4488ff',rare:'#cc44ff',legendary:'#ffcc00'};
+        el('ob-crarity').textContent  = obStarterCreature.rarity.toUpperCase();
+        el('ob-crarity').style.color  = RCOLS[obStarterCreature.rarity]||'#fff';
+      }
+      const sc = el('ob-creature-canvas');
+      if(sc) drawCreatureSprite(sc, obStarterCreature.element, false);
+    }
 
-    // Draw creature sprite on canvas
-    const sc = document.getElementById('ob-creature-canvas');
-    if(sc) drawCreatureSprite(sc, obStarterCreature.element, false);
-
-    // Enable continue after short delay
-    setTimeout(()=>{
-      btn.disabled = false;
-      btn.textContent = 'CONTINUE ▶';
-      btn.onclick = () => obShowPanel(4);  // safe — set programmatically after load
-    }, 600);
-  }, 1800);
+    // Update nav
+    obSetNav([
+      {label:'◀ REROLL', fn:()=>obGo(3)},
+      {label:'CONTINUE ▶', primary:true, fn:()=>obGo(4)}
+    ]);
+  }, 1600);
 }
 
 function obStartGame() {
-  if(!obStarterCreature) return;
+  if(!obStarterCreature||!obSelectedRegion) return;
 
-  // Apply starter creature to game state
+  const c0 = obStarterCreature;
   const starter = {
-    ...obStarterCreature,
-    hp:        obStarterCreature.hp,
-    currentHp: obStarterCreature.hp,
-    maxHp:     obStarterCreature.hp,
-    attack:    obStarterCreature.atk || obStarterCreature.attack,
-    defense:   obStarterCreature.def || obStarterCreature.defense,
-    speed:     obStarterCreature.spd || obStarterCreature.speed,
-    xp: 0, level:1, energy:0, status:null,
+    ...c0,
+    hp:        c0.hp,
+    currentHp: c0.hp,
+    maxHp:     c0.hp,
+    attack:    c0.atk  || c0.attack  || 15,
+    defense:   c0.def  || c0.defense || 10,
+    speed:     c0.spd  || c0.speed   || 12,
+    xp:0, level:1, energy:0, status:null,
     id: Date.now(),
   };
   initCreatureSkills(starter);
-  state.creatures  = [starter];
+  state.creatures         = [starter];
   state.activeCreatureIdx = 0;
-  state.homeRegion = obSelectedRegion;
-  state.currentRegion = obSelectedRegion;
+  state.currentRegion     = obSelectedRegion;
+  state.homeRegion        = obSelectedRegion;
+  state.mapSeed           = Date.now() % 99991;
+  state.map               = generateMap(obSelectedRegion, state.mapSeed);
 
-  // Generate map for chosen region
-  state.mapSeed = Date.now() % 99991;
-  state.map     = generateMap(obSelectedRegion, state.mapSeed);
-  document.getElementById('top-region').textContent = REGIONS[obSelectedRegion]?.name || obSelectedRegion;
-  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[obSelectedRegion]?.name||obSelectedRegion).toUpperCase()}`;
+  document.getElementById('top-region').textContent = REGIONS[obSelectedRegion]?.name||obSelectedRegion;
+  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[obSelectedRegion]?.name||'').toUpperCase()}`;
 
-  // Seed initial fog
-  const INIT_R = 8;
+  const INIT_R=8;
   for(let ey=-INIT_R;ey<=INIT_R;ey++)
     for(let ex=-INIT_R;ex<=INIT_R;ex++)
       if(ex*ex+ey*ey<=INIT_R*INIT_R)
         state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
-  document.getElementById('opening').classList.add('hidden');
-  document.getElementById('game-wrap').style.display = '';
+  document.getElementById('opening').style.display    = 'none';
+  document.getElementById('game-wrap').style.display  = '';
   updateHUD();
 }
 
+// ═══════════════════════════════════════════════════════════
+//  ATTACK CUTSCENE SYSTEM
+// ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 //  ATTACK CUTSCENE SYSTEM
 // ═══════════════════════════════════════════════════════════
@@ -3750,25 +3742,12 @@ function init() {
   // No starter here — opening handles it
 
   // Wire opening screen buttons (must happen after JS fully loaded)
-  obWireButtons();
-  // Show opening screen first
-  obShowPanel(0);
+  // Launch opening screen
+  obGo(0);
   updateHUD();
   requestAnimationFrame(gameLoop);
 
-  // Welcome
-  setTimeout(() => {
-    showDialog(
-      'WELCOME TO WORLDHATCH',
-      'You start in the Suncrest Expanse.\n\n' +
-      'WASD or Arrow keys to move.\n' +
-      'Walk in tall grass for battles.\n' +
-      'Golden tiles are egg nests!\n' +
-      'Press ESC for the menu.\n' +
-      'Press E to interact.',
-      [{ label: 'START!', fn: closeDialog }]
-    );
-  }, 500);
+  // Welcome dialog removed — opening screen handles onboarding
 }
 
 init();
