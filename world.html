@@ -196,7 +196,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 
   <div id="game-canvas-wrap">
     <canvas id="world"></canvas>
-    <div id="minimap"><canvas id="mm" width="60" height="60"></canvas></div>
+    <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
     <div id="encounter-flash"></div>
 
     <!-- SKILL & REST PANEL -->
@@ -325,11 +325,12 @@ const T = {
   NEST:    11,  // egg nest
   NPC:     12,
   CHEST:   13,
+  CAVE_FLOOR: 14,
 };
 
-// ── 16-BIT TILE PALETTE — SNES quality ───────────────────
-// Each tile has base, highlight, shadow, accent colors
-const TILE_PAL = {
+// ── 16-BIT REGION-AWARE TILE PALETTE ─────────────────────
+// Base palette — overridden per-region in getRegionPal()
+const TILE_PAL_BASE = {
   [T.GROUND]: {base:'#3a5c20',hi:'#4a7228',sh:'#2a4418',acc:'#567830'},
   [T.GRASS]:  {base:'#1e7a0a',hi:'#28961a',sh:'#145606',acc:'#32aa22'},
   [T.WALL]:   {base:'#5a4030',hi:'#6e5040',sh:'#3e2c20',acc:'#7a5c44'},
@@ -345,6 +346,58 @@ const TILE_PAL = {
   [T.NPC]:    {base:'#3a5c20',hi:'#2255cc',sh:'#2a4418',acc:'#4477ff'},
   [T.CHEST]:  {base:'#3a5c20',hi:'#cc9900',sh:'#2a4418',acc:'#ffcc00'},
 };
+
+// Region-specific palette overrides
+const REGION_PALETTES = {
+  suncrest_expanse: {
+    [T.GROUND]: {base:'#6a4a10',hi:'#8a6220',sh:'#4a3008',acc:'#aa7828'},
+    [T.GRASS]:  {base:'#7a8820',hi:'#9aaa28',sh:'#5a6410',acc:'#b8cc30'},
+    [T.SAND]:   {base:'#d4a840',hi:'#eecc60',sh:'#b08020',acc:'#ffdd70'},
+    [T.WALL]:   {base:'#885830',hi:'#aa7040',sh:'#664018',acc:'#cc8848'},
+    [T.WATER]:  {base:'#2258c8',hi:'#3a74e8',sh:'#1a3ea0',acc:'#5898ff'},
+    [T.TREE]:   {base:'#4a8010',hi:'#60a018',sh:'#306008',acc:'#80c828'},
+    [T.PATH]:   {base:'#8a6838',hi:'#aa8448',sh:'#6a5028',acc:'#c89850'},
+    [T.CAVE]:   {base:'#2a1408',hi:'#3c2010',sh:'#180c04',acc:'#603018'},
+  },
+  sakurami_highlands: {
+    [T.GROUND]: {base:'#2a4020',hi:'#385430',sh:'#1c2c14',acc:'#4a6838'},
+    [T.GRASS]:  {base:'#306018',hi:'#407c22',sh:'#204010',acc:'#58a830'},
+    [T.TREE]:   {base:'#204a10',hi:'#2c6418',sh:'#143008',acc:'#507828'},
+    [T.WATER]:  {base:'#1838a0',hi:'#2450cc',sh:'#0e2470',acc:'#3870ee'},
+    [T.WALL]:   {base:'#4a3828',hi:'#5e4c38',sh:'#342818',acc:'#726050'},
+    [T.CAVE]:   {base:'#140c22',hi:'#201432',sh:'#0c0816',acc:'#38226a'},
+    [T.FLOWER]: {base:'#2a4020',hi:'#ff88cc',sh:'#1c2c14',acc:'#ffbbee'},
+    [T.PATH]:   {base:'#5a4828',hi:'#726038',sh:'#423418',acc:'#8a7040'},
+  },
+  frostspire_reach: {
+    [T.GROUND]: {base:'#283848',hi:'#384858',sh:'#182838',acc:'#485868'},
+    [T.GRASS]:  {base:'#2a4455',hi:'#385566',sh:'#1c3040',acc:'#4a6a7a'},
+    [T.WATER]:  {base:'#0c2060',hi:'#143080',sh:'#081440',acc:'#2050a8'},
+    [T.WALL]:   {base:'#6878a0',hi:'#8898c0',sh:'#485878',acc:'#a0b8e0'},
+    [T.TREE]:   {base:'#1a3040',hi:'#244050',sh:'#102030',acc:'#305870'},
+    [T.CAVE]:   {base:'#182438',hi:'#243048',sh:'#101828',acc:'#304868'},
+    [T.SAND]:   {base:'#a0b8d0',hi:'#c0d4e8',sh:'#8098b0',acc:'#d8eeff'},
+    [T.PATH]:   {base:'#585868',hi:'#6a6a7a',sh:'#404050',acc:'#7a7a8a'},
+  },
+  shadowmere_hollows: {
+    [T.GROUND]: {base:'#1e1a2a',hi:'#2a2438',sh:'#141020',acc:'#382e4a'},
+    [T.GRASS]:  {base:'#1a2230',hi:'#222c3c',sh:'#101820',acc:'#2c3848'},
+    [T.WATER]:  {base:'#0a0e28',hi:'#121838',sh:'#060810',acc:'#1a2248'},
+    [T.WALL]:   {base:'#2a2030',hi:'#382c40',sh:'#1a1420',acc:'#4a3854'},
+    [T.TREE]:   {base:'#0e1818',hi:'#162222',sh:'#080e0e',acc:'#1e2e2e'},
+    [T.CAVE]:   {base:'#080410',hi:'#0e0818',sh:'#040208',acc:'#1a0e2a'},
+    [T.FLOWER]: {base:'#1e1a2a',hi:'#8844cc',sh:'#141020',acc:'#bb66ff'},
+    [T.PATH]:   {base:'#2a2030',hi:'#38303e',sh:'#1c1422',acc:'#4a3850'},
+  },
+};
+
+function getRegionPal(tile) {
+  const rp = REGION_PALETTES[state.currentRegion];
+  return (rp && rp[tile]) ? rp[tile] : TILE_PAL_BASE[tile] || TILE_PAL_BASE[T.GROUND];
+}
+
+// Keep TILE_PAL as alias for compatibility
+const TILE_PAL = TILE_PAL_BASE;
 
 // ── REGION DEFINITIONS ───────────────────────────────────
 const REGIONS = {
@@ -414,69 +467,155 @@ const REGIONS = {
 };
 
 // ── MAP GENERATOR ────────────────────────────────────────
-const MAP_W = 48;
-const MAP_H = 48;
+const MAP_W = 128;
+const MAP_H = 128;
+
+// ── MULTI-OCTAVE NOISE ────────────────────────────────────
+function noise2(x, y, seed=0) {
+  const s = Math.sin(x*127.1 + y*311.7 + seed*419.3)*43758.5453;
+  return s - Math.floor(s);
+}
+function fbm(x, y, octaves=4, seed=0) {
+  let v=0, a=1, f=1, t=0;
+  for(let i=0;i<octaves;i++){v+=noise2(x*f,y*f,seed+i)*a;t+=a;a*=0.5;f*=2.1;}
+  return v/t;
+}
 
 function generateMap(regionId) {
-  const map    = [];
+  const map    = Array.from({length:MAP_H},()=>new Array(MAP_W).fill(T.GROUND));
   const region = REGIONS[regionId] || REGIONS.suncrest_expanse;
+  const seed   = Object.keys(REGIONS).indexOf(regionId) || 0;
 
-  // Fill base
-  for (let y = 0; y < MAP_H; y++) {
-    map[y] = [];
-    for (let x = 0; x < MAP_W; x++) {
-      const n = noise(x * 0.15, y * 0.15);
-      if (n > 0.6)      map[y][x] = T.WALL;
-      else if (n > 0.4) map[y][x] = T.GRASS;
-      else              map[y][x] = T.GROUND;
+  // ── Terrain base with fractal noise ────────────────────
+  for (let y=0;y<MAP_H;y++) {
+    for (let x=0;x<MAP_W;x++) {
+      const n  = fbm(x*0.04, y*0.04, 4, seed);
+      const n2 = fbm(x*0.08, y*0.08, 3, seed+10);
+      if      (n > 0.72)           map[y][x] = T.WALL;
+      else if (n > 0.55)           map[y][x] = T.GRASS;
+      else if (n < 0.28)           map[y][x] = T.WATER;
+      else if (n2 > 0.65)          map[y][x] = T.TREE;
+      else if (n2 < 0.2)           map[y][x] = T.SAND;
+      else                         map[y][x] = T.GROUND;
     }
   }
 
-  // Carve a path through the middle
-  for (let x = 4; x < MAP_W - 4; x++) map[Math.floor(MAP_H/2)][x] = T.PATH;
-  for (let y = 4; y < MAP_H - 4; y++) map[y][Math.floor(MAP_W/2)] = T.PATH;
+  // ── Road network — cross + diagonals ───────────────────
+  const MH = Math.floor(MAP_H/2), MW = Math.floor(MAP_W/2);
+  // Main cross roads
+  for(let x=4;x<MAP_W-4;x++) if(map[MH][x]!==T.WATER) map[MH][x]=T.PATH;
+  for(let y=4;y<MAP_H-4;y++) if(map[y][MW]!==T.WATER) map[y][MW]=T.PATH;
+  // Secondary roads at 1/4 and 3/4
+  const Q1=Math.floor(MAP_H/4), Q3=Math.floor(MAP_H*3/4);
+  const Q1x=Math.floor(MAP_W/4), Q3x=Math.floor(MAP_W*3/4);
+  for(let x=4;x<MAP_W-4;x++){if(map[Q1][x]!==T.WATER) map[Q1][x]=T.PATH;}
+  for(let x=4;x<MAP_W-4;x++){if(map[Q3][x]!==T.WATER) map[Q3][x]=T.PATH;}
+  for(let y=4;y<MAP_H-4;y++){if(map[y][Q1x]!==T.WATER) map[y][Q1x]=T.PATH;}
+  for(let y=4;y<MAP_H-4;y++){if(map[y][Q3x]!==T.WATER) map[y][Q3x]=T.PATH;}
 
-  // Water body
-  for (let y = 8; y < 14; y++)
-    for (let x = 36; x < 44; x++)
-      map[y][x] = T.WATER;
-
-  // Trees cluster
-  for (let y = 30; y < 38; y++)
-    for (let x = 6; x < 16; x++)
-      if (noise(x * 0.4, y * 0.4) > 0.5) map[y][x] = T.TREE;
-
-  // Points of interest
-  placePoI(map, T.CAVE,   10, 10);
-  placePoI(map, T.SHRINE, 38, 36);
-  placePoI(map, T.RUIN,   14, 38);
-
-  // Egg nests (4 hidden in tall grass)
-  const nestSpots = [[8,6],[40,20],[20,40],[6,34]];
-  nestSpots.forEach(([x,y]) => {
-    if (map[y][x] === T.GRASS || map[y][x] === T.GROUND)
-      map[y][x] = T.NEST;
+  // ── CAVES — 8 cave entrances spread across the map ─────
+  const cavePositions = [
+    [18,18],[108,18],[18,108],[108,108],   // corners
+    [64,18],[64,108],[18,64],[108,64],     // edge mids
+  ];
+  cavePositions.forEach(([cx,cy]) => {
+    // Carve 3x3 cave entrance clearing
+    for(let dy=-2;dy<=2;dy++)
+      for(let dx=-2;dx<=2;dx++) {
+        const nx=cx+dx, ny=cy+dy;
+        if(nx>0&&nx<MAP_W-1&&ny>0&&ny<MAP_H-1)
+          map[ny][nx] = (dx===0&&dy===0) ? T.CAVE : T.GROUND;
+      }
+    // Path leading to cave
+    const toH = cy < MH ? MH : (cy > MH ? cy-1 : cy);
+    for(let y=Math.min(cy,toH);y<=Math.max(cy,toH);y++)
+      if(map[y][cx]!==T.CAVE) map[y][cx]=T.PATH;
   });
 
-  // Flowers scattered
-  for (let i = 0; i < 30; i++) {
-    const x = 2 + Math.floor(Math.random() * (MAP_W - 4));
-    const y = 2 + Math.floor(Math.random() * (MAP_H - 4));
-    if (map[y][x] === T.GROUND) map[y][x] = T.FLOWER;
+  // ── Shrines (4) ─────────────────────────────────────────
+  [[32,32],[96,32],[32,96],[96,96]].forEach(([cx,cy])=>{
+    placePoI(map, T.SHRINE, cx, cy);
+    // Clear a small plaza
+    for(let dy=-3;dy<=3;dy++)
+      for(let dx=-3;dx<=3;dx++)
+        if(map[cy+dy]?.[cx+dx]===T.WALL||map[cy+dy]?.[cx+dx]===T.TREE)
+          if(cx+dx>0&&cx+dx<MAP_W-1&&cy+dy>0&&cy+dy<MAP_H-1)
+            map[cy+dy][cx+dx]=T.GROUND;
+  });
+
+  // ── Ruins (4) ───────────────────────────────────────────
+  [[20,85],[105,42],[42,105],[85,20]].forEach(([cx,cy])=>{
+    placePoI(map, T.RUIN, cx, cy);
+  });
+
+  // ── Large water bodies ──────────────────────────────────
+  // Lake 1
+  for(let y=45;y<60;y++)
+    for(let x=45;x<60;x++)
+      if(fbm(x*0.3,y*0.3,2,seed+5)>0.45) map[y][x]=T.WATER;
+  // Lake 2 — top right
+  for(let y=10;y<25;y++)
+    for(let x=90;x<115;x++)
+      if(fbm(x*0.25,y*0.25,2,seed+8)>0.4) map[y][x]=T.WATER;
+  // River cutting map diagonally
+  for(let i=0;i<MAP_W;i++){
+    const ry = Math.floor(20 + Math.sin(i*0.08)*6);
+    if(ry>0&&ry<MAP_H) map[ry][i]=T.WATER;
+    if(ry+1>0&&ry+1<MAP_H) map[ry+1][i]=T.WATER;
+    // Bridges over roads
+    if(map[ry][i]===T.WATER && (i===MW||i===Q1x||i===Q3x)) map[ry][i]=T.PATH;
+    if(map[ry+1][i]===T.WATER && (i===MW||i===Q1x||i===Q3x)) map[ry+1][i]=T.PATH;
   }
 
-  // Border walls
-  for (let x = 0; x < MAP_W; x++) { map[0][x] = T.WALL; map[MAP_H-1][x] = T.WALL; }
-  for (let y = 0; y < MAP_H; y++) { map[y][0] = T.WALL; map[y][MAP_W-1] = T.WALL; }
+  // ── Dense forest zones ──────────────────────────────────
+  for(let y=70;y<95;y++)
+    for(let x=5;x<40;x++)
+      if(fbm(x*0.15,y*0.15,3,seed+3)>0.5&&map[y][x]===T.GROUND) map[y][x]=T.TREE;
+  for(let y=5;y<35;y++)
+    for(let x=70;x<100;x++)
+      if(fbm(x*0.15,y*0.15,3,seed+7)>0.52&&map[y][x]===T.GROUND) map[y][x]=T.TREE;
+
+  // ── Egg nests — 12 hidden throughout ───────────────────
+  const nestCandidates = [
+    [12,12],[116,12],[12,116],[116,116],
+    [64,30],[30,64],[98,64],[64,98],
+    [40,50],[88,50],[50,88],[78,78],
+  ];
+  nestCandidates.forEach(([x,y]) => {
+    if(map[y]?.[x]!==T.WATER&&map[y]?.[x]!==T.WALL&&map[y]?.[x]!==T.CAVE)
+      map[y][x]=T.NEST;
+  });
+
+  // ── Treasure chests (8) ─────────────────────────────────
+  [[25,25],[103,25],[25,103],[103,103],[64,55],[55,64],[75,64],[64,75]].forEach(([x,y])=>{
+    if(map[y]?.[x]===T.GROUND||map[y]?.[x]===T.GRASS) map[y][x]=T.CHEST;
+  });
+
+  // ── Flower patches ──────────────────────────────────────
+  for(let i=0;i<120;i++){
+    const fx=2+Math.floor(fbm(i*0.3,i*0.7,2,seed+11)*(MAP_W-4));
+    const fy=2+Math.floor(fbm(i*0.7,i*0.3,2,seed+12)*(MAP_H-4));
+    if(map[fy]?.[fx]===T.GROUND) map[fy][fx]=T.FLOWER;
+  }
+
+  // ── Hard border ─────────────────────────────────────────
+  for(let x=0;x<MAP_W;x++){map[0][x]=T.WALL;map[MAP_H-1][x]=T.WALL;}
+  for(let y=0;y<MAP_H;y++){map[y][0]=T.WALL;map[y][MAP_W-1]=T.WALL;}
+
+  // ── Make sure spawn point is clear ──────────────────────
+  for(let dy=-3;dy<=3;dy++)
+    for(let dx=-3;dx<=3;dx++)
+      if(map[64+dy]?.[64+dx]===T.WALL||map[64+dy]?.[64+dx]===T.WATER||map[64+dy]?.[64+dx]===T.TREE)
+        map[64+dy][64+dx]=T.GROUND;
 
   return map;
 }
 
 function placePoI(map, type, cx, cy) {
-  for (let dy = -1; dy <= 1; dy++)
-    for (let dx = -1; dx <= 1; dx++)
-      if (cy+dy >= 0 && cy+dy < MAP_H && cx+dx >= 0 && cx+dx < MAP_W)
-        map[cy+dy][cx+dx] = (dx===0&&dy===0) ? type : T.GROUND;
+  for(let dy=-1;dy<=1;dy++)
+    for(let dx=-1;dx<=1;dx++)
+      if(cy+dy>=0&&cy+dy<MAP_H&&cx+dx>=0&&cx+dx<MAP_W)
+        map[cy+dy][cx+dx]=(dx===0&&dy===0)?type:T.GROUND;
 }
 
 // Simple deterministic noise
@@ -490,7 +629,7 @@ const state = {
   // Player
   playerName:  'Trainer',
   homeRegion:  'suncrest_expanse',
-  px: 24, py: 24,   // player tile position
+  px: 64, py: 64,   // player tile position
   playerDir: 'down',
   moving: false,
   stepCount: 0,
@@ -503,7 +642,7 @@ const state = {
 
   // Time & weather
   time: 8,           // 0-23 hours
-  timeSpeed: 0.002,  // hours per frame
+  timeSpeed: 0.00015, // hours per frame — 1 game-day ≈ 25 real minutes
   weather: 'clear',  // clear, rain, fog, storm
   weatherTimer: 0,
 
@@ -1274,8 +1413,9 @@ function showRegionMenu() {
 function switchRegion(regionId) {
   state.currentRegion = regionId;
   state.map           = generateMap(regionId);
-  state.px = 24; state.py = 24;
-  state.camX = 14; state.camY = 14;
+  state.px = 64; state.py = 64;
+  state.camX = Math.max(0, 64 - Math.floor(VIEW_W/2));
+  state.camY = Math.max(0, 64 - Math.floor(VIEW_H/2));
   state.visitedNests  = new Set();
   state.visitedPoI    = new Set();
   document.getElementById('top-region').textContent = REGIONS[regionId].name;
@@ -1480,7 +1620,7 @@ function p(ctx, x, y, w, h, color) {
 }
 
 function drawTile(ctx, tile, px, py, mx, my) {
-  const pal = TILE_PAL[tile] || TILE_PAL[T.GROUND];
+  const pal = getRegionPal(tile);
   const T24 = TILE;
 
   // Base fill with checkerboard variation
@@ -1500,7 +1640,7 @@ function drawTile(ctx, tile, px, py, mx, my) {
 }
 
 function drawTileDetail(ctx, tile, px, py, mx, my) {
-  const pal  = TILE_PAL[tile] || TILE_PAL[T.GROUND];
+  const pal  = getRegionPal(tile);
   const af   = animFrame;
   const T24  = TILE;
 
@@ -1607,22 +1747,42 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
   }
 
   if (tile === T.CAVE) {
-    // Cave entrance with depth
-    p(ctx, px+4,  py+8,  16, 16, '#000000');
-    p(ctx, px+6,  py+6,  12, 14, '#0a000f');
-    // Rocky arch
-    p(ctx, px+3,  py+6,  4,  4,  pal.acc);
-    p(ctx, px+17, py+6,  4,  4,  pal.acc);
-    p(ctx, px+5,  py+4,  14, 4,  pal.acc);
-    p(ctx, px+6,  py+3,  12, 3,  pal.hi);
-    // Dark glow inside
-    const glow = Math.sin(af*0.05)*0.15+0.15;
-    ctx.fillStyle = `rgba(80,0,120,${glow})`;
-    ctx.fillRect(px+7, py+8, 10, 10);
-    // Stalactites
-    p(ctx, px+8,  py+8,  2, 4, '#221133');
-    p(ctx, px+12, py+8,  2, 3, '#221133');
-    p(ctx, px+16, py+8,  2, 5, '#221133');
+    // Outer rock face
+    p(ctx, px,    py,    T24, T24, pal.sh);
+    p(ctx, px+1,  py+1,  T24-2, T24-2, pal.base);
+    // Wide cave mouth — dark void
+    p(ctx, px+3,  py+10, 18, 14, '#000000');
+    p(ctx, px+4,  py+8,  16, 14, '#05000a');
+    p(ctx, px+5,  py+6,  14, 12, '#08000f');
+    // Arched entrance top
+    p(ctx, px+3,  py+8,  4,  4,  pal.acc);
+    p(ctx, px+17, py+8,  4,  4,  pal.acc);
+    p(ctx, px+4,  py+6,  16, 4,  pal.acc);
+    p(ctx, px+5,  py+4,  14, 4,  pal.hi);
+    p(ctx, px+6,  py+3,  12, 3,  '#ffffff');
+    // Rock texture sides
+    p(ctx, px+1,  py+10, 3,  8,  pal.hi);
+    p(ctx, px+20, py+10, 3,  8,  pal.sh);
+    // Lichen on rocks
+    p(ctx, px+2,  py+6,  3, 2, '#2a5018');
+    p(ctx, px+19, py+8,  3, 2, '#2a5018');
+    // Pulsing inner glow
+    const cglow = Math.sin(af*0.04)*0.2+0.25;
+    const gcols = ['rgba(80,0,120,','rgba(0,60,160,','rgba(120,0,80,','rgba(0,120,60,'];
+    const gi = Object.keys(REGIONS).indexOf(state.currentRegion)%gcols.length;
+    ctx.fillStyle = gcols[gi]+cglow+')';
+    ctx.fillRect(px+6, py+8, 12, 12);
+    // Stalactites hanging from arch
+    p(ctx, px+7,  py+8,  2, 5, '#1a0828');
+    p(ctx, px+11, py+8,  2, 4, '#221133');
+    p(ctx, px+15, py+8,  2, 6, '#1a0828');
+    p(ctx, px+19, py+8,  1, 3, '#221133');
+    // Sign / marker stone
+    p(ctx, px+10, py+2,  4,  4, pal.acc);
+    p(ctx, px+11, py+3,  2,  2, '#ffffff');
+    // Ground at entrance
+    p(ctx, px+4,  py+22, 16, 2, '#1a1020');
+    p(ctx, px+3,  py+22, 18, 1, '#2a1830');
   }
 
   if (tile === T.SHRINE) {
@@ -1830,9 +1990,10 @@ function drawPlayer(ctx) {
 }
 
 function drawMinimap() {
-  const s  = 1;
+  const s  = Math.max(1, Math.floor(90/MAP_W));
+  const off = Math.floor((90 - MAP_W*s)/2);
   mmCtx.fillStyle = '#0a0018';
-  mmCtx.fillRect(0, 0, 60, 60);
+  mmCtx.fillRect(0, 0, 90, 90);
 
   for (let y = 0; y < MAP_H; y++) {
     for (let x = 0; x < MAP_W; x++) {
@@ -1847,18 +2008,18 @@ function drawMinimap() {
       if (tile === T.RUIN)   color = '#333333';
       if (tile === T.NEST)   color = '#aa8800';
       mmCtx.fillStyle = color;
-      mmCtx.fillRect(x * s + 6, y * s + 6, s, s);
+      if(s>=1) mmCtx.fillRect(x * s + off, y * s + off, Math.max(1,s), Math.max(1,s));
     }
   }
 
   // Player dot
   mmCtx.fillStyle = '#ff4444';
-  mmCtx.fillRect(state.px * s + 6 - 1, state.py * s + 6 - 1, 3, 3);
+  mmCtx.fillRect(state.px * s + off - 1, state.py * s + off - 1, 3, 3);
 
   // View rect
   mmCtx.strokeStyle = 'rgba(255,255,255,0.4)';
   mmCtx.lineWidth   = 1;
-  mmCtx.strokeRect(state.camX * s + 6, state.camY * s + 6, VIEW_W * s, VIEW_H * s);
+  mmCtx.strokeRect(state.camX * s + off, state.camY * s + off, VIEW_W * s, VIEW_H * s);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2214,8 +2375,8 @@ function init() {
 
   // Generate starting map
   state.map  = generateMap(state.currentRegion);
-  state.camX = state.px - Math.floor(VIEW_W / 2);
-  state.camY = state.py - Math.floor(VIEW_H / 2);
+  state.camX = Math.max(0, state.px - Math.floor(VIEW_W / 2));
+  state.camY = Math.max(0, state.py - Math.floor(VIEW_H / 2));
 
   document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
   document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
