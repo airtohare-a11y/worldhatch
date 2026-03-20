@@ -412,6 +412,67 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 /* stars bg */
 #menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 
+
+/* ── MOBILE D-PAD ── */
+#dpad{
+  position:fixed;bottom:20px;left:16px;
+  width:140px;height:140px;
+  z-index:500;
+  display:none;
+  touch-action:none;
+  user-select:none;
+}
+#dpad-center{
+  position:absolute;top:50%;left:50%;
+  width:44px;height:44px;
+  transform:translate(-50%,-50%);
+  background:rgba(80,0,140,0.3);
+  border-radius:50%;
+}
+.dpad-btn{
+  position:absolute;
+  width:44px;height:44px;
+  background:rgba(20,0,40,0.75);
+  border:2px solid rgba(180,80,255,0.5);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:rgba(200,140,255,0.9);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+  user-select:none;
+  transition:background 0.08s;
+}
+.dpad-btn:active{background:rgba(100,0,180,0.7);}
+#dpad-up   {top:0;   left:50%;transform:translateX(-50%);}
+#dpad-down {bottom:0;left:50%;transform:translateX(-50%);}
+#dpad-left {left:0;  top:50%; transform:translateY(-50%);}
+#dpad-right{right:0; top:50%; transform:translateY(-50%);}
+
+/* Action buttons */
+#mobile-btns{
+  position:fixed;bottom:20px;right:16px;
+  display:none;flex-direction:column;gap:8px;
+  z-index:500;
+  touch-action:none;
+}
+.mobile-action-btn{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+  background:rgba(20,0,40,0.75);
+  color:rgba(200,140,255,0.9);
+  border:2px solid rgba(180,80,255,0.5);
+  padding:8px 12px;border-radius:6px;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+}
+.mobile-action-btn:active{background:rgba(100,0,180,0.7);}
+
+@media (pointer:coarse),(max-width:600px){
+  #dpad{display:block;}
+  #mobile-btns{display:flex;}
+}
 </style>
 </head>
 <body>
@@ -1544,6 +1605,8 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
   };
 
   state.inBattle = true;
+  const dpadEl = document.getElementById('dpad');
+  if (dpadEl) dpadEl.style.display = 'none';
   const overlay = document.getElementById('battle-overlay');
   overlay.classList.add('show');
 
@@ -2054,15 +2117,22 @@ function endBattle(won, caught) {
 
   setTimeout(() => {
     document.getElementById('battle-overlay').classList.remove('show');
+    const dpadRestore = document.getElementById('dpad');
+    if (dpadRestore && window.matchMedia('(pointer:coarse)').matches) dpadRestore.style.display = 'block';
     document.getElementById('battle-log').innerHTML = '';
     document.getElementById('dice-display').textContent = '';
+    // Sync energy back to stored creature before clearing battleData
+    if (battleData && state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+      state.creatures[state.activeCreatureIdx].energy = battleData.player.energy || 0;
+    }
     battleData = null;
 
     if (!won && !caught) {
-      // Heal to 30% if fainted
+      // Heal to 30% if fainted, reset energy on KO
       if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
         const c = state.creatures[state.activeCreatureIdx];
         c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
+        c.energy    = 0;  // energy resets on KO
       }
     }
     updateHUD();
@@ -3543,6 +3613,34 @@ function init() {
 
   // Show opening menu (wires all buttons, then waits for player)
   menuInit();
+
+  // Mobile D-pad wiring
+  function wireDpad(id, key) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', e => {
+      const menuOpen = document.getElementById('menu-overlay') &&
+                       document.getElementById('menu-overlay').style.display !== 'none';
+      if (menuOpen) return;
+      state.keys[key] = true;
+      e.preventDefault();
+    }, {passive:false});
+    el.addEventListener('touchend',   e => { state.keys[key] = false; e.preventDefault(); }, {passive:false});
+    el.addEventListener('touchcancel',e => { state.keys[key] = false; }, {passive:false});
+    // Also work with mouse for desktop testing
+    el.addEventListener('mousedown',  e => { state.keys[key] = true;  });
+    el.addEventListener('mouseup',    e => { state.keys[key] = false; });
+    el.addEventListener('mouseleave', e => { state.keys[key] = false; });
+  }
+  wireDpad('dpad-up',    'arrowup');
+  wireDpad('dpad-down',  'arrowdown');
+  wireDpad('dpad-left',  'arrowleft');
+  wireDpad('dpad-right', 'arrowright');
+
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  if (menuBtn) menuBtn.addEventListener('touchstart', e => { handleEsc(); e.preventDefault(); }, {passive:false});
+  const actBtn  = document.getElementById('mobile-interact-btn');
+  if (actBtn)  actBtn.addEventListener('touchstart',  e => { handleInteract(); e.preventDefault(); }, {passive:false});
   updateHUD();
   requestAnimationFrame(gameLoop);
 }
@@ -3550,5 +3648,18 @@ function init() {
 init();
 </script>
 
+
+<!-- ── MOBILE D-PAD ── -->
+<div id="dpad">
+  <div id="dpad-center"></div>
+  <div class="dpad-btn" id="dpad-up">▲</div>
+  <div class="dpad-btn" id="dpad-down">▼</div>
+  <div class="dpad-btn" id="dpad-left">◀</div>
+  <div class="dpad-btn" id="dpad-right">▶</div>
+</div>
+<div id="mobile-btns">
+  <button class="mobile-action-btn" id="mobile-menu-btn">MENU</button>
+  <button class="mobile-action-btn" id="mobile-interact-btn">ACTION</button>
+</div>
 </body>
 </html>
