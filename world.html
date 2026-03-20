@@ -422,21 +422,26 @@ const VIEW_H = 10;
 
 // ── TILE TYPES ────────────────────────────────────────────
 const T = {
-  GROUND:  0,
-  GRASS:   1,   // tall grass — triggers encounters
-  WALL:    2,
-  WATER:   3,
-  SAND:    4,
-  PATH:    5,
-  TREE:    6,
-  FLOWER:  7,
-  CAVE:    8,   // point of interest
-  SHRINE:  9,   // point of interest
-  RUIN:    10,  // point of interest
-  NEST:    11,  // egg nest
-  NPC:     12,
-  CHEST:   13,
-  CAVE_FLOOR: 14,
+  GROUND:   0,
+  GRASS:    1,   // tall grass — triggers encounters
+  WALL:     2,
+  WATER:    3,
+  SAND:     4,
+  PATH:     5,
+  TREE:     6,
+  FLOWER:   7,
+  CAVE:     8,   // point of interest
+  SHRINE:   9,   // point of interest
+  RUIN:     10,  // point of interest
+  NEST:     11,  // egg nest
+  NPC:      12,
+  CHEST:    13,
+  CAVE_FLOOR:14,
+  TOWN:     15,  // safe zone — no encounters
+  MINIBOSS: 16,  // mini-boss trigger tile
+  BOSS:     17,  // final boss trigger tile
+  SIGN:     18,  // direction sign
+  BRIDGE:   19,  // bridge over water
 };
 
 // ── 16-BIT REGION-AWARE TILE PALETTE ─────────────────────
@@ -454,8 +459,13 @@ const TILE_PAL_BASE = {
   [T.SHRINE]: {base:'#6a3800',hi:'#8a4c00',sh:'#4a2800',acc:'#cc8820'},
   [T.RUIN]:   {base:'#484840',hi:'#585858',sh:'#303030',acc:'#686860'},
   [T.NEST]:   {base:'#3a2800',hi:'#c89800',sh:'#281800',acc:'#ffcc00'},
-  [T.NPC]:    {base:'#3a5c20',hi:'#2255cc',sh:'#2a4418',acc:'#4477ff'},
-  [T.CHEST]:  {base:'#3a5c20',hi:'#cc9900',sh:'#2a4418',acc:'#ffcc00'},
+  [T.NPC]:     {base:'#3a5c20',hi:'#2255cc',sh:'#2a4418',acc:'#4477ff'},
+  [T.CHEST]:   {base:'#3a5c20',hi:'#cc9900',sh:'#2a4418',acc:'#ffcc00'},
+  [T.TOWN]:    {base:'#7a6a50',hi:'#9a8868',sh:'#5a4c38',acc:'#c8b080'},
+  [T.MINIBOSS]:{base:'#3a0808',hi:'#6a1010',sh:'#200404',acc:'#ff4422'},
+  [T.BOSS]:    {base:'#200008',hi:'#500018',sh:'#100004',acc:'#ff0044'},
+  [T.SIGN]:    {base:'#6a5838',hi:'#8a7448',sh:'#4a3820',acc:'#ffdd88'},
+  [T.BRIDGE]:  {base:'#8a7050',hi:'#aa9060',sh:'#6a5030',acc:'#ccaa70'},
 };
 
 // Region-specific palette overrides
@@ -612,147 +622,260 @@ function fbm(x, y, octaves=4, seed=0) {
   return v/t;
 }
 
-function generateMap(regionId) {
-  const map    = Array.from({length:MAP_H},()=>new Array(MAP_W).fill(T.GROUND));
-  const region = REGIONS[regionId] || REGIONS.suncrest_expanse;
-  const seed   = Object.keys(REGIONS).indexOf(regionId) || 0;
+function generateMap(regionId, forceSeed) {
+  const map  = Array.from({length:MAP_H},()=>new Array(MAP_W).fill(T.WALL));
+  const seed = (forceSeed !== undefined ? forceSeed : Date.now()) % 99991;
 
-  // ── Terrain base with fractal noise ────────────────────
-  for (let y=0;y<MAP_H;y++) {
-    for (let x=0;x<MAP_W;x++) {
-      const n  = fbm(x*0.04, y*0.04, 4, seed);
-      const n2 = fbm(x*0.08, y*0.08, 3, seed+10);
-      if      (n > 0.72)           map[y][x] = T.WALL;
-      else if (n > 0.55)           map[y][x] = T.GRASS;
-      else if (n < 0.28)           map[y][x] = T.WATER;
-      else if (n2 > 0.65)          map[y][x] = T.TREE;
-      else if (n2 < 0.2)           map[y][x] = T.SAND;
-      else                         map[y][x] = T.GROUND;
+  const W = MAP_W, H = MAP_H;
+  const CX = Math.floor(W/2), CY = Math.floor(H/2);
+
+  // ── Seeded RNG — every call with a different n gives a different value
+  function rng(n) {
+    const s = Math.sin(seed*127.1 + n*311.7 + seed*n*0.03) * 43758.5453;
+    return s - Math.floor(s);  // 0..1
+  }
+  function rngRange(n, lo, hi) { return Math.round(lo + rng(n) * (hi - lo)); }
+  function rngPick(n, arr)      { return arr[Math.floor(rng(n)*arr.length)];  }
+
+  // ── Helpers ───────────────────────────────────────────
+  function road(x1,y1,x2,y2,width=4) {
+    const dx=x2-x1, dy=y2-y1;
+    const steps=Math.max(Math.abs(dx),Math.abs(dy));
+    for(let i=0;i<=steps;i++){
+      const tx=Math.round(x1+dx*(i/steps));
+      const ty=Math.round(y1+dy*(i/steps));
+      for(let oy=-width;oy<=width;oy++)
+        for(let ox=-width;ox<=width;ox++)
+          if(tx+ox>0&&tx+ox<W-1&&ty+oy>0&&ty+oy<H-1)
+            map[ty+oy][tx+ox]=T.PATH;
     }
   }
 
-  // ── Road network — cross + diagonals ───────────────────
-  const MH = Math.floor(MAP_H/2), MW = Math.floor(MAP_W/2);
-  // Main cross roads
-  for(let x=4;x<MAP_W-4;x++) if(map[MH][x]!==T.WATER) map[MH][x]=T.PATH;
-  for(let y=4;y<MAP_H-4;y++) if(map[y][MW]!==T.WATER) map[y][MW]=T.PATH;
-  // Secondary roads at 1/4 and 3/4
-  const Q1=Math.floor(MAP_H/4), Q3=Math.floor(MAP_H*3/4);
-  const Q1x=Math.floor(MAP_W/4), Q3x=Math.floor(MAP_W*3/4);
-  for(let x=4;x<MAP_W-4;x++){if(map[Q1][x]!==T.WATER) map[Q1][x]=T.PATH;}
-  for(let x=4;x<MAP_W-4;x++){if(map[Q3][x]!==T.WATER) map[Q3][x]=T.PATH;}
-  for(let y=4;y<MAP_H-4;y++){if(map[y][Q1x]!==T.WATER) map[y][Q1x]=T.PATH;}
-  for(let y=4;y<MAP_H-4;y++){if(map[y][Q3x]!==T.WATER) map[y][Q3x]=T.PATH;}
+  function fill(cx,cy,rw,rh,tile=T.GROUND) {
+    for(let y=cy-rh;y<=cy+rh;y++)
+      for(let x=cx-rw;x<=cx+rw;x++)
+        if(x>0&&x<W-1&&y>0&&y<H-1) map[y][x]=tile;
+  }
 
-  // ── CAVES — 8 cave entrances spread across the map ─────
-  const cavePositions = [
-    [18,18],[108,18],[18,108],[108,108],   // corners
-    [64,18],[64,108],[18,64],[108,64],     // edge mids
-  ];
-  cavePositions.forEach(([cx,cy]) => {
-    // Carve 3x3 cave entrance clearing
-    for(let dy=-2;dy<=2;dy++)
-      for(let dx=-2;dx<=2;dx++) {
-        const nx=cx+dx, ny=cy+dy;
-        if(nx>0&&nx<MAP_W-1&&ny>0&&ny<MAP_H-1)
-          map[ny][nx] = (dx===0&&dy===0) ? T.CAVE : T.GROUND;
+  function zone(cx,cy,rw,rh) {
+    for(let y=cy-rh;y<=cy+rh;y++)
+      for(let x=cx-rw;x<=cx+rw;x++) {
+        if(x<=0||x>=W-1||y<=0||y>=H-1) continue;
+        if(map[y][x]!==T.WALL) continue;
+        const n=fbm(x*0.1+seed*0.01, y*0.1+seed*0.01, 3, seed);
+        map[y][x] = n>0.6?T.TREE : n>0.44?T.GRASS : T.GROUND;
       }
-    // Path leading to cave
-    const toH = cy < MH ? MH : (cy > MH ? cy-1 : cy);
-    for(let y=Math.min(cy,toH);y<=Math.max(cy,toH);y++)
-      if(map[y][cx]!==T.CAVE) map[y][cx]=T.PATH;
-  });
-
-  // ── Shrines (4) ─────────────────────────────────────────
-  [[32,32],[96,32],[32,96],[96,96]].forEach(([cx,cy])=>{
-    placePoI(map, T.SHRINE, cx, cy);
-    // Clear a small plaza
-    for(let dy=-3;dy<=3;dy++)
-      for(let dx=-3;dx<=3;dx++)
-        if(map[cy+dy]?.[cx+dx]===T.WALL||map[cy+dy]?.[cx+dx]===T.TREE)
-          if(cx+dx>0&&cx+dx<MAP_W-1&&cy+dy>0&&cy+dy<MAP_H-1)
-            map[cy+dy][cx+dx]=T.GROUND;
-  });
-
-  // ── Ruins (4) ───────────────────────────────────────────
-  [[20,85],[105,42],[42,105],[85,20]].forEach(([cx,cy])=>{
-    placePoI(map, T.RUIN, cx, cy);
-  });
-
-  // ── Large water bodies ──────────────────────────────────
-  // Lake 1
-  for(let y=45;y<60;y++)
-    for(let x=45;x<60;x++)
-      if(fbm(x*0.3,y*0.3,2,seed+5)>0.45) map[y][x]=T.WATER;
-  // Lake 2 — top right
-  for(let y=10;y<25;y++)
-    for(let x=90;x<115;x++)
-      if(fbm(x*0.25,y*0.25,2,seed+8)>0.4) map[y][x]=T.WATER;
-  // River cutting map diagonally
-  for(let i=0;i<MAP_W;i++){
-    const ry = Math.floor(20 + Math.sin(i*0.08)*6);
-    if(ry>0&&ry<MAP_H) map[ry][i]=T.WATER;
-    if(ry+1>0&&ry+1<MAP_H) map[ry+1][i]=T.WATER;
-    // Bridges over roads
-    if(map[ry][i]===T.WATER && (i===MW||i===Q1x||i===Q3x)) map[ry][i]=T.PATH;
-    if(map[ry+1][i]===T.WATER && (i===MW||i===Q1x||i===Q3x)) map[ry+1][i]=T.PATH;
   }
 
-  // ── Dense forest zones ──────────────────────────────────
-  for(let y=70;y<95;y++)
-    for(let x=5;x<40;x++)
-      if(fbm(x*0.15,y*0.15,3,seed+3)>0.5&&map[y][x]===T.GROUND) map[y][x]=T.TREE;
-  for(let y=5;y<35;y++)
-    for(let x=70;x<100;x++)
-      if(fbm(x*0.15,y*0.15,3,seed+7)>0.52&&map[y][x]===T.GROUND) map[y][x]=T.TREE;
-
-  // ── Egg nests — 12 hidden throughout ───────────────────
-  const nestCandidates = [
-    [12,12],[116,12],[12,116],[116,116],
-    [64,30],[30,64],[98,64],[64,98],
-    [40,50],[88,50],[50,88],[78,78],
-  ];
-  nestCandidates.forEach(([x,y]) => {
-    if(map[y]?.[x]!==T.WATER&&map[y]?.[x]!==T.WALL&&map[y]?.[x]!==T.CAVE)
-      map[y][x]=T.NEST;
-  });
-
-  // ── Treasure chests (8) ─────────────────────────────────
-  [[25,25],[103,25],[25,103],[103,103],[64,55],[55,64],[75,64],[64,75]].forEach(([x,y])=>{
-    if(map[y]?.[x]===T.GROUND||map[y]?.[x]===T.GRASS) map[y][x]=T.CHEST;
-  });
-
-  // ── Flower patches ──────────────────────────────────────
-  for(let i=0;i<120;i++){
-    const fx=2+Math.floor(fbm(i*0.3,i*0.7,2,seed+11)*(MAP_W-4));
-    const fy=2+Math.floor(fbm(i*0.7,i*0.3,2,seed+12)*(MAP_H-4));
-    if(map[fy]?.[fx]===T.GROUND) map[fy][fx]=T.FLOWER;
+  function pond(cx,cy,rx,ry) {
+    for(let y=cy-ry;y<=cy+ry;y++)
+      for(let x=cx-rx;x<=cx+rx;x++){
+        if(x<=0||x>=W-1||y<=0||y>=H-1) continue;
+        const dx=(x-cx)/rx, dy=(y-cy)/ry;
+        if(dx*dx+dy*dy<1) map[y][x]=T.WATER;
+      }
   }
 
-  // ── Hard border ─────────────────────────────────────────
-  for(let x=0;x<MAP_W;x++){map[0][x]=T.WALL;map[MAP_H-1][x]=T.WALL;}
-  for(let y=0;y<MAP_H;y++){map[y][0]=T.WALL;map[y][MAP_W-1]=T.WALL;}
+  function safe(x,y,r=3) {
+    // Clear wall/water in a radius so path isn't blocked
+    for(let dy=-r;dy<=r;dy++)
+      for(let dx=-r;dx<=r;dx++) {
+        const nx=x+dx, ny=y+dy;
+        if(nx>0&&nx<W-1&&ny>0&&ny<H-1&&(map[ny][nx]===T.WALL||map[ny][nx]===T.WATER))
+          map[ny][nx]=T.GROUND;
+      }
+  }
 
-  // ── Make sure spawn point is clear ──────────────────────
-  for(let dy=-3;dy<=3;dy++)
-    for(let dx=-3;dx<=3;dx++)
-      if(map[64+dy]?.[64+dx]===T.WALL||map[64+dy]?.[64+dx]===T.WATER||map[64+dy]?.[64+dx]===T.TREE)
-        map[64+dy][64+dx]=T.GROUND;
+  function placeNest(x,y) {
+    const cx=Math.max(4,Math.min(W-5,Math.round(x)));
+    const cy=Math.max(4,Math.min(H-5,Math.round(y)));
+    for(let r=0;r<=8;r++)
+      for(let a=0;a<8;a++){
+        const nx=cx+Math.round(Math.cos(a*Math.PI/4)*r);
+        const ny=cy+Math.round(Math.sin(a*Math.PI/4)*r);
+        if(nx>0&&nx<W-1&&ny>0&&ny<H-1){
+          const t=map[ny][nx];
+          if(t===T.GROUND||t===T.GRASS||t===T.PATH){
+            map[ny][nx]=T.NEST; return;
+          }
+        }
+      }
+  }
+
+  // ══════════════════════════════════════════════════════
+  //  HUB TOWN — always centred, layout varies
+  // ══════════════════════════════════════════════════════
+  const townW = rngRange(1, 7, 11);
+  const townH = rngRange(2, 5, 8);
+  fill(CX, CY, townW, townH, T.TOWN);
+
+  // Town buildings — vary count and spacing
+  const bSpacing = rngRange(3, 3, 5);
+  for(let bx=CX-townW+1; bx<=CX+townW-1; bx+=bSpacing)
+    for(let by=CY-townH+1; by<=CY+townH-1; by+=bSpacing)
+      if(Math.abs(bx-CX)>3||Math.abs(by-CY)>2)
+        fill(bx, by, 1, 1, T.WALL);
+
+  // Shrine + chests
+  map[CY-2][CX]        = T.SHRINE;
+  map[CY+townH-1][CX-townW+2] = T.CHEST;
+  map[CY+townH-1][CX+townW-2] = T.CHEST;
+  // Direction signs
+  map[CY][CX+townW+1]  = T.SIGN;
+  map[CY][CX-townW-1]  = T.SIGN;
+  map[CY-townH-1][CX]  = T.SIGN;
+  map[CY+townH+1][CX]  = T.SIGN;
+
+  // ══════════════════════════════════════════════════════
+  //  SPOKE ZONES — length, width, and sub-features seeded
+  // ══════════════════════════════════════════════════════
+
+  // ── NORTH SPOKE ───────────────────────────────────────
+  const northLen  = rngRange(10, 22, 42);      // how far north the zone centre is
+  const northJog  = rngRange(11, -16, 16);     // lateral offset of zone centre
+  const NCX = CX + northJog;
+  const NCY = CY - northLen;
+  const northRW   = rngRange(12, 16, 28);
+  const northRH   = rngRange(13, 10, 18);
+  road(CX, CY-townH-1, NCX, NCY, rngRange(14,3,5));
+  zone(NCX, NCY, northRW, northRH);
+  // Mini-boss
+  const nmbX = NCX + rngRange(15,-8,8);
+  const nmbY = NCY - rngRange(16,4,10);
+  safe(nmbX, nmbY); map[Math.max(2,nmbY)][Math.max(2,nmbX)] = T.MINIBOSS;
+  // Caves (1 or 2)
+  const nCaves = rngRange(17, 1, 2);
+  for(let i=0;i<nCaves;i++){
+    const cx=NCX+rngRange(18+i*3,-northRW+4,northRW-4);
+    const cy=NCY+rngRange(19+i*3,-northRH+4,northRH-4);
+    safe(cx,cy); map[cy][cx]=T.CAVE;
+  }
+  // Water (50% chance)
+  if(rng(20)>0.5) pond(NCX+rngRange(21,-10,10), NCY+rngRange(22,-6,6), rngRange(23,4,8), rngRange(24,3,5));
+  // Ruins (50%)
+  if(rng(25)>0.5){ const rx=NCX+rngRange(26,-12,12),ry=NCY+rngRange(27,0,8); safe(rx,ry,2); map[ry][rx]=T.RUIN; }
+  // Nests
+  placeNest(NCX+rngRange(28,-northRW+2,northRW-2), NCY+rngRange(29,-northRH+2,northRH-2));
+  placeNest(NCX+rngRange(30,-northRW+2,northRW-2), NCY+rngRange(31,-northRH+2,northRH-2));
+
+  // ── EAST SPOKE ────────────────────────────────────────
+  const eastLen   = rngRange(40, 22, 42);
+  const eastJog   = rngRange(41, -16, 16);
+  const EZX = CX + eastLen;
+  const EZY = CY + eastJog;
+  const eastRW    = rngRange(42, 14, 24);
+  const eastRH    = rngRange(43, 16, 28);
+  road(CX+townW+1, CY, EZX, EZY, rngRange(44,3,5));
+  zone(EZX, EZY, eastRW, eastRH);
+  // Mini-boss
+  const embX = EZX+rngRange(45,4,10); const embY = EZY+rngRange(46,-8,8);
+  safe(embX,embY); map[Math.min(H-2,embY)][Math.min(W-2,embX)]=T.MINIBOSS;
+  // Ruins or shrine (varies)
+  const eastPoI = rngPick(47,[T.RUIN,T.SHRINE,T.RUIN]);
+  const epX=EZX+rngRange(48,-eastRW+4,eastRW-4), epY=EZY+rngRange(49,-eastRH+4,eastRH-4);
+  safe(epX,epY,2); map[epY][epX]=eastPoI;
+  // Cave
+  const ecX=EZX+rngRange(50,-eastRW+3,eastRW-3), ecY=EZY+rngRange(51,-eastRH+3,eastRH-3);
+  safe(ecX,ecY); map[ecY][ecX]=T.CAVE;
+  // Water
+  if(rng(52)>0.4) pond(EZX+rngRange(53,-8,8), EZY+rngRange(54,-8,8), rngRange(55,4,8), rngRange(56,3,5));
+  // Nests
+  placeNest(EZX+rngRange(57,-eastRW+2,eastRW-2), EZY+rngRange(58,-eastRH+2,eastRH-2));
+  placeNest(EZX+rngRange(59,-eastRW+2,eastRW-2), EZY+rngRange(60,-eastRH+2,eastRH-2));
+
+  // ── WEST SPOKE ────────────────────────────────────────
+  const westLen   = rngRange(70, 22, 42);
+  const westJog   = rngRange(71, -16, 16);
+  const WZX = CX - westLen;
+  const WZY = CY + westJog;
+  const westRW    = rngRange(72, 14, 24);
+  const westRH    = rngRange(73, 16, 28);
+  road(CX-townW-1, CY, WZX, WZY, rngRange(74,3,5));
+  zone(WZX, WZY, westRW, westRH);
+  // Mini-boss
+  const wmbX=WZX-rngRange(75,4,10); const wmbY=WZY+rngRange(76,-8,8);
+  safe(wmbX,wmbY); map[Math.min(H-2,Math.max(2,wmbY))][Math.max(2,wmbX)]=T.MINIBOSS;
+  // Shrine
+  const wsX=WZX+rngRange(77,-westRW+4,westRW-4), wsY=WZY+rngRange(78,-westRH+4,westRH-4);
+  safe(wsX,wsY,2); map[wsY][wsX]=T.SHRINE;
+  // Cave
+  const wcX=WZX+rngRange(79,-westRW+3,westRW-3), wcY=WZY+rngRange(80,-westRH+3,westRH-3);
+  safe(wcX,wcY); map[wcY][wcX]=T.CAVE;
+  // Lake + bridge
+  const lakeX=WZX+rngRange(81,-8,8), lakeY=WZY+rngRange(82,-8,8);
+  pond(lakeX, lakeY, rngRange(83,5,9), rngRange(84,3,6));
+  bridge(map, lakeX, lakeY, rng(85)>0.5);
+  // Nests
+  placeNest(WZX+rngRange(86,-westRW+2,westRW-2), WZY+rngRange(87,-westRH+2,westRH-2));
+  placeNest(WZX+rngRange(88,-westRW+2,westRW-2), WZY+rngRange(89,-westRH+2,westRH-2));
+
+  // ── SOUTH SPOKE → BOSS GAUNTLET ──────────────────────
+  const southLen  = rngRange(90, 30, 48);
+  const southJog  = rngRange(91, -10, 10);
+  const SGX = CX + southJog;
+  const SGY = CY + southLen;
+  road(CX, CY+townH+1, SGX, SGY-8, rngRange(92,3,5));
+  // Pre-boss dense zone
+  const preW=rngRange(93,14,22), preH=rngRange(94,8,14);
+  zone(SGX, SGY-14, preW, preH);
+  // Pre-boss mini-boss
+  safe(SGX, SGY-15);
+  map[Math.min(H-2,SGY-15)][Math.min(W-2,Math.max(2,SGX))]=T.MINIBOSS;
+  // Checkpoint chests
+  map[Math.min(H-2,SGY-22)][Math.max(2,SGX-6)]=T.CHEST;
+  map[Math.min(H-2,SGY-22)][Math.min(W-2,SGX+6)]=T.CHEST;
+
+  // ── FINAL BOSS ARENA ──────────────────────────────────
+  const arenaW=rngRange(95,10,16), arenaH=rngRange(96,8,12);
+  fill(SGX, SGY, arenaW, arenaH, T.GROUND);
+  road(SGX, SGY-8, SGX, SGY-arenaH-1, 3);
+  // Arena walls
+  for(let ax=SGX-arenaW-2;ax<=SGX+arenaW+2;ax++){
+    if(SGY-arenaH-2>=0) map[SGY-arenaH-2][Math.min(W-2,Math.max(2,ax))]=T.WALL;
+    if(SGY+arenaH+2<H)  map[SGY+arenaH+2][Math.min(W-2,Math.max(2,ax))]=T.WALL;
+  }
+  for(let ay=SGY-arenaH-2;ay<=SGY+arenaH+2;ay++){
+    if(SGX-arenaW-2>=0) map[Math.min(H-2,ay)][SGX-arenaW-2]=T.WALL;
+    if(SGX+arenaW+2<W)  map[Math.min(H-2,ay)][SGX+arenaW+2]=T.WALL;
+  }
+  // Gate open in arena wall
+  for(let gx=SGX-2;gx<=SGX+2;gx++)
+    if(SGY-arenaH-2>=0) map[SGY-arenaH-2][Math.min(W-2,Math.max(2,gx))]=T.PATH;
+  // Boss tile + trophy chests
+  map[Math.min(H-2,SGY)][Math.min(W-2,Math.max(2,SGX))]=T.BOSS;
+  map[Math.min(H-2,SGY+arenaH-2)][Math.max(2,SGX-arenaW+2)]=T.CHEST;
+  map[Math.min(H-2,SGY+arenaH-2)][Math.min(W-2,SGX+arenaW-2)]=T.CHEST;
+
+  // ── BONUS HIDDEN NEST ─────────────────────────────────
+  placeNest(CX+rngRange(100,-40,40), CY+rngRange(101,-40,40));
+
+  // ── SCATTER FLOWERS ───────────────────────────────────
+  for(let i=0;i<60;i++){
+    const fx=rngRange(200+i,4,W-5), fy=rngRange(300+i,4,H-5);
+    if(map[fy][fx]===T.GROUND) map[fy][fx]=T.FLOWER;
+  }
+
+  // ── HARD BORDER ───────────────────────────────────────
+  for(let x=0;x<W;x++){map[0][x]=T.WALL;map[H-1][x]=T.WALL;}
+  for(let y=0;y<H;y++){map[y][0]=T.WALL;map[y][W-1]=T.WALL;}
+
+  // ── CLEAR SPAWN ───────────────────────────────────────
+  safe(CX, CY, 4);
+  for(let dy=-2;dy<=2;dy++)
+    for(let dx=-2;dx<=2;dx++)
+      if(map[CY+dy]?.[CX+dx]!==T.SHRINE&&map[CY+dy]?.[CX+dx]!==T.CHEST)
+        map[CY+dy][CX+dx]=T.TOWN;
 
   return map;
 }
 
-function placePoI(map, type, cx, cy) {
-  for(let dy=-1;dy<=1;dy++)
-    for(let dx=-1;dx<=1;dx++)
-      if(cy+dy>=0&&cy+dy<MAP_H&&cx+dx>=0&&cx+dx<MAP_W)
-        map[cy+dy][cx+dx]=(dx===0&&dy===0)?type:T.GROUND;
-}
 
-// Simple deterministic noise
-function noise(x, y) {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return s - Math.floor(s);
+function bridge(map, cx, cy, horizontal) {
+  if(horizontal){
+    for(let x=cx-7;x<=cx+7;x++) if(map[cy]?.[x]===T.WATER) map[cy][x]=T.BRIDGE;
+  } else {
+    for(let y=cy-5;y<=cy+5;y++) if(map[y]?.[cx]===T.WATER) map[y][cx]=T.BRIDGE;
+  }
 }
 
 // ── GAME STATE ────────────────────────────────────────────
@@ -768,8 +891,12 @@ const state = {
   // World
   currentRegion: 'suncrest_expanse',
   map: [],
-  visitedNests: new Set(),
-  visitedPoI:   new Set(),
+  mapSeed: 0,
+  visitedNests:    new Set(),
+  visitedPoI:      new Set(),
+  defeatedBosses:  new Set(),
+  // Fog of war — tiles the player has been near
+  exploredTiles: new Set(),
 
   // Time & weather
   time: 8,           // 0-23 hours
@@ -871,11 +998,20 @@ function handleMovement(dt) {
   state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
   state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
 
-  // Grass encounter check
+  // Mark nearby tiles as explored (fog of war radius = 6 tiles)
+  const FOG_R = 6;
+  for(let ey=-FOG_R;ey<=FOG_R;ey++)
+    for(let ex=-FOG_R;ex<=FOG_R;ex++)
+      if(ex*ex+ey*ey <= FOG_R*FOG_R)
+        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  // Grass encounter check — not in town tiles
   if (tile === T.GRASS && Math.random() < 0.12) {
     triggerEncounter();
     return;
   }
+  // No encounters on town, path to boss, or bridge
+  if (tile === T.TOWN || tile === T.BRIDGE) return;
 
   // Nest check
   if (tile === T.NEST) {
@@ -891,6 +1027,37 @@ function handleMovement(dt) {
     const poiKey = `${nx},${ny}`;
     if (!state.visitedPoI.has(poiKey)) {
       triggerPoI(tile);
+    }
+  }
+
+  // Town — safe zone message first visit
+  if (tile === T.TOWN) {
+    const townKey = `town_${state.currentRegion}`;
+    if (!state.visitedPoI.has(townKey)) {
+      state.visitedPoI.add(townKey);
+      showDialog('TOWN CENTER',
+        'You reached the town!\nThis is a safe zone — no wild encounters here.\n\nRest, heal, and plan your route:\n  NORTH — Cave Zone (mini-boss)\n  EAST  — Ruins Zone (mini-boss)\n  WEST  — Shrine Zone (mini-boss)\n  SOUTH — Boss Gauntlet',
+        [{label:'Explore!', fn:closeDialog}]);
+    }
+  }
+
+  // Mini-boss
+  if (tile === T.MINIBOSS) {
+    const bKey = `mb_${nx}_${ny}`;
+    if (!state.defeatedBosses.has(bKey)) {
+      triggerMiniBoss(bKey);
+    }
+  }
+
+  // Final boss
+  if (tile === T.BOSS) {
+    const bKey = `boss_${state.currentRegion}`;
+    if (!state.defeatedBosses.has(bKey)) {
+      triggerFinalBoss(bKey);
+    } else {
+      showDialog('BOSS DEFEATED',
+        'You have already defeated the boss of this region!\nTravel to another region for a new challenge.',
+        [{label:'OK', fn:closeDialog}]);
     }
   }
 
@@ -977,6 +1144,87 @@ function triggerEggFind() {
     [{ label: 'Great!', fn: closeDialog }]
   );
   updateHUD();
+}
+
+function triggerMiniBoss(bossKey) {
+  const region   = REGIONS[state.currentRegion];
+  // Mini-boss is a rare creature from the region, scaled up
+  const pool     = region.creatures.filter(c => c.rarity === 'rare' || c.rarity === 'uncommon');
+  const template = pool[Math.floor(Math.random() * pool.length)] || region.creatures[region.creatures.length-2];
+  const lvl      = Math.max(5, (state.creatures[state.activeCreatureIdx]?.level||1) + 3);
+  const mult     = 1 + (lvl-1)*0.12;
+  const boss = {
+    ...template,
+    name:      `[MINI] ${template.name}`,
+    level:     lvl,
+    currentHp: Math.round(template.hp * mult * 1.5),
+    maxHp:     Math.round(template.hp * mult * 1.5),
+    attack:    Math.round(template.atk * mult * 1.2),
+    defense:   Math.round(template.def * mult),
+    speed:     template.spd,
+    energy:    0, status:null,
+    isBoss:    true,
+    bossKey,
+  };
+
+  const flash = document.getElementById('encounter-flash');
+  flash.style.background='#ff4400';
+  flash.style.opacity='0.7';
+  setTimeout(()=>{flash.style.opacity='0';flash.style.background='#ffffff';},300);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    showDialog(
+      '⚠ MINI-BOSS APPEARED!',
+      `${boss.name} (Lv${boss.level}) blocks the path!\nHP: ${boss.maxHp}  ATK: ${boss.attack}\n\nDefeat it to clear this zone.`,
+      [
+        { label: 'FIGHT!', fn: () => { closeDialog(); startBattle(state.creatures[state.activeCreatureIdx], boss, false); }},
+        { label: 'Retreat', fn: closeDialog },
+      ]
+    );
+  } else {
+    showDialog('⚠ MINI-BOSS!', `${boss.name} blocks the path! You need a creature to fight it.`, [{label:'Retreat', fn:closeDialog}]);
+  }
+}
+
+function triggerFinalBoss(bossKey) {
+  const region   = REGIONS[state.currentRegion];
+  const template = region.creatures[region.creatures.length-1]; // legendary
+  const lvl      = Math.max(10, (state.creatures[state.activeCreatureIdx]?.level||1) + 6);
+  const mult     = 1 + (lvl-1)*0.15;
+  const boss = {
+    ...template,
+    name:      `${template.name.toUpperCase()} [BOSS]`,
+    level:     lvl,
+    currentHp: Math.round(template.hp * mult * 2),
+    maxHp:     Math.round(template.hp * mult * 2),
+    attack:    Math.round(template.atk * mult * 1.4),
+    defense:   Math.round(template.def * mult * 1.2),
+    speed:     template.spd,
+    energy:    50,  // boss starts with energy already charged
+    status:    null,
+    isBoss:    true,
+    isFinalBoss: true,
+    bossKey,
+  };
+
+  const flash = document.getElementById('encounter-flash');
+  flash.style.background='#ff0044';
+  flash.style.opacity='1';
+  setTimeout(()=>{flash.style.opacity='0.5';},150);
+  setTimeout(()=>{flash.style.opacity='0';flash.style.background='#ffffff';},400);
+
+  if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+    showDialog(
+      '💀 FINAL BOSS!',
+      `${boss.name} (Lv${boss.level})\nHP: ${boss.maxHp}  ATK: ${boss.attack}\n\nThe guardian of ${region.name} stands before you.\nThis is the ultimate challenge of this region!`,
+      [
+        { label: '⚔ CHALLENGE!', fn: () => { closeDialog(); startBattle(state.creatures[state.activeCreatureIdx], boss, false); }},
+        { label: 'Not yet...', fn: closeDialog },
+      ]
+    );
+  } else {
+    showDialog('💀 FINAL BOSS!', `${boss.name} awaits. You need a creature to battle it!`, [{label:'Flee', fn:closeDialog}]);
+  }
 }
 
 function triggerPoI(tileType) {
@@ -1160,8 +1408,44 @@ async function playerAction(actionId) {
   disableMoveButtons(true);
 
   if (actionId === 'run') {
-    blogLog('You ran away!', 'log-info');
-    endBattle(false, false);
+    // Bosses cannot be fled
+    if (battleData.enemy.isBoss) {
+      blogLog('You cannot run from a boss!', 'log-miss');
+      disableMoveButtons(false);
+      buildMoveButtons();
+      return;
+    }
+
+    const runRoll  = rollD20();
+    const spdBonus = Math.floor((battleData.player.speed || 10) / 10);
+    const total    = runRoll + spdBonus;
+    await showDice(runRoll, 'ESCAPE ROLL');
+    blogLog(`Escape roll: ${runRoll} + SPD bonus ${spdBonus} = ${total}`, 'log-info');
+
+    if (total >= 10) {
+      blogLog(`Got away safely! (needed 10, got ${total})`, 'log-crit');
+      endBattle(false, false);
+    } else {
+      // Failed escape — enemy gets a free hit
+      const margin  = 10 - total;
+      const dmg     = Math.max(1, Math.round(battleData.enemy.attack * (margin / 10)));
+      battleData.player.currentHp = Math.max(0, battleData.player.currentHp - dmg);
+      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+        state.creatures[state.activeCreatureIdx].currentHp = battleData.player.currentHp;
+      }
+      flashHit('player');
+      blogLog(`Escape FAILED! (needed 10, got ${total}) — took ${dmg} damage!`, 'log-miss');
+      updateBattleUI();
+
+      if (battleData.player.currentHp <= 0) {
+        blogLog(`${battleData.player.name} fainted while fleeing!`, 'log-miss');
+        endBattle(false, false);
+        return;
+      }
+      // Turn passes to enemy after failed escape
+      battleData.turn = 'enemy';
+      setTimeout(enemyTurn, 800);
+    }
     return;
   }
 
@@ -1236,6 +1520,15 @@ async function playerAction(actionId) {
       }
     }
     state.coins += Math.floor(battleData.enemy.level * 3);
+    // Mark boss as defeated
+    if (battleData.enemy.bossKey) {
+      state.defeatedBosses.add(battleData.enemy.bossKey);
+      const reward = battleData.enemy.isFinalBoss ? 200 : 50;
+      state.coins += reward;
+      blogLog(battleData.enemy.isFinalBoss
+        ? `REGION BOSS DEFEATED! +${reward} coins! Region cleared!`
+        : `Mini-boss defeated! +${reward} coins! Path cleared!`, 'log-crit');
+    }
     endBattle(true, false);
     return;
   }
@@ -1601,12 +1894,15 @@ function showRegionMenu() {
 
 function switchRegion(regionId) {
   state.currentRegion = regionId;
-  state.map           = generateMap(regionId);
+  state.mapSeed       = Date.now() % 99991;
+  state.map           = generateMap(regionId, state.mapSeed);
   state.px = 64; state.py = 64;
   state.camX = Math.max(0, 64 - Math.floor(VIEW_W/2));
   state.camY = Math.max(0, 64 - Math.floor(VIEW_H/2));
-  state.visitedNests  = new Set();
-  state.visitedPoI    = new Set();
+  state.visitedNests    = new Set();
+  state.visitedPoI      = new Set();
+  state.exploredTiles   = new Set();
+  // Don't reset defeatedBosses — they persist across region visits
   document.getElementById('top-region').textContent = REGIONS[regionId].name;
   document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[regionId].name.toUpperCase()}`;
 }
@@ -2065,6 +2361,76 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
     p(ctx, px+19, py+10, 1, 5, '#2a7010');
   }
 
+  if (tile === T.TOWN) {
+    // Cobblestone plaza
+    const row2 = my % 2, col2 = mx % 2;
+    p(ctx, px, py, T24, T24, row2===col2 ? '#8a7858' : '#9a8868');
+    p(ctx, px, py, T24, 2, '#aa9878');
+    p(ctx, px, py, 2, T24, '#aa9878');
+    p(ctx, px+T24-2, py, 2, T24, '#6a5838');
+    p(ctx, px, py+T24-2, T24, 2, '#6a5838');
+    // Cobble joints
+    p(ctx, px+11, py, 2, T24, '#6a5030');
+    p(ctx, px, py+11, T24, 2, '#6a5030');
+  }
+
+  if (tile === T.BRIDGE) {
+    // Wooden bridge planks
+    p(ctx, px, py+4, T24, T24-8, '#8a6030');
+    for(let i=0;i<4;i++) p(ctx,px+i*6,py+4,4,T24-8,'#9a7040');
+    p(ctx, px, py+4, T24, 3, '#aa8848');
+    p(ctx, px, py+T24-7, T24, 3, '#6a4820');
+    // Rope rails
+    p(ctx, px, py+2, T24, 2, '#cc9944');
+    p(ctx, px, py+T24-4, T24, 2, '#cc9944');
+  }
+
+  if (tile === T.SIGN) {
+    p(ctx, px+10, py+8, 4, 14, '#6a4820');
+    p(ctx, px+6, py+4, 12, 10, '#aa8030');
+    p(ctx, px+7, py+5, 10, 8, '#cc9a40');
+    const a = (af*0.02)%1;
+    p(ctx, px+8, py+6, 8, 2, `rgba(255,220,100,${0.3+a*0.2})`);
+    p(ctx, px+8, py+9, 6, 1, `rgba(180,140,60,0.4)`);
+  }
+
+  if (tile === T.MINIBOSS) {
+    // Red danger floor
+    p(ctx, px, py, T24, T24, '#200404');
+    const pulse = Math.sin(af*0.08)*0.3+0.5;
+    ctx.fillStyle=`rgba(255,50,20,${pulse*0.4})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Skull marks
+    p(ctx, px+8, py+6, 8, 6, `rgba(255,80,40,${pulse})`);
+    p(ctx, px+10, py+8, 4, 3, '#000000');
+    // Warning border
+    ctx.strokeStyle=`rgba(255,80,20,${pulse})`;
+    ctx.lineWidth=2;
+    ctx.strokeRect(px+1,py+1,T24-2,T24-2);
+    // Pulsing exclamation
+    p(ctx, px+11, py+3, 2, 8, `rgba(255,200,0,${pulse})`);
+    p(ctx, px+11, py+13, 2, 3, `rgba(255,200,0,${pulse})`);
+  }
+
+  if (tile === T.BOSS) {
+    // Dark menacing floor
+    p(ctx, px, py, T24, T24, '#100008');
+    const pulse = Math.sin(af*0.06)*0.4+0.6;
+    ctx.fillStyle=`rgba(220,0,60,${pulse*0.5})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Concentric rings
+    for(let r=2;r<12;r+=3){
+      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/14)})`;
+      ctx.lineWidth=1;
+      ctx.strokeRect(px+r,py+r,T24-r*2,T24-r*2);
+    }
+    // Boss crown symbol
+    p(ctx, px+6, py+14, 12, 6, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+6, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+11, py+6, 2, 10, `rgba(255,100,0,${pulse})`);
+    p(ctx, px+16, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+  }
+
   if (tile === T.SAND) {
     // Desert sand with ripples
     const rip  = Math.floor(af*0.02+mx+my) % T24;
@@ -2196,36 +2562,92 @@ function drawPlayer(ctx) {
 }
 
 function drawMinimap() {
-  const s  = Math.max(1, Math.floor(90/MAP_W));
-  const off = Math.floor((90 - MAP_W*s)/2);
-  mmCtx.fillStyle = '#0a0018';
-  mmCtx.fillRect(0, 0, 90, 90);
+  const S   = 90;
+  const s   = Math.max(1, Math.floor(S/MAP_W));
+  const off = Math.floor((S - MAP_W*s)/2);
+
+  // Fog background
+  mmCtx.fillStyle = '#020008';
+  mmCtx.fillRect(0, 0, S, S);
+
+  // Boss proximity reveal radius (tiles) — bosses show up when within 20 tiles
+  const BOSS_REVEAL  = 20;
+  // Build a set of boss positions for distance check
+  const bossPositions = [];
+  for(let y=0;y<MAP_H;y++)
+    for(let x=0;x<MAP_W;x++)
+      if(state.map[y]?.[x]===T.BOSS||state.map[y]?.[x]===T.MINIBOSS)
+        bossPositions.push({x,y,tile:state.map[y][x]});
 
   for (let y = 0; y < MAP_H; y++) {
     for (let x = 0; x < MAP_W; x++) {
       const tile = state.map[y]?.[x];
-      let color = '#1a3010';
-      if (tile === T.WALL || tile === T.TREE) color = '#2a1a0a';
-      if (tile === T.WATER)  color = '#1a2a66';
-      if (tile === T.GRASS)  color = '#1a5010';
-      if (tile === T.PATH)   color = '#443322';
-      if (tile === T.CAVE)   color = '#220022';
-      if (tile === T.SHRINE) color = '#664400';
-      if (tile === T.RUIN)   color = '#333333';
-      if (tile === T.NEST)   color = '#aa8800';
-      mmCtx.fillStyle = color;
-      if(s>=1) mmCtx.fillRect(x * s + off, y * s + off, Math.max(1,s), Math.max(1,s));
+      const key  = `${x},${y}`;
+      const explored = state.exploredTiles.has(key);
+
+      // Check if near a boss
+      let nearBoss = false, nearFinal = false;
+      for(const b of bossPositions) {
+        const dist = Math.sqrt((x-b.x)**2+(y-b.y)**2);
+        if(dist<=BOSS_REVEAL) { nearBoss=true; if(b.tile===T.BOSS) nearFinal=true; }
+      }
+
+      // Boss tiles — always visible once within range, pulse red
+      if(nearBoss && (tile===T.BOSS||tile===T.MINIBOSS)) {
+        const pulse = Math.sin(Date.now()*0.004)*0.4+0.6;
+        mmCtx.fillStyle = tile===T.BOSS
+          ? `rgba(255,0,60,${pulse})`
+          : `rgba(200,40,0,${pulse*0.8})`;
+        mmCtx.fillRect(x*s+off, y*s+off, Math.max(2,s), Math.max(2,s));
+        continue;
+      }
+
+      // Explored tiles — show terrain in muted tones
+      if(explored) {
+        let color = '#1a2010';
+        if(tile===T.WALL||tile===T.TREE) color='#161008';
+        if(tile===T.WATER)  color='#0e1840';
+        if(tile===T.GRASS)  color='#142808';
+        if(tile===T.PATH)   color='#2a1e10';
+        if(tile===T.TOWN)   color='#4a3c28';
+        if(tile===T.BRIDGE) color='#3a2818';
+        mmCtx.fillStyle = color;
+        if(s>=1) mmCtx.fillRect(x*s+off, y*s+off, Math.max(1,s), Math.max(1,s));
+        continue;
+      }
+
+      // Unexplored but near boss — show faint red haze as warning
+      if(nearBoss) {
+        const d = bossPositions.reduce((mn,b)=>Math.min(mn,Math.sqrt((x-b.x)**2+(y-b.y)**2)),999);
+        const intensity = Math.max(0, 1 - d/BOSS_REVEAL) * 0.15;
+        mmCtx.fillStyle = `rgba(255,0,40,${intensity})`;
+        mmCtx.fillRect(x*s+off, y*s+off, Math.max(1,s), Math.max(1,s));
+      }
+      // Everything else stays as fog (no drawing)
     }
   }
 
-  // Player dot
-  mmCtx.fillStyle = '#ff4444';
-  mmCtx.fillRect(state.px * s + off - 1, state.py * s + off - 1, 3, 3);
+  // Player dot — always visible
+  mmCtx.fillStyle = '#ff6644';
+  const pd = Math.max(2, s+1);
+  mmCtx.fillRect(state.px*s+off - 1, state.py*s+off - 1, pd, pd);
 
-  // View rect
-  mmCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+  // View rect outline
+  mmCtx.strokeStyle = 'rgba(255,255,255,0.25)';
   mmCtx.lineWidth   = 1;
-  mmCtx.strokeRect(state.camX * s + off, state.camY * s + off, VIEW_W * s, VIEW_H * s);
+  mmCtx.strokeRect(state.camX*s+off, state.camY*s+off, VIEW_W*s, VIEW_H*s);
+
+  // Legend — only show boss indicator if any are near
+  const anyNearBoss = bossPositions.some(b=>
+    Math.sqrt((state.px-b.x)**2+(state.py-b.y)**2)<=BOSS_REVEAL
+  );
+  if(anyNearBoss) {
+    mmCtx.fillStyle='rgba(255,0,60,0.8)';
+    mmCtx.fillRect(2, 2, 5, 5);
+    mmCtx.fillStyle='rgba(255,100,100,0.9)';
+    mmCtx.font='5px monospace';
+    mmCtx.fillText('BOSS', 9, 7);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2579,8 +3001,9 @@ function init() {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  // Generate starting map
-  state.map  = generateMap(state.currentRegion);
+  // Generate starting map with random seed
+  state.mapSeed = Date.now() % 99991;
+  state.map  = generateMap(state.currentRegion, state.mapSeed);
   state.camX = Math.max(0, state.px - Math.floor(VIEW_W / 2));
   state.camY = Math.max(0, state.py - Math.floor(VIEW_H / 2));
 
@@ -2602,6 +3025,13 @@ function init() {
   initCreatureSkills(starter);
   state.creatures.push(starter);
   state.activeCreatureIdx = 0;
+
+  // Seed initial fog reveal around spawn
+  const INIT_R = 8;
+  for(let ey=-INIT_R;ey<=INIT_R;ey++)
+    for(let ex=-INIT_R;ex<=INIT_R;ex++)
+      if(ex*ex+ey*ey<=INIT_R*INIT_R)
+        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
   updateHUD();
   requestAnimationFrame(gameLoop);
