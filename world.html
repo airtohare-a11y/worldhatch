@@ -194,8 +194,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
-#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
-#minimap canvas{display:block;image-rendering:pixelated;}
+#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:2px solid #6622aa;border-radius:3px;padding:4px;cursor:crosshair;}
+#minimap canvas{display:block;image-rendering:pixelated;cursor:crosshair;}
 
 /* ── SKILL & REST PANEL ── */
 #skill-panel{
@@ -414,9 +414,30 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 
 
 /* ── MOBILE BUTTONS ── */
-#mob-btns{position:fixed;bottom:20px;right:14px;z-index:9000;display:flex;flex-direction:column;gap:10px;}
-.mob-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:rgba(10,0,30,0.88);color:#cc88ff;border:2px solid #5522aa;padding:12px 16px;border-radius:8px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-.mob-btn:active{background:rgba(80,0,160,0.9);}
+#mob-btns{
+  position:fixed;bottom:16px;right:14px;
+  z-index:9000;
+  display:flex;flex-direction:row;
+  align-items:center;gap:10px;
+}
+.mob-btn{
+  font-family:'Press Start 2P',monospace;
+  font-size:9px;
+  background:rgba(10,0,30,0.92);
+  color:#cc88ff;
+  border:2px solid #7722cc;
+  padding:18px 22px;
+  border-radius:10px;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  min-width:70px;
+  min-height:60px;
+  text-align:center;
+}
+.mob-btn:active{background:rgba(100,0,200,0.9);border-color:#cc88ff;}
+#mob-action{border-color:#cc8800;color:#ffcc44;}
+#mob-action:active{background:rgba(120,60,0,0.9);}
 </style>
 </head>
 <body>
@@ -487,7 +508,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 
 <div id="mob-btns">
   <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION</button>
+  <button class="mob-btn" id="mob-action">ACTION ▶</button>
 </div>
 
 <div id="game-wrap">
@@ -1156,6 +1177,62 @@ ctx.imageSmoothingEnabled = false;
 
 const mmCanvas = document.getElementById('mm');
 const mmCtx    = mmCanvas.getContext('2d');
+
+// ── TAP / CLICK TO MOVE ──────────────────────────────────
+function handleCanvasTap(cx, cy) {
+  if (state.inBattle || state.inDialog) return;
+  const menuEl = document.getElementById('menu-overlay');
+  if (menuEl && menuEl.style.display !== 'none') return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = (VIEW_W * TILE) / rect.width;
+  const scaleY = (VIEW_H * TILE) / rect.height;
+  const tx = Math.floor((cx - rect.left) * scaleX / TILE) + state.camX;
+  const ty = Math.floor((cy - rect.top)  * scaleY / TILE) + state.camY;
+  state.tapTarget = { x: tx, y: ty };
+}
+
+// Main canvas — click or touch
+canvas.addEventListener('click', e => {
+  handleCanvasTap(e.clientX, e.clientY);
+});
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+// Minimap — click or touch to set long-distance travel target
+function handleMinimapTap(cx, cy) {
+  if (state.inBattle || state.inDialog) return;
+  const menuEl = document.getElementById('menu-overlay');
+  if (menuEl && menuEl.style.display !== 'none') return;
+  const rect = mmCanvas.getBoundingClientRect();
+  const S   = 90;
+  const s   = Math.max(1, Math.floor(S / MAP_W));
+  const off = Math.floor((S - MAP_W * s) / 2);
+  // Convert click position to map tile
+  const canvasX = (cx - rect.left) * (S / rect.width);
+  const canvasY = (cy - rect.top)  * (S / rect.height);
+  const tx = Math.floor((canvasX - off) / s);
+  const ty = Math.floor((canvasY - off) / s);
+  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
+    state.tapTarget = { x: tx, y: ty };
+  }
+}
+
+mmCanvas.addEventListener('click', e => {
+  handleMinimapTap(e.clientX, e.clientY);
+  e.stopPropagation();
+});
+mmCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  handleMinimapTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
 
 function resizeCanvas() {
   const wrap = document.getElementById('game-canvas-wrap');
