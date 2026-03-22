@@ -1,1 +1,14 @@
+[agent]
+expertMode = true
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+
+[nix]
+packages = ["git", "python3Full"]
+
+[deployment]
+deploymentTarget = "static"
+publicDir = "/"
 
