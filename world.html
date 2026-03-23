@@ -194,8 +194,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
-#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:2px solid #6622aa;border-radius:3px;padding:4px;cursor:crosshair;}
-#minimap canvas{display:block;image-rendering:pixelated;cursor:crosshair;}
+#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
+#minimap canvas{display:block;image-rendering:pixelated;}
 
 /* ── SKILL & REST PANEL ── */
 #skill-panel{
@@ -412,104 +412,9 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 /* stars bg */
 #menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 
-
-/* ── MOBILE BUTTONS ── */
-#mob-btns{
-  position:fixed;bottom:16px;right:14px;
-  z-index:9000;
-  display:flex;flex-direction:row;
-  align-items:center;gap:10px;
-}
-.mob-btn{
-  font-family:'Press Start 2P',monospace;
-  font-size:9px;
-  background:rgba(10,0,30,0.92);
-  color:#cc88ff;
-  border:2px solid #7722cc;
-  padding:18px 22px;
-  border-radius:10px;
-  cursor:pointer;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  min-width:70px;
-  min-height:60px;
-  text-align:center;
-}
-.mob-btn:active{background:rgba(100,0,200,0.9);border-color:#cc88ff;}
-#mob-action{border-color:#cc8800;color:#ffcc44;}
-#mob-action:active{background:rgba(120,60,0,0.9);}
 </style>
 </head>
 <body>
-
-
-<div id="menu-overlay">
-  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
-  <!-- SCREEN 0: TITLE -->
-  <div id="menu-title">
-    <div class="menu-logo">WORLDHATCH</div>
-    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
-    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
-    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
-  </div>
-
-  <!-- SCREEN 1: REGION SELECT -->
-  <div id="menu-regions">
-    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
-    <div class="menu-regions-grid" id="menu-regions-grid"></div>
-    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
-  </div>
-
-  <!-- SCREEN 2: DICE ROLL -->
-  <div id="menu-dice">
-    <div class="dice-title">YOUR STARTER EGG</div>
-    <div class="dice-region-name" id="dice-region-label"></div>
-    <div class="egg-stage" id="egg-stage">
-      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
-        <defs>
-          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
-            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
-            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
-            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
-          </radialGradient>
-          <filter id="eggGlow">
-            <feGaussianBlur stdDeviation="4" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-        <!-- Speckles -->
-        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
-        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
-        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
-      </svg>
-      <div class="egg-glow" id="egg-glow"></div>
-    </div>
-    <div class="dice-roll-display" id="dice-roll-display"></div>
-    <div class="creature-reveal" id="creature-reveal">
-      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
-      <div class="cr-info">
-        <div class="cr-name" id="cr-name"></div>
-        <div class="cr-elem" id="cr-elem"></div>
-        <div class="cr-rarity" id="cr-rarity"></div>
-        <div class="cr-desc" id="cr-desc"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
-      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
-    </div>
-  </div>
-</div>
-
-<div id="mob-btns">
-  <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION ▶</button>
-</div>
 
 <div id="game-wrap">
   <div id="top-bar">
@@ -1167,7 +1072,6 @@ const state = {
 
   // Camera
   camX: 0, camY: 0,
-  tapTarget: null,
 };
 
 // ── CANVAS SETUP ──────────────────────────────────────────
@@ -1177,62 +1081,6 @@ ctx.imageSmoothingEnabled = false;
 
 const mmCanvas = document.getElementById('mm');
 const mmCtx    = mmCanvas.getContext('2d');
-
-// ── TAP / CLICK TO MOVE ──────────────────────────────────
-function handleCanvasTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = (VIEW_W * TILE) / rect.width;
-  const scaleY = (VIEW_H * TILE) / rect.height;
-  const tx = Math.floor((cx - rect.left) * scaleX / TILE) + state.camX;
-  const ty = Math.floor((cy - rect.top)  * scaleY / TILE) + state.camY;
-  state.tapTarget = { x: tx, y: ty };
-}
-
-// Main canvas — click or touch
-canvas.addEventListener('click', e => {
-  handleCanvasTap(e.clientX, e.clientY);
-});
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
-// Minimap — click or touch to set long-distance travel target
-function handleMinimapTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = mmCanvas.getBoundingClientRect();
-  const S   = 90;
-  const s   = Math.max(1, Math.floor(S / MAP_W));
-  const off = Math.floor((S - MAP_W * s) / 2);
-  // Convert click position to map tile
-  const canvasX = (cx - rect.left) * (S / rect.width);
-  const canvasY = (cy - rect.top)  * (S / rect.height);
-  const tx = Math.floor((canvasX - off) / s);
-  const ty = Math.floor((canvasY - off) / s);
-  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
-    state.tapTarget = { x: tx, y: ty };
-  }
-}
-
-mmCanvas.addEventListener('click', e => {
-  handleMinimapTap(e.clientX, e.clientY);
-  e.stopPropagation();
-});
-mmCanvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  e.stopPropagation();
-  handleMinimapTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
 
 function resizeCanvas() {
   const wrap = document.getElementById('game-canvas-wrap');
@@ -1286,14 +1134,6 @@ function handleMovement(dt) {
   if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
   if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
 
-  // Tap-to-move
-  if (dx === 0 && dy === 0 && state.tapTarget) {
-    const tdx = state.tapTarget.x - state.px;
-    const tdy = state.tapTarget.y - state.py;
-    if (Math.abs(tdx) < 1 && Math.abs(tdy) < 1) { state.tapTarget = null; }
-    else if (Math.abs(tdx) >= Math.abs(tdy)) { dx = tdx > 0 ? 1 : -1; state.playerDir = dx > 0 ? 'right' : 'left'; }
-    else { dy = tdy > 0 ? 1 : -1; state.playerDir = dy > 0 ? 'down' : 'up'; }
-  }
   if (dx === 0 && dy === 0) return;
   moveTimer = 0;
 
@@ -1652,6 +1492,7 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
   loadBattleArt('enemy',  wildCreature);
 
   renderBattleArena();
+  startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
 
@@ -1724,7 +1565,7 @@ function buildMoveButtons() {
 }
 
 async function playerAction(actionId) {
-  if (!battleData || battleData.turn !== 'player' || battleData.over) return;
+  if (battleData.turn !== 'player' || battleData.over) return;
   disableMoveButtons(true);
 
   if (actionId === 'run') {
@@ -1862,7 +1703,7 @@ async function playerAction(actionId) {
 }
 
 async function enemyTurn() {
-  if (!battleData || battleData.over) return;
+  if (battleData.over) return;
   const e = battleData.enemy;
   const p = battleData.player;
 
@@ -1877,13 +1718,13 @@ async function enemyTurn() {
     const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
     p.currentHp = Math.max(0, p.currentHp - dmg);
     flashHit('player');
-    const hitEnergyGain = Math.min(25, Math.max(8, Math.floor(dmg / 4)));
-    p.energy = Math.min(100, (p.energy || 0) + hitEnergyGain);
+
+    // Update stored creature HP
     if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
       state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
-      state.creatures[state.activeCreatureIdx].energy = p.energy;
     }
-    blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
+
+    blogLog(`${e.name} deals ${dmg} damage!`, 'log-hit');
   }
 
   updateBattleUI();
@@ -2145,9 +1986,6 @@ function endBattle(won, caught) {
     document.getElementById('battle-overlay').classList.remove('show');
     document.getElementById('battle-log').innerHTML = '';
     document.getElementById('dice-display').textContent = '';
-    if (battleData && state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
-      state.creatures[state.activeCreatureIdx].energy = battleData.player.energy || 0;
-    }
     battleData = null;
 
     if (!won && !caught) {
@@ -2155,7 +1993,6 @@ function endBattle(won, caught) {
       if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
         const c = state.creatures[state.activeCreatureIdx];
         c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
-        c.energy = 0;
       }
     }
     updateHUD();
@@ -2185,128 +2022,6 @@ function closeDialog() {
 }
 
 // ── MAIN MENU DIALOG ──────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════
-//  SAVE / LOAD SYSTEM
-// ═══════════════════════════════════════════════════════════
-
-const SAVE_KEY = 'worldhatch_save';
-
-function saveGame() {
-  try {
-    const save = {
-      version: 1,
-      playerName:       state.playerName,
-      homeRegion:       state.homeRegion,
-      currentRegion:    state.currentRegion,
-      mapSeed:          state.mapSeed,
-      px: state.px, py: state.py,
-      playerDir:        state.playerDir,
-      coins:            state.coins,
-      time:             state.time,
-      weather:          state.weather,
-      activeCreatureIdx:state.activeCreatureIdx,
-      creatures:        state.creatures,
-      eggs:             state.eggs,
-      exploredTiles:    [...state.exploredTiles],
-      visitedNests:     [...state.visitedNests],
-      visitedPoI:       [...state.visitedPoI],
-      defeatedBosses:   [...state.defeatedBosses],
-      savedAt:          new Date().toLocaleString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const save = JSON.parse(raw);
-    if (!save || save.version !== 1) return false;
-
-    state.playerName        = save.playerName       || 'Trainer';
-    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
-    state.px                = save.px                || 64;
-    state.py                = save.py                || 64;
-    state.playerDir         = save.playerDir         || 'down';
-    state.coins             = save.coins             || 0;
-    state.time              = save.time              || 8;
-    state.weather           = save.weather           || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-    state.creatures         = save.creatures         || [];
-    state.eggs              = save.eggs              || [];
-    state.exploredTiles     = new Set(save.exploredTiles  || []);
-    state.visitedNests      = new Set(save.visitedNests   || []);
-    state.visitedPoI        = new Set(save.visitedPoI     || []);
-    state.defeatedBosses    = new Set(save.defeatedBosses || []);
-
-    // Rebuild map from saved seed + region
-    state.map  = generateMap(state.currentRegion, state.mapSeed);
-    state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
-    state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
-
-    document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
-    document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[state.currentRegion]?.name||'').toUpperCase()}`;
-    updateHUD();
-    return save.savedAt || true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function hasSave() {
-  return !!localStorage.getItem(SAVE_KEY);
-}
-
-function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
-}
-
-function showSaveMenu() {
-  closeDialog();
-  const saved = hasSave();
-  const opts = [
-    { label: 'SAVE GAME', fn: () => {
-        const ok = saveGame();
-        closeDialog();
-        showDialog('GAME SAVED', ok ? 'Your progress has been saved!' : 'Save failed — storage may be full.', [{ label:'OK', fn:closeDialog }]);
-    }},
-  ];
-  if (saved) {
-    opts.push({ label: 'LOAD GAME', fn: () => {
-      closeDialog();
-      showDialog('LOAD GAME', 'Load your saved game? Current progress will be lost.', [
-        { label:'LOAD', fn:() => {
-          const savedAt = loadGame();
-          closeDialog();
-          if(savedAt) {
-            showDialog('LOADED', `Game loaded!\nSaved: ${savedAt}`, [{ label:'OK', fn:closeDialog }]);
-          } else {
-            showDialog('ERROR', 'Could not load save file.', [{ label:'OK', fn:closeDialog }]);
-          }
-        }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-    opts.push({ label: 'DELETE SAVE', fn: () => {
-      closeDialog();
-      showDialog('DELETE SAVE', 'Delete your saved game permanently?', [
-        { label:'DELETE', fn:() => { deleteSave(); closeDialog(); showDialog('DELETED','Save file deleted.',[{label:'OK',fn:closeDialog}]); }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-  }
-  opts.push({ label:'Cancel', fn:closeDialog });
-  const info = saved ? 'A save file exists.' : 'No save file found.';
-  showDialog('SAVE & LOAD', info, opts);
-}
-
 function showMainMenu() {
   const pc = state.creatures[state.activeCreatureIdx];
   showDialog(
@@ -2317,7 +2032,8 @@ function showMainMenu() {
       { label: 'Switch Region',   fn: showRegionMenu },
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
-      { label: 'Save / Load',     fn: showSaveMenu },
+      { label: 'Save / Load',     fn: () => { closeDialog(); showSaveMenu(); } },
+      { label: 'Quit Game',       fn: () => { closeDialog(); showDialog('QUIT GAME','Save before quitting?',[{label:'SAVE & QUIT',fn:()=>{saveGame();location.reload();}},{label:'QUIT WITHOUT SAVING',fn:()=>{location.reload();}},{label:'Cancel',fn:closeDialog}]); } },
       { label: 'Close',           fn: closeDialog },
     ]
   );
@@ -2335,7 +2051,6 @@ function showRegionMenu() {
 }
 
 function switchRegion(regionId) {
-  saveGame(); // auto-save on region switch
   state.currentRegion = regionId;
   state.mapSeed       = Date.now() % 99991;
   state.map           = generateMap(regionId, state.mapSeed);
@@ -2550,17 +2265,6 @@ function render() {
     }
   }
 
-  // Tap indicator
-  if (state.tapTarget) {
-    const ttx = (state.tapTarget.x - state.camX) * TILE;
-    const tty = (state.tapTarget.y - state.camY) * TILE;
-    if (ttx >= 0 && tty >= 0 && ttx < VIEW_W*TILE && tty < VIEW_H*TILE) {
-      const pulse = Math.sin(animFrame * 0.2) * 0.3 + 0.7;
-      ctx.strokeStyle = `rgba(200,140,255,${pulse})`;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(ttx+2, tty+2, TILE-4, TILE-4);
-    }
-  }
   // Player
   drawPlayer(ctx);
 
@@ -3452,6 +3156,96 @@ function doRest(type) {
 
 
 // ═══════════════════════════════════════════════════════════
+
+// ── SAVE / LOAD ───────────────────────────────────────
+
+const SAVE_KEY = 'worldhatch_save';
+
+function saveGame() {
+  try {
+    const save = {
+      version: 1,
+      currentRegion: state.currentRegion,
+      mapSeed: state.mapSeed,
+      px: state.px, py: state.py,
+      playerDir: state.playerDir,
+      coins: state.coins,
+      time: state.time,
+      activeCreatureIdx: state.activeCreatureIdx,
+      creatures: state.creatures,
+      eggs: state.eggs,
+      exploredTiles: [...state.exploredTiles],
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  } catch(e) { return false; }
+}
+
+function hasSave() {
+  try { return !!localStorage.getItem(SAVE_KEY); } catch(e) { return false; }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const save = JSON.parse(raw);
+    if (!save || save.version !== 1) return false;
+    state.currentRegion     = save.currentRegion || 'suncrest_expanse';
+    state.mapSeed           = save.mapSeed || (Date.now() % 99991);
+    state.px                = save.px || 64;
+    state.py                = save.py || 64;
+    state.playerDir         = save.playerDir || 'down';
+    state.coins             = save.coins || 0;
+    state.time              = save.time || 8;
+    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
+    state.creatures         = save.creatures || [];
+    state.eggs              = save.eggs || [];
+    state.exploredTiles     = new Set(save.exploredTiles || []);
+    state.map  = generateMap(state.currentRegion, state.mapSeed);
+    state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
+    state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
+    const reg = REGIONS[state.currentRegion];
+    if (reg) {
+      document.getElementById('top-region').textContent = reg.name;
+      document.getElementById('top-player').textContent = 'TRAINER — ' + reg.name.toUpperCase();
+    }
+    updateHUD();
+    return true;
+  } catch(e) { return false; }
+}
+
+function showSaveMenu() {
+  const saved = hasSave();
+  const opts = [
+    { label: 'SAVE GAME', fn: () => {
+        const ok = saveGame();
+        closeDialog();
+        showDialog('GAME SAVED', ok ? 'Progress saved!' : 'Save failed.', [{label:'OK',fn:closeDialog}]);
+    }},
+  ];
+  if (saved) {
+    opts.push({ label: 'LOAD GAME', fn: () => {
+        closeDialog();
+        showDialog('LOAD GAME', 'Load saved game? Unsaved progress will be lost.', [
+          { label: 'LOAD', fn: () => { loadGame(); closeDialog(); }},
+          { label: 'Cancel', fn: closeDialog },
+        ]);
+    }});
+  }
+  opts.push({ label: 'QUIT GAME', fn: () => {
+      closeDialog();
+      showDialog('QUIT GAME', 'Save before quitting?', [
+        { label: 'SAVE & QUIT', fn: () => { saveGame(); location.reload(); }},
+        { label: 'QUIT WITHOUT SAVING', fn: () => { location.reload(); }},
+        { label: 'Cancel', fn: closeDialog },
+      ]);
+  }});
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  closeDialog();
+  showDialog('SAVE & LOAD', saved ? 'A save file exists.' : 'No save file found.', opts);
+}
+
 // ── MAIN LOOP ─────────────────────────────────────────────
 let lastTime = 0;
 
@@ -3715,6 +3509,12 @@ function menuInit() {
     menuScreen('regions');
   };
 
+  // Load Game button — only show if save exists
+  if (hasSave()) document.getElementById('menu-load-btn').style.display = '';
+  document.getElementById('menu-load-btn').onclick = () => {
+    if (loadGame()) { document.getElementById('menu-overlay').style.display = 'none'; }
+  };
+
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
     if(!menuSelectedRegion) return;
@@ -3773,11 +3573,6 @@ function init() {
   menuInit();
   updateHUD();
   requestAnimationFrame(gameLoop);
-// Wire mobile buttons
-  const mobMenu = document.getElementById('mob-menu');
-  const mobAction = document.getElementById('mob-action');
-  if(mobMenu){ mobMenu.onclick = handleEsc; mobMenu.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false}); }
-  if(mobAction){ mobAction.onclick = handleInteract; mobAction.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false}); }
 }
 
 init();
@@ -3786,5 +3581,68 @@ init();
 <!-- ══════════════════════════════════════════════
      OPENING MENU — wired entirely in JS after load
 ══════════════════════════════════════════════ -->
+<div id="menu-overlay">
+  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
+  <!-- SCREEN 0: TITLE -->
+  <div id="menu-title">
+    <div class="menu-logo">WORLDHATCH</div>
+    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
+    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
+    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+    <button class="menu-start-btn" id="menu-load-btn" style="display:none;margin-top:8px;background:#0a1a00;border-color:#228844;color:#44ff88;">LOAD GAME</button>
+  </div>
+
+  <!-- SCREEN 1: REGION SELECT -->
+  <div id="menu-regions">
+    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
+    <div class="menu-regions-grid" id="menu-regions-grid"></div>
+    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
+  </div>
+
+  <!-- SCREEN 2: DICE ROLL -->
+  <div id="menu-dice">
+    <div class="dice-title">YOUR STARTER EGG</div>
+    <div class="dice-region-name" id="dice-region-label"></div>
+    <div class="egg-stage" id="egg-stage">
+      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
+        <defs>
+          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
+            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
+            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
+          </radialGradient>
+          <filter id="eggGlow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+        <!-- Speckles -->
+        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
+        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
+        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
+      </svg>
+      <div class="egg-glow" id="egg-glow"></div>
+    </div>
+    <div class="dice-roll-display" id="dice-roll-display"></div>
+    <div class="creature-reveal" id="creature-reveal">
+      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
+      <div class="cr-info">
+        <div class="cr-name" id="cr-name"></div>
+        <div class="cr-elem" id="cr-elem"></div>
+        <div class="cr-rarity" id="cr-rarity"></div>
+        <div class="cr-desc" id="cr-desc"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
+      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
