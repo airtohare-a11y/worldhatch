@@ -2471,8 +2471,8 @@ function render() {
   const isDay = hour >= 6 && hour < 20;
   const nightAlpha = isDay ? 0 : Math.min(0.6, (hour < 6 ? (6 - hour) / 6 : (hour - 20) / 4) * 0.6);
 
-  for (let ty = 0; ty < VIEW_H; ty++) {
-    for (let tx = 0; tx < VIEW_W; tx++) {
+  for (let ty = 0; ty < VIEW_H_CUR; ty++) {
+    for (let tx = 0; tx < VIEW_W_CUR; tx++) {
       const mx = state.camX + tx;
       const my = state.camY + ty;
       if (mx < 0 || my < 0 || mx >= MAP_W || my >= MAP_H) continue;
