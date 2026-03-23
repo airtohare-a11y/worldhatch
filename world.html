@@ -68,9 +68,9 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;height:100%;touc
 .d-btn:hover,.d-btn:active{background:#2a0050;}
 
 /* ── BATTLE ──────────────────────────────────────────── */
-#battle{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:10px;background:linear-gradient(160deg,#080018,#0e0028,#060010);}
+#battle{position:absolute;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:8px;background:linear-gradient(160deg,#080018,#0e0028,#060010);}
 #battle.show{display:flex;}
-#battle-scene{width:100%;max-width:100%;flex:1;min-height:80px;position:relative;display:flex;border:2px solid #440088;border-radius:6px;overflow:hidden;}
+#battle-scene{width:100%;max-width:500px;height:130px;position:relative;display:flex;border:2px solid #440088;border-radius:6px;overflow:hidden;}
 .b-side{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:6px;position:relative;z-index:2;}
 .b-art-frame{flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,0.2);border-radius:4px;}
 .b-canvas{image-rendering:pixelated;width:80px;height:80px;display:block;}
@@ -85,11 +85,11 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;height:100%;touc
 .b-bar-val{font-size:4px;color:#664488;width:24px;text-align:right;}
 .vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;color:#cc44ff;z-index:10;background:rgba(8,0,20,0.7);padding:3px 7px;border-radius:3px;border:1px solid #440088;}
 .b-arena-bg{position:absolute;inset:0;z-index:0;}
-#battle-log{width:100%;max-width:100%;height:70px;overflow-y:auto;background:#08001a;border:1px solid #330055;border-radius:4px;padding:6px;}
+#battle-log{width:100%;max-width:500px;height:70px;overflow-y:auto;background:#08001a;border:1px solid #330055;border-radius:4px;padding:6px;}
 .blog{font-size:6px;color:#8866aa;line-height:1.8;}
 .blog.l-hit{color:#ffaa44;}.blog.l-crit{color:#ff4444;}.blog.l-miss{color:#888866;}.blog.l-info{color:#4488cc;}.blog.l-heal{color:#44cc88;}
 #dice-disp{font-size:9px;color:#ffcc44;text-align:center;min-height:20px;}
-#move-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;max-width:100%;}
+#move-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;max-width:500px;}
 .move-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#0e0022;color:#cc88ff;border:2px solid #440088;padding:8px 10px;cursor:pointer;border-radius:3px;touch-action:manipulation;}
 .move-btn:hover,.move-btn:active{background:#1a0040;}
 .move-btn.special{border-color:#ffcc44;color:#ffcc44;}
@@ -127,7 +127,6 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;height:100%;touc
 #mob-btns{position:fixed;bottom:20px;right:14px;z-index:200;display:flex;flex-direction:column;gap:10px;}
 .mob-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:rgba(10,0,30,0.88);color:#cc88ff;border:2px solid #5522aa;padding:12px 16px;border-radius:8px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .mob-btn:active{background:rgba(80,0,160,0.9);}
-.menu-load-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:#0a1a00;color:#44ff88;border:2px solid #228844;padding:14px 28px;cursor:pointer;border-radius:4px;margin-top:4px;display:block;touch-action:manipulation;pointer-events:all;position:relative;z-index:10001;}
 </style>
 </head>
 <body>
@@ -956,7 +955,6 @@ async function playerAction(actionId){
 
   const roll=rollD20();
   await showDice(roll,'YOUR ATTACK');
-  if(!battleData||battleData.over)return;
   const outcome=getOutcome(roll);
   blogLog(`Roll: ${roll} — ${outcome.label}`,outcome.cls);
 
@@ -998,7 +996,6 @@ async function enemyTurn(){
 
   const roll=rollD20();
   await showDice(roll,`${e.name} ATTACKS`);
-  if(!battleData||battleData.over)return;
   const outcome=getOutcome(roll);
   blogLog(`${e.name}: ${roll} — ${outcome.label}`,outcome.cls);
 
@@ -1271,7 +1268,6 @@ function showMainMenu(){
       {label:'Switch Creature',fn:()=>showCreatureMenu()},
       {label:'Hatch Egg',fn:()=>showHatchMenu()},
       {label:'Change Region',fn:()=>showRegionMenu()},
-      {label:'Save / Load',fn:()=>{closeDialog();showSaveMenu();}},
       {label:'Close',fn:closeDialog},
     ]
   );
@@ -1694,141 +1690,6 @@ function beginGame(){
 // MAIN LOOP
 // ═══════════════════════════════════════════════════════
 
-const SAVE_KEY = 'worldhatch_save';
-
-function saveGame() {
-  try {
-    const save = {
-      version: 1,
-      playerName:       state.playerName,
-      homeRegion:       state.homeRegion,
-      currentRegion:    state.currentRegion,
-      mapSeed:          state.mapSeed,
-      px: state.px, py: state.py,
-      playerDir:        state.playerDir,
-      coins:            state.coins,
-      time:             state.time,
-      weather:          state.weather,
-      activeCreatureIdx:state.activeCreatureIdx,
-      creatures:        state.creatures,
-      eggs:             state.eggs,
-      exploredTiles:    [...state.exploredTiles],
-      visitedNests:     [...state.visitedNests],
-      visitedPoI:       [...state.visitedPoI],
-      defeatedBosses:   [...state.defeatedBosses],
-      savedAt:          new Date().toLocaleString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-    return true;
-  } catch(e) { return false; }
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const save = JSON.parse(raw);
-    if (!save || save.version !== 1) return false;
-    state.playerName        = save.playerName       || 'Trainer';
-    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
-    state.px                = save.px                || 64;
-    state.py                = save.py                || 64;
-    state.playerDir         = save.playerDir         || 'down';
-    state.coins             = save.coins             || 0;
-    state.time              = save.time              || 8;
-    state.weather           = save.weather           || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-    state.creatures         = save.creatures         || [];
-    state.eggs              = save.eggs              || [];
-    state.exploredTiles     = new Set(save.exploredTiles  || []);
-    state.visitedNests      = new Set(save.visitedNests   || []);
-    state.visitedPoI        = new Set(save.visitedPoI     || []);
-    state.defeatedBosses    = new Set(save.defeatedBosses || []);
-    state.map  = generateMap(state.currentRegion, state.mapSeed);
-    state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
-    state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
-    document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
-    document.getElementById('top-player').textContent = state.playerName + ' -- ' + (REGIONS[state.currentRegion]?.name||'').toUpperCase();
-    updateHUD();
-    return save.savedAt || true;
-  } catch(e) { return false; }
-}
-
-function hasSave() { return !!localStorage.getItem(SAVE_KEY); }
-function deleteSave() { localStorage.removeItem(SAVE_KEY); }
-
-function exportSaveCode() {
-  try { return btoa(unescape(encodeURIComponent(JSON.stringify({version:1,playerName:state.playerName,homeRegion:state.homeRegion,currentRegion:state.currentRegion,mapSeed:state.mapSeed,px:state.px,py:state.py,playerDir:state.playerDir,coins:state.coins,time:state.time,weather:state.weather,activeCreatureIdx:state.activeCreatureIdx,creatures:state.creatures,eggs:state.eggs,exploredTiles:[...state.exploredTiles],visitedNests:[...state.visitedNests],visitedPoI:[...state.visitedPoI],defeatedBosses:[...state.defeatedBosses],savedAt:new Date().toLocaleString()})))); }
-  catch(e) { return null; }
-}
-
-function importSaveCode(c) {
-  try { const d=JSON.parse(decodeURIComponent(escape(atob(c.trim())))); const r=loadGameFromData(d); if(r) localStorage.setItem(SAVE_KEY,JSON.stringify(d)); return r; }
-  catch(e) { return false; }
-}
-
-function loadGameFromData(save) {
-  if(!save||save.version!==1) return false;
-  state.playerName=save.playerName||'Trainer'; state.homeRegion=save.homeRegion||'suncrest_expanse'; state.currentRegion=save.currentRegion||'suncrest_expanse'; state.mapSeed=save.mapSeed||(Date.now()%99991); state.px=save.px||64; state.py=save.py||64; state.playerDir=save.playerDir||'down'; state.coins=save.coins||0; state.time=save.time||8; state.weather=save.weather||'clear'; state.activeCreatureIdx=save.activeCreatureIdx??-1; state.creatures=save.creatures||[]; state.eggs=save.eggs||[]; state.exploredTiles=new Set(save.exploredTiles||[]); state.visitedNests=new Set(save.visitedNests||[]); state.visitedPoI=new Set(save.visitedPoI||[]); state.defeatedBosses=new Set(save.defeatedBosses||[]);
-  state.map=generateMap(state.currentRegion,state.mapSeed);
-  state.camX=Math.max(0,Math.min(MAP_W-VIEW_W,state.px-Math.floor(VIEW_W/2)));
-  state.camY=Math.max(0,Math.min(MAP_H-VIEW_H,state.py-Math.floor(VIEW_H/2)));
-  document.getElementById('top-region').textContent=REGIONS[state.currentRegion]?.name||state.currentRegion;
-  document.getElementById('top-player').textContent=state.playerName+' -- '+(REGIONS[state.currentRegion]?.name||'').toUpperCase();
-  updateHUD(); return save.savedAt||true;
-}
-
-function showSaveMenu() {
-  closeDialog();
-  const saved = hasSave();
-  const opts = [
-    { label:'SAVE GAME', fn:()=>{
-      const ok=saveGame(); closeDialog();
-      showDialog('GAME SAVED', ok?'Progress saved!':'Save failed.', [{label:'OK',fn:closeDialog}]);
-    }},
-  ];
-  if(saved) {
-    opts.push({label:'LOAD GAME', fn:()=>{
-      closeDialog();
-      showDialog('LOAD GAME','Load saved game? Current progress lost.',[
-        {label:'LOAD', fn:()=>{ const ok=loadGame(); closeDialog(); if(ok) showDialog('LOADED','Loaded! Saved: '+ok,[{label:'OK',fn:closeDialog}]); else showDialog('ERROR','Could not load.',[{label:'OK',fn:closeDialog}]); }},
-        {label:'Cancel', fn:closeDialog},
-      ]);
-    }});
-    opts.push({label:'EXPORT CODE', fn:()=>{
-      const c=exportSaveCode(); if(!c){closeDialog();showDialog('ERROR','Save first!',[{label:'OK',fn:closeDialog}]);return;}
-      navigator.clipboard.writeText(c).then(()=>{closeDialog();showDialog('COPIED!','Paste on any device to load your save.',[{label:'OK',fn:closeDialog}]);})
-      .catch(()=>{ const t=prompt('Copy this save code:',c); closeDialog(); showDialog('DONE','Share this code to load on another device.',[{label:'OK',fn:closeDialog}]); });
-    }});
-    opts.push({label:'IMPORT CODE', fn:()=>{
-      closeDialog();
-      navigator.clipboard.readText().then(t=>{ const ok=importSaveCode(t); closeDialog(); if(ok) showDialog('LOADED!','Save imported!',[{label:'Play!',fn:closeDialog}]); else showDialog('ERROR','Invalid code.',[{label:'OK',fn:closeDialog}]); })
-      .catch(()=>{ const c=prompt('Paste save code:'); if(!c)return; const ok=importSaveCode(c); closeDialog(); if(ok) showDialog('LOADED!','Imported!',[{label:'Play!',fn:closeDialog}]); else showDialog('ERROR','Invalid.',[{label:'OK',fn:closeDialog}]); });
-    }});
-    opts.push({label:'DELETE SAVE', fn:()=>{
-      closeDialog();
-      showDialog('DELETE?','Delete save permanently?',[
-        {label:'DELETE', fn:()=>{ deleteSave(); closeDialog(); showDialog('DELETED','Save deleted.',[{label:'OK',fn:closeDialog}]); }},
-        {label:'Cancel', fn:closeDialog},
-      ]);
-    }});
-  }
-  opts.push({label:'QUIT GAME', fn:()=>{
-    closeDialog();
-    showDialog('QUIT GAME','Save before quitting?',[
-      {label:'SAVE & QUIT', fn:()=>{ saveGame(); location.reload(); }},
-      {label:'QUIT WITHOUT SAVING', fn:()=>{ location.reload(); }},
-      {label:'Cancel', fn:closeDialog},
-    ]);
-  }});
-  opts.push({label:'Cancel', fn:closeDialog});
-  showDialog('SAVE & LOAD', saved?'A save file exists.':'No save file found.', opts);
-}
-
-
-
 let lastTime=0;
 function gameLoop(ts){
   const dt=ts-lastTime;lastTime=ts;
@@ -1855,17 +1716,6 @@ function init(){
   document.getElementById('mob-menu').addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false});
   document.getElementById('mob-action').addEventListener('click',handleInteract);
   document.getElementById('mob-action').addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false});
-
-  // CONTINUE GAME button
-  const loadBtn = document.getElementById('menu-load-btn');
-  if (loadBtn) {
-    loadBtn.style.display = hasSave() ? 'block' : 'none';
-    loadBtn.onclick = () => {
-      if (!loadGame()) { alert('No saved game found!'); return; }
-      document.getElementById('menu').classList.add('hidden');
-      updateHUD();
-    };
-  }
 
   // Skill panel close
   document.getElementById('sp-close').addEventListener('click',closeSkillPanel);
