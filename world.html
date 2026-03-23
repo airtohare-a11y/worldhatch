@@ -7,21 +7,21 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;width:100vw;height:100vh;margin:0;padding:0;}
+body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;}
 
 
 
 /* ── LAYOUT ── */
-#game-wrap{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;}
-#top-bar{position:absolute;top:0;left:0;right:0;z-index:20;display:none;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(8,0,20,0.82);border-bottom:1px solid #440088;}
-#top-bar .player-info{font-size:6px;color:#cc88ff;}
-#top-bar .region-name{font-size:7px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
-#top-bar .time-weather{font-size:6px;color:#8855aa;text-align:right;}
+#game-wrap{position:fixed;inset:0;width:100vw;height:100vh;}
+#top-bar{position:absolute;top:0;left:0;right:0;z-index:30;display:none;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(13,0,26,0.88);border-bottom:1px solid #440088;}
+#top-bar .player-info{font-size:7px;color:#cc88ff;}
+#top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
+#top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:absolute;inset:0;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair;pointer-events:none;}
+canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;pointer-events:none;}
 
 /* ── HUD ── */
-#hud{position:absolute;bottom:0;left:0;right:0;z-index:20;display:none;gap:6px;padding:5px 8px;background:rgba(8,0,20,0.82);border-top:1px solid #440088;flex-wrap:wrap;}
+#hud{position:absolute;bottom:0;left:0;right:0;z-index:30;display:none;gap:6px;padding:5px 8px;background:rgba(13,0,26,0.88);border-top:1px solid #440088;flex-wrap:wrap;}
 .hud-box{background:#12002a;border:1px solid #330055;border-radius:3px;padding:5px 8px;font-size:6px;}
 .hud-label{color:#664488;margin-bottom:3px;}
 .hud-val{color:#cc88ff;}
@@ -30,7 +30,7 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
 .en-fill{height:100%;background:#ffcc00;border-radius:2px;transition:width 0.2s;}
 
 /* ── DIALOG ── */
-#dialog{position:absolute;bottom:0;left:0;right:0;background:rgba(8,0,20,0.97);border-top:3px solid #cc44ff;padding:12px 16px;min-height:90px;display:none;z-index:60;}
+#dialog{position:absolute;bottom:0;left:0;right:0;background:rgba(8,0,20,0.97);border-top:3px solid #cc44ff;padding:12px 16px;min-height:90px;display:none;z-index:50;}
 #dialog-name{font-size:8px;color:#ff88ff;margin-bottom:8px;}
 #dialog-text{font-size:7px;color:#e0d0ff;line-height:1.8;margin-bottom:10px;}
 #dialog-options{display:flex;gap:8px;flex-wrap:wrap;}
@@ -194,8 +194,8 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
-#minimap{position:absolute;top:36px;right:8px;background:rgba(8,0,20,0.85);border:2px solid #6622aa;border-radius:3px;padding:4px;cursor:crosshair;}
-#minimap canvas{display:block;image-rendering:pixelated;cursor:crosshair;}
+#minimap{position:absolute;top:38px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
+#minimap canvas{display:block;image-rendering:pixelated;}
 
 /* ── SKILL & REST PANEL ── */
 #skill-panel{
@@ -286,9 +286,7 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   width:100%;gap:18px;padding:20px;
-  box-sizing:border-box;
 }
-#menu-globe{width:160px;height:160px;display:block;border:2px solid #c8960c;border-radius:50%;background:#0a0018;}
 .menu-logo{
   font-size:clamp(14px,4vw,22px);
   color:#ffcc44;letter-spacing:4px;
@@ -312,8 +310,6 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
 }
 @keyframes startBlink{50%{opacity:0.4;}}
 .menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
-.menu-load-btn{font-family:'Press Start 2P',monospace;font-size:10px;background:#0a1a00;color:#44ff88;border:3px solid #228844;padding:14px 32px;cursor:pointer;border-radius:4px;margin-top:8px;letter-spacing:1px;}
-.menu-load-btn:hover{background:#112200;box-shadow:0 0 16px rgba(0,200,80,0.4);transform:scale(1.03);}
 
 /* region select */
 #menu-regions{
@@ -416,152 +412,19 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
 /* stars bg */
 #menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 
-
-/* ── MOBILE BUTTONS ── */
-#mob-btns{
-  position:fixed;bottom:16px;right:14px;
-  z-index:9000;
-  display:flex;flex-direction:row;
-  align-items:center;gap:10px;
-}
-.mob-btn{
-  font-family:'Press Start 2P',monospace;
-  font-size:9px;
-  background:rgba(10,0,30,0.92);
-  color:#cc88ff;
-  border:2px solid #7722cc;
-  padding:18px 22px;
-  border-radius:10px;
-  cursor:pointer;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  min-width:70px;
-  min-height:60px;
-  text-align:center;
-}
-.mob-btn:active{background:rgba(100,0,200,0.9);border-color:#cc88ff;}
-#mob-action{border-color:#cc8800;color:#ffcc44;}
-#mob-action:active{background:rgba(120,60,0,0.9);}
 </style>
 </head>
 <body>
 
-
 <div id="game-wrap">
-<div id="menu-overlay">
-  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
-  <!-- SCREEN 0: TITLE -->
-  <div id="menu-title">
-    <div class="menu-logo">WORLDHATCH</div>
-    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
-    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
-    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
-    <button class="menu-load-btn" id="menu-load-btn" style="display:none;">CONTINUE GAME</button>
-  </div>
-
-  <!-- SCREEN 1: REGION SELECT -->
-  <div id="menu-regions">
-    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
-    <div class="menu-regions-grid" id="menu-regions-grid"></div>
-    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
-  </div>
-
-  <!-- SCREEN 2: DICE ROLL -->
-  <div id="menu-dice">
-    <div class="dice-title">YOUR STARTER EGG</div>
-    <div class="dice-region-name" id="dice-region-label"></div>
-    <div class="egg-stage" id="egg-stage">
-      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
-        <defs>
-          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
-            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
-            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
-            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
-          </radialGradient>
-          <filter id="eggGlow">
-            <feGaussianBlur stdDeviation="4" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-        <!-- Speckles -->
-        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
-        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
-        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
-      </svg>
-      <div class="egg-glow" id="egg-glow"></div>
-    </div>
-    <div class="dice-roll-display" id="dice-roll-display"></div>
-    <div class="creature-reveal" id="creature-reveal">
-      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
-      <div class="cr-info">
-        <div class="cr-name" id="cr-name"></div>
-        <div class="cr-elem" id="cr-elem"></div>
-        <div class="cr-rarity" id="cr-rarity"></div>
-        <div class="cr-desc" id="cr-desc"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
-      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
-    </div>
-  </div>
-</div>
-
-
-  <div id="game-canvas-wrap">
-    <canvas id="world"></canvas>
-    <div id="top-bar">
+  <div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
     <div class="region-name" id="top-region">Suncrest Expanse</div>
     <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
   </div>
-    <div id="hud">
-    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
-      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
-        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
-        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div class="hud-label">ACTIVE CREATURE</div>
-        <div class="hud-val" id="hud-creature">— none —</div>
-        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
-      </div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">ENERGY</div>
-      <div class="hud-val" id="hud-energy">0/100</div>
-      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">EGGS</div>
-      <div class="hud-val" id="hud-eggs">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">CREATURES</div>
-      <div class="hud-val" id="hud-creatures">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">COINS</div>
-      <div class="hud-val" id="hud-coins">200</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">SKILL PTS</div>
-      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
-    </div>
-    <div class="hud-box" style="flex:1;min-width:120px;">
-      <div class="hud-label">CONTROLS</div>
-      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
-    </div>
-  </div>
-    <div id="mob-btns">
-  <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION ▶</button>
-</div>
+
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
     <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
     <div id="encounter-flash"></div>
 
@@ -655,25 +518,64 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
       <div class="battle-moves" id="battle-moves"></div>
     </div>
   </div>
+
+  <div id="hud">
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
+    </div>
+  </div>
 </div>
 
 <script>
-// ===========================================================
-//  WORLDHATCH -- Browser Top-Down Explorer
+// ═══════════════════════════════════════════════════════════
+//  WORLDHATCH — Browser Top-Down Explorer
 //  Pixel art tile engine, encounter system, battle engine
-//  All self-contained -- no server required.
-// ===========================================================
+//  All self-contained — no server required.
+// ═══════════════════════════════════════════════════════════
 
-const TILE   = 24;  // 16-bit SNES style -- bigger tiles
+const TILE   = 24;  // 16-bit SNES style — bigger tiles
 const VIEW_W = 13;
 const VIEW_H = 10;
-let VIEW_W_CUR = VIEW_W;
-let VIEW_H_CUR = VIEW_H;
+let VIEW_W_CUR = 13;
+let VIEW_H_CUR = 10;
 
-// -- TILE TYPES --------------------------------------------
+// ── TILE TYPES ────────────────────────────────────────────
 const T = {
   GROUND:   0,
-  GRASS:    1,   // tall grass -- triggers encounters
+  GRASS:    1,   // tall grass — triggers encounters
   WALL:     2,
   WATER:    3,
   SAND:     4,
@@ -687,15 +589,15 @@ const T = {
   NPC:      12,
   CHEST:    13,
   CAVE_FLOOR:14,
-  TOWN:     15,  // safe zone -- no encounters
+  TOWN:     15,  // safe zone — no encounters
   MINIBOSS: 16,  // mini-boss trigger tile
   BOSS:     17,  // final boss trigger tile
   SIGN:     18,  // direction sign
   BRIDGE:   19,  // bridge over water
 };
 
-// -- 16-BIT REGION-AWARE TILE PALETTE ---------------------
-// Base palette -- overridden per-region in getRegionPal()
+// ── 16-BIT REGION-AWARE TILE PALETTE ─────────────────────
+// Base palette — overridden per-region in getRegionPal()
 const TILE_PAL_BASE = {
   [T.GROUND]: {base:'#3a5c20',hi:'#4a7228',sh:'#2a4418',acc:'#567830'},
   [T.GRASS]:  {base:'#1e7a0a',hi:'#28961a',sh:'#145606',acc:'#32aa22'},
@@ -770,7 +672,7 @@ function getRegionPal(tile) {
 // Keep TILE_PAL as alias for compatibility
 const TILE_PAL = TILE_PAL_BASE;
 
-// -- REGION DEFINITIONS -----------------------------------
+// ── REGION DEFINITIONS ───────────────────────────────────
 const REGIONS = {
   suncrest_expanse: {
     name: 'Suncrest Expanse',
@@ -835,136 +737,15 @@ const REGIONS = {
       {id:'void_sovereign',name:'Void Sovereign',  element:'dark',  hp:131,atk:64,def:29,spd:41,rarity:'legendary'},
     ],
   },
-// ===========================================================
-//  REGION LEVEL DATA -- 3 levels per region
-//  level 1 = surface (base creatures)
-//  level 2 = depths  (harder, 2 new creatures)
-//  level 3 = core    (legendary tier, 2 exclusive creatures)
-// ===========================================================
-const REGION_LEVELS = {
-  suncrest_expanse: {
-    2: {
-      name: 'Suncrest Depths',
-      lvlBonus: 8,
-      palette: { ground:'#4a2800', grass:'#6a3800', path:'#552200', water:'#441400' },
-      newTiles: ['lava_crack','scorched'],
-      creatures: [
-        {id:'magma_serpent',  name:'Magma Serpent',   element:'magma', hp:180,atk:55,def:30,spd:18,rarity:'uncommon'},
-        {id:'ash_colossus',   name:'Ash Colossus',    element:'magma', hp:240,atk:45,def:60,spd:8, rarity:'rare'},
-      ],
-      bossName: 'Ancient Emberlord',
-      bossHpMult: 2.2, bossAtkMult: 1.6,
-      bossReward: {coins:150, statBoost:{attack:3}},
-    },
-    3: {
-      name: 'Suncrest Core',
-      lvlBonus: 20,
-      palette: { ground:'#300800', grass:'#441000', path:'#3a0800', water:'#660000' },
-      newTiles: ['lava_pool','magma_vent'],
-      creatures: [
-        {id:'solar_titan',    name:'Solar Titan',     element:'magma', hp:320,atk:80,def:50,spd:14,rarity:'legendary'},
-        {id:'cinder_dragon',  name:'Cinder Dragon',   element:'fire',  hp:280,atk:90,def:35,spd:22,rarity:'legendary'},
-      ],
-      bossName: 'Solarcrown Ancient',
-      bossHpMult: 3.5, bossAtkMult: 2.0,
-      bossReward: {coins:300, statBoost:{attack:5, hp:20}},
-    },
-  },
-  sakurami_highlands: {
-    2: {
-      name: 'Sakurami Depths',
-      lvlBonus: 8,
-      palette: { ground:'#1a0a28', grass:'#240e34', path:'#2a1440', water:'#0e0820' },
-      newTiles: ['spirit_mist','cursed_stone'],
-      creatures: [
-        {id:'void_kitsune',   name:'Void Kitsune',    element:'dark',  hp:190,atk:60,def:25,spd:35,rarity:'uncommon'},
-        {id:'ancient_oni',    name:'Ancient Oni',     element:'spirit',hp:220,atk:50,def:45,spd:18,rarity:'rare'},
-      ],
-      bossName: 'Elder Ryujin',
-      bossHpMult: 2.2, bossAtkMult: 1.6,
-      bossReward: {coins:150, statBoost:{speed:3}},
-    },
-    3: {
-      name: 'Sakurami Core',
-      lvlBonus: 20,
-      palette: { ground:'#0e0418', grass:'#140620', path:'#180a28', water:'#080210' },
-      newTiles: ['void_rift','soul_crystal'],
-      creatures: [
-        {id:'celestial_crane', name:'Celestial Crane', element:'spirit',hp:300,atk:75,def:40,spd:30,rarity:'legendary'},
-        {id:'shadow_sovereign',name:'Shadow Sovereign',element:'dark',  hp:260,atk:95,def:30,spd:40,rarity:'legendary'},
-      ],
-      bossName: 'Ryujin Ascendant',
-      bossHpMult: 3.5, bossAtkMult: 2.0,
-      bossReward: {coins:300, statBoost:{speed:5, defense:10}},
-    },
-  },
-  frostspire_reach: {
-    2: {
-      name: 'Frostspire Depths',
-      lvlBonus: 8,
-      palette: { ground:'#0a1428', grass:'#0e1c38', path:'#181e30', water:'#040820' },
-      newTiles: ['black_ice','frozen_tomb'],
-      creatures: [
-        {id:'blizzard_wyrm',  name:'Blizzard Wyrm',   element:'ice',  hp:200,atk:58,def:32,spd:16,rarity:'uncommon'},
-        {id:'permafrost_titan',name:'Permafrost Titan',element:'ice', hp:260,atk:42,def:70,spd:6, rarity:'rare'},
-      ],
-      bossName: 'Elder Jormunveil',
-      bossHpMult: 2.2, bossAtkMult: 1.6,
-      bossReward: {coins:150, statBoost:{defense:3}},
-    },
-    3: {
-      name: 'Frostspire Core',
-      lvlBonus: 20,
-      palette: { ground:'#040810', grass:'#060c18', path:'#080e1c', water:'#020408' },
-      newTiles: ['void_ice','eternal_frost'],
-      creatures: [
-        {id:'absolute_zero',  name:'Absolute Zero',   element:'ice',  hp:340,atk:70,def:60,spd:12,rarity:'legendary'},
-        {id:'aurora_leviathan',name:'Aurora Leviathan',element:'storm',hp:280,atk:88,def:38,spd:26,rarity:'legendary'},
-      ],
-      bossName: 'Jormunveil Ancient',
-      bossHpMult: 3.5, bossAtkMult: 2.0,
-      bossReward: {coins:300, statBoost:{defense:5, hp:30}},
-    },
-  },
-  shadowmere_hollows: {
-    2: {
-      name: 'Shadowmere Depths',
-      lvlBonus: 8,
-      palette: { ground:'#0a0414', grass:'#0e0618', path:'#140a1e', water:'#060210' },
-      newTiles: ['void_crack','cursed_ground'],
-      creatures: [
-        {id:'nightmare_stalker',name:'Nightmare Stalker',element:'dark',hp:195,atk:65,def:28,spd:30,rarity:'uncommon'},
-        {id:'shadow_colossus', name:'Shadow Colossus',  element:'dark', hp:250,atk:48,def:55,spd:10,rarity:'rare'},
-      ],
-      bossName: 'Elder Void Sovereign',
-      bossHpMult: 2.2, bossAtkMult: 1.6,
-      bossReward: {coins:150, statBoost:{attack:3, speed:2}},
-    },
-    3: {
-      name: 'Shadowmere Core',
-      lvlBonus: 20,
-      palette: { ground:'#040208', grass:'#06030c', path:'#080410', water:'#020106' },
-      newTiles: ['void_abyss','darkness_pool'],
-      creatures: [
-        {id:'void_emperor',   name:'Void Emperor',    element:'dark',  hp:360,atk:95,def:45,spd:38,rarity:'legendary'},
-        {id:'chaos_serpent',  name:'Chaos Serpent',   element:'dark',  hp:300,atk:85,def:40,spd:45,rarity:'legendary'},
-      ],
-      bossName: 'Void Sovereign Ancient',
-      bossHpMult: 3.5, bossAtkMult: 2.0,
-      bossReward: {coins:300, statBoost:{attack:8, speed:3}},
-    },
-  },
-};
-
 };
 
 
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
 //  CREATURE ART REGISTRY
 //  Add image paths here as art is created.
 //  Key = creature id, value = image URL or path.
 //  Falls back to procedural sprite if not found.
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
 const CREATURE_ART = {
   'inkfox':              'art_inkfox.png',
   'marsh_lurker':        null,
@@ -978,11 +759,11 @@ function getArt(creatureId) {
   return CREATURE_ART[creatureId] || null;
 }
 
-// -- MAP GENERATOR ----------------------------------------
+// ── MAP GENERATOR ────────────────────────────────────────
 const MAP_W = 128;
 const MAP_H = 128;
 
-// -- MULTI-OCTAVE NOISE ------------------------------------
+// ── MULTI-OCTAVE NOISE ────────────────────────────────────
 function noise2(x, y, seed=0) {
   const s = Math.sin(x*127.1 + y*311.7 + seed*419.3)*43758.5453;
   return s - Math.floor(s);
@@ -1000,7 +781,7 @@ function generateMap(regionId, forceSeed) {
   const W = MAP_W, H = MAP_H;
   const CX = Math.floor(W/2), CY = Math.floor(H/2);
 
-  // -- Seeded RNG -- every call with a different n gives a different value
+  // ── Seeded RNG — every call with a different n gives a different value
   function rng(n) {
     const s = Math.sin(seed*127.1 + n*311.7 + seed*n*0.03) * 43758.5453;
     return s - Math.floor(s);  // 0..1
@@ -1008,7 +789,7 @@ function generateMap(regionId, forceSeed) {
   function rngRange(n, lo, hi) { return Math.round(lo + rng(n) * (hi - lo)); }
   function rngPick(n, arr)      { return arr[Math.floor(rng(n)*arr.length)];  }
 
-  // -- Helpers -------------------------------------------
+  // ── Helpers ───────────────────────────────────────────
   function road(x1,y1,x2,y2,width=4) {
     const dx=x2-x1, dy=y2-y1;
     const steps=Math.max(Math.abs(dx),Math.abs(dy));
@@ -1073,14 +854,14 @@ function generateMap(regionId, forceSeed) {
       }
   }
 
-  // ======================================================
-  //  HUB TOWN -- always centred, layout varies
-  // ======================================================
+  // ══════════════════════════════════════════════════════
+  //  HUB TOWN — always centred, layout varies
+  // ══════════════════════════════════════════════════════
   const townW = rngRange(1, 7, 11);
   const townH = rngRange(2, 5, 8);
   fill(CX, CY, townW, townH, T.TOWN);
 
-  // Town buildings -- vary count and spacing
+  // Town buildings — vary count and spacing
   const bSpacing = rngRange(3, 3, 5);
   for(let bx=CX-townW+1; bx<=CX+townW-1; bx+=bSpacing)
     for(let by=CY-townH+1; by<=CY+townH-1; by+=bSpacing)
@@ -1097,11 +878,11 @@ function generateMap(regionId, forceSeed) {
   map[CY-townH-1][CX]  = T.SIGN;
   map[CY+townH+1][CX]  = T.SIGN;
 
-  // ======================================================
-  //  SPOKE ZONES -- length, width, and sub-features seeded
-  // ======================================================
+  // ══════════════════════════════════════════════════════
+  //  SPOKE ZONES — length, width, and sub-features seeded
+  // ══════════════════════════════════════════════════════
 
-  // -- NORTH SPOKE ---------------------------------------
+  // ── NORTH SPOKE ───────────────────────────────────────
   const northLen  = rngRange(10, 22, 42);      // how far north the zone centre is
   const northJog  = rngRange(11, -16, 16);     // lateral offset of zone centre
   const NCX = CX + northJog;
@@ -1129,7 +910,7 @@ function generateMap(regionId, forceSeed) {
   placeNest(NCX+rngRange(28,-northRW+2,northRW-2), NCY+rngRange(29,-northRH+2,northRH-2));
   placeNest(NCX+rngRange(30,-northRW+2,northRW-2), NCY+rngRange(31,-northRH+2,northRH-2));
 
-  // -- EAST SPOKE ----------------------------------------
+  // ── EAST SPOKE ────────────────────────────────────────
   const eastLen   = rngRange(40, 22, 42);
   const eastJog   = rngRange(41, -16, 16);
   const EZX = CX + eastLen;
@@ -1154,7 +935,7 @@ function generateMap(regionId, forceSeed) {
   placeNest(EZX+rngRange(57,-eastRW+2,eastRW-2), EZY+rngRange(58,-eastRH+2,eastRH-2));
   placeNest(EZX+rngRange(59,-eastRW+2,eastRW-2), EZY+rngRange(60,-eastRH+2,eastRH-2));
 
-  // -- WEST SPOKE ----------------------------------------
+  // ── WEST SPOKE ────────────────────────────────────────
   const westLen   = rngRange(70, 22, 42);
   const westJog   = rngRange(71, -16, 16);
   const WZX = CX - westLen;
@@ -1180,7 +961,7 @@ function generateMap(regionId, forceSeed) {
   placeNest(WZX+rngRange(86,-westRW+2,westRW-2), WZY+rngRange(87,-westRH+2,westRH-2));
   placeNest(WZX+rngRange(88,-westRW+2,westRW-2), WZY+rngRange(89,-westRH+2,westRH-2));
 
-  // -- SOUTH SPOKE → BOSS GAUNTLET ----------------------
+  // ── SOUTH SPOKE → BOSS GAUNTLET ──────────────────────
   const southLen  = rngRange(90, 30, 48);
   const southJog  = rngRange(91, -10, 10);
   const SGX = CX + southJog;
@@ -1196,7 +977,7 @@ function generateMap(regionId, forceSeed) {
   map[Math.min(H-2,SGY-22)][Math.max(2,SGX-6)]=T.CHEST;
   map[Math.min(H-2,SGY-22)][Math.min(W-2,SGX+6)]=T.CHEST;
 
-  // -- FINAL BOSS ARENA ----------------------------------
+  // ── FINAL BOSS ARENA ──────────────────────────────────
   const arenaW=rngRange(95,10,16), arenaH=rngRange(96,8,12);
   fill(SGX, SGY, arenaW, arenaH, T.GROUND);
   road(SGX, SGY-8, SGX, SGY-arenaH-1, 3);
@@ -1217,20 +998,20 @@ function generateMap(regionId, forceSeed) {
   map[Math.min(H-2,SGY+arenaH-2)][Math.max(2,SGX-arenaW+2)]=T.CHEST;
   map[Math.min(H-2,SGY+arenaH-2)][Math.min(W-2,SGX+arenaW-2)]=T.CHEST;
 
-  // -- BONUS HIDDEN NEST ---------------------------------
+  // ── BONUS HIDDEN NEST ─────────────────────────────────
   placeNest(CX+rngRange(100,-40,40), CY+rngRange(101,-40,40));
 
-  // -- SCATTER FLOWERS -----------------------------------
+  // ── SCATTER FLOWERS ───────────────────────────────────
   for(let i=0;i<60;i++){
     const fx=rngRange(200+i,4,W-5), fy=rngRange(300+i,4,H-5);
     if(map[fy][fx]===T.GROUND) map[fy][fx]=T.FLOWER;
   }
 
-  // -- HARD BORDER ---------------------------------------
+  // ── HARD BORDER ───────────────────────────────────────
   for(let x=0;x<W;x++){map[0][x]=T.WALL;map[H-1][x]=T.WALL;}
   for(let y=0;y<H;y++){map[y][0]=T.WALL;map[y][W-1]=T.WALL;}
 
-  // -- CLEAR SPAWN ---------------------------------------
+  // ── CLEAR SPAWN ───────────────────────────────────────
   safe(CX, CY, 4);
   for(let dy=-2;dy<=2;dy++)
     for(let dx=-2;dx<=2;dx++)
@@ -1249,7 +1030,7 @@ function bridge(map, cx, cy, horizontal) {
   }
 }
 
-// -- GAME STATE --------------------------------------------
+// ── GAME STATE ────────────────────────────────────────────
 const state = {
   // Player
   playerName:  'Trainer',
@@ -1266,15 +1047,12 @@ const state = {
   visitedNests:    new Set(),
   visitedPoI:      new Set(),
   defeatedBosses:  new Set(),
-  // Level progression -- {regionId_level: true}
-  unlockedLevels:  {'suncrest_expanse_1':true,'sakurami_highlands_1':true,'frostspire_reach_1':true,'shadowmere_hollows_1':true},
-  currentLevel:    1,
-  // Fog of war -- tiles the player has been near
+  // Fog of war — tiles the player has been near
   exploredTiles: new Set(),
 
   // Time & weather
   time: 8,           // 0-23 hours
-  timeSpeed: 0.00015, // hours per frame -- 1 game-day ≈ 25 real minutes
+  timeSpeed: 0.00015, // hours per frame — 1 game-day ≈ 25 real minutes
   weather: 'clear',  // clear, rain, fog, storm
   weatherTimer: 0,
 
@@ -1296,10 +1074,9 @@ const state = {
 
   // Camera
   camX: 0, camY: 0,
-  tapTarget: null,
 };
 
-// -- CANVAS SETUP ------------------------------------------
+// ── CANVAS SETUP ──────────────────────────────────────────
 const canvas  = document.getElementById('world');
 const ctx     = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -1307,77 +1084,18 @@ ctx.imageSmoothingEnabled = false;
 const mmCanvas = document.getElementById('mm');
 const mmCtx    = mmCanvas.getContext('2d');
 
-// -- TAP / CLICK TO MOVE ----------------------------------
-function handleCanvasTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = canvas.getBoundingClientRect();
-  const tx = Math.floor((cx - rect.left) / rect.width  * VIEW_W_CUR) + state.camX;
-  const ty = Math.floor((cy - rect.top)  / rect.height * VIEW_H_CUR) + state.camY;
-  state.tapTarget = { x: tx, y: ty };
-}
-
-// Main canvas -- click or touch
-canvas.addEventListener('click', e => {
-  handleCanvasTap(e.clientX, e.clientY);
-});
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
-// Minimap -- click or touch to set long-distance travel target
-function handleMinimapTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = mmCanvas.getBoundingClientRect();
-  const S   = 90;
-  const s   = Math.max(1, Math.floor(S / MAP_W));
-  const off = Math.floor((S - MAP_W * s) / 2);
-  // Convert click position to map tile
-  const canvasX = (cx - rect.left) * (S / rect.width);
-  const canvasY = (cy - rect.top)  * (S / rect.height);
-  const tx = Math.floor((canvasX - off) / s);
-  const ty = Math.floor((canvasY - off) / s);
-  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
-    state.tapTarget = { x: tx, y: ty };
-  }
-}
-
-mmCanvas.addEventListener('click', e => {
-  handleMinimapTap(e.clientX, e.clientY);
-  e.stopPropagation();
-});
-mmCanvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  e.stopPropagation();
-  handleMinimapTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
-
 function resizeCanvas() {
-  // Fill entire screen — compute how many tiles fit
   const sw = window.innerWidth;
   const sh = window.innerHeight;
-  // Use a tile size that fills the screen nicely
-  const tileW = Math.ceil(sw / TILE) + 2;
-  const tileH = Math.ceil(sh / TILE) + 2;
-  // Update VIEW dimensions dynamically
-  VIEW_W_CUR = Math.max(13, tileW);
-  VIEW_H_CUR = Math.max(10, tileH);
-  canvas.width  = sw;
-  canvas.height = sh;
+  VIEW_W_CUR = Math.max(VIEW_W, Math.ceil(sw / TILE) + 1);
+  VIEW_H_CUR = Math.max(VIEW_H, Math.ceil(sh / TILE) + 1);
+  canvas.width  = VIEW_W_CUR * TILE;
+  canvas.height = VIEW_H_CUR * TILE;
   canvas.style.width  = sw + 'px';
   canvas.style.height = sh + 'px';
 }
 
-// -- INPUT -------------------------------------------------
+// ── INPUT ─────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   // Don't swallow events when opening menu is visible
   const menuOpen = document.getElementById('menu-overlay') &&
@@ -1403,7 +1121,7 @@ function addTouch(id, key) {
   el.addEventListener('touchend',   e => { state.keys[key] = false; e.preventDefault(); });
 }
 
-// -- MOVEMENT ----------------------------------------------
+// ── MOVEMENT ──────────────────────────────────────────────
 let moveTimer = 0;
 const MOVE_DELAY = 150; // ms between steps
 
@@ -1419,14 +1137,6 @@ function handleMovement(dt) {
   if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
   if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
 
-  // Tap-to-move
-  if (dx === 0 && dy === 0 && state.tapTarget) {
-    const tdx = state.tapTarget.x - state.px;
-    const tdy = state.tapTarget.y - state.py;
-    if (Math.abs(tdx) < 1 && Math.abs(tdy) < 1) { state.tapTarget = null; }
-    else if (Math.abs(tdx) >= Math.abs(tdy)) { dx = tdx > 0 ? 1 : -1; state.playerDir = dx > 0 ? 'right' : 'left'; }
-    else { dy = tdy > 0 ? 1 : -1; state.playerDir = dy > 0 ? 'down' : 'up'; }
-  }
   if (dx === 0 && dy === 0) return;
   moveTimer = 0;
 
@@ -1455,7 +1165,7 @@ function handleMovement(dt) {
       if(ex*ex+ey*ey <= FOG_R*FOG_R)
         state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
-  // Grass encounter check -- not in town tiles
+  // Grass encounter check — not in town tiles
   if (tile === T.GRASS && Math.random() < 0.12) {
     triggerEncounter();
     return;
@@ -1484,13 +1194,13 @@ function handleMovement(dt) {
     }
   }
 
-  // Town -- safe zone message first visit
+  // Town — safe zone message first visit
   if (tile === T.TOWN) {
     const townKey = `town_${state.currentRegion}`;
     if (!state.visitedPoI.has(townKey)) {
       state.visitedPoI.add(townKey);
       showDialog('TOWN CENTER',
-        'You reached the town!\nThis is a safe zone -- no wild encounters here.\n\nRest, heal, and plan your route:\n  NORTH -- Cave Zone (mini-boss)\n  EAST  -- Ruins Zone (mini-boss)\n  WEST  -- Shrine Zone (mini-boss)\n  SOUTH -- Boss Gauntlet',
+        'You reached the town!\nThis is a safe zone — no wild encounters here.\n\nRest, heal, and plan your route:\n  NORTH — Cave Zone (mini-boss)\n  EAST  — Ruins Zone (mini-boss)\n  WEST  — Shrine Zone (mini-boss)\n  SOUTH — Boss Gauntlet',
         [{label:'Explore!', fn:closeDialog}]);
     }
   }
@@ -1518,13 +1228,10 @@ function handleMovement(dt) {
   updateHUD();
 }
 
-// -- ENCOUNTER SYSTEM -------------------------------------
+// ── ENCOUNTER SYSTEM ─────────────────────────────────────
 function triggerEncounter() {
   const region   = REGIONS[state.currentRegion];
-  // Level 2/3 adds deeper creatures to the pool
-  const lvData   = state.currentLevel > 1 ? REGION_LEVELS[state.currentRegion]?.[state.currentLevel] : null;
-  const lvBonus  = lvData ? lvData.lvlBonus : 0;
-  const pool     = lvData ? [...region.creatures, ...lvData.creatures] : region.creatures;
+  const pool     = region.creatures;
   // Weighted by rarity
   const weights  = pool.map(c => c.rarity === 'common' ? 50 : c.rarity === 'uncommon' ? 20 : c.rarity === 'rare' ? 6 : 1);
   const total    = weights.reduce((a,b) => a+b, 0);
@@ -1535,7 +1242,7 @@ function triggerEncounter() {
     if (r <= 0) { wildTemplate = pool[i]; break; }
   }
 
-  // Scale wild creature level -- deeper levels spawn higher level creatures
+  // Scale wild creature level
   const wildLevel  = Math.max(1, Math.floor(state.creatures.length * 2) + Math.floor(Math.random() * 4));
   const wildMult   = 1 + (wildLevel - 1) * 0.08;
   const wild = {
@@ -1645,20 +1352,16 @@ function triggerMiniBoss(bossKey) {
 
 function triggerFinalBoss(bossKey) {
   const region   = REGIONS[state.currentRegion];
-  const lvData   = state.currentLevel > 1 ? REGION_LEVELS[state.currentRegion]?.[state.currentLevel] : null;
-  // Use level-specific boss creature if available
-  const template = lvData && lvData.creatures.length > 0
-    ? lvData.creatures[lvData.creatures.length-1]
-    : region.creatures[region.creatures.length-1];
-  const lvl      = Math.max(10, (state.creatures[state.activeCreatureIdx]?.level||1) + 6 + (lvData ? lvData.lvlBonus : 0));
+  const template = region.creatures[region.creatures.length-1]; // legendary
+  const lvl      = Math.max(10, (state.creatures[state.activeCreatureIdx]?.level||1) + 6);
   const mult     = 1 + (lvl-1)*0.15;
   const boss = {
     ...template,
-    name:      lvData ? `${lvData.bossName} [BOSS]` : `${template.name.toUpperCase()} [BOSS]`,
+    name:      `${template.name.toUpperCase()} [BOSS]`,
     level:     lvl,
-    currentHp: Math.round(template.hp * mult * (lvData ? lvData.bossHpMult : 2.0)),
-    maxHp:     Math.round(template.hp * mult * (lvData ? lvData.bossHpMult : 2.0)),
-    attack:    Math.round(template.atk * mult * (lvData ? lvData.bossAtkMult : 1.4)),
+    currentHp: Math.round(template.hp * mult * 2),
+    maxHp:     Math.round(template.hp * mult * 2),
+    attack:    Math.round(template.atk * mult * 1.4),
     defense:   Math.round(template.def * mult * 1.2),
     speed:     template.spd,
     energy:    50,  // boss starts with energy already charged
@@ -1739,7 +1442,7 @@ function handleEsc() {
   showMainMenu();
 }
 
-// -- BATTLE SYSTEM -----------------------------------------
+// ── BATTLE SYSTEM ─────────────────────────────────────────
 
 // Element circle: each beats the next, weak to previous
 const ELEM_CIRCLE = ['fire','nature','ice','storm','spirit','dark','water','sand','magma','crystal'];
@@ -1787,17 +1490,18 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
   updateBattleUI();
   buildMoveButtons();
 
-  // Load creature art -- image if available, sprite fallback if not
+  // Load creature art — image if available, sprite fallback if not
   loadBattleArt('player', playerCreature);
   loadBattleArt('enemy',  wildCreature);
 
   renderBattleArena();
+  startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
 
   // Initiative roll
   const pRoll = rollD20(), eRoll = rollD20();
-  blogLog(`Initiative -- You: ${pRoll} | Enemy: ${eRoll}`, 'log-info');
+  blogLog(`Initiative — You: ${pRoll} | Enemy: ${eRoll}`, 'log-info');
   if (eRoll > pRoll) {
     battleData.turn = 'enemy';
     blogLog(`${wildCreature.name} goes first!`, 'log-info');
@@ -1848,7 +1552,7 @@ function buildMoveButtons() {
   const moves = [
     { label: 'BASE ATTACK',  id:'base',    cls:'',       disabled:false },
     { label: 'POWER STRIKE', id:'power',   cls:'',       disabled:false },
-    { label: 'SPECIAL !',   id:'special', cls:'special',disabled: battleData.player.energy < 100 },
+    { label: 'SPECIAL ⚡',   id:'special', cls:'special',disabled: battleData.player.energy < 100 },
     { label: 'CATCH',        id:'catch',   cls:'catch',  disabled:false },
     { label: 'RUN',          id:'run',     cls:'danger', disabled:false },
   ];
@@ -1864,7 +1568,7 @@ function buildMoveButtons() {
 }
 
 async function playerAction(actionId) {
-  if (!battleData || battleData.turn !== 'player' || battleData.over) return;
+  if (battleData.turn !== 'player' || battleData.over) return;
   disableMoveButtons(true);
 
   if (actionId === 'run') {
@@ -1886,7 +1590,7 @@ async function playerAction(actionId) {
       blogLog(`Got away safely! (needed 10, got ${total})`, 'log-crit');
       endBattle(false, false);
     } else {
-      // Failed escape -- enemy gets a free hit
+      // Failed escape — enemy gets a free hit
       const margin  = 10 - total;
       const dmg     = Math.max(1, Math.round(battleData.enemy.attack * (margin / 10)));
       battleData.player.currentHp = Math.max(0, battleData.player.currentHp - dmg);
@@ -1894,7 +1598,7 @@ async function playerAction(actionId) {
         state.creatures[state.activeCreatureIdx].currentHp = battleData.player.currentHp;
       }
       flashHit('player');
-      blogLog(`Escape FAILED! (needed 10, got ${total}) -- took ${dmg} damage!`, 'log-miss');
+      blogLog(`Escape FAILED! (needed 10, got ${total}) — took ${dmg} damage!`, 'log-miss');
       updateBattleUI();
 
       if (battleData.player.currentHp <= 0) {
@@ -1941,91 +1645,32 @@ async function playerAction(actionId) {
   }
 
   // Attack
-  const roll = rollD20();
+  const roll    = rollD20();
+
+  // Play attack cutscene
+  const moveLabelCut = actionId==='special'?'SPECIAL MOVE!':actionId==='power'?'POWER STRIKE':'BASE ATTACK';
+
   await showDice(roll, 'YOUR ATTACK');
   const outcome = getOutcome(roll);
-  blogLog(`Roll: ${roll} -- ${outcome.label}`, outcome.cls);
+  blogLog(`Roll: ${roll} — ${outcome.label}`, outcome.cls);
 
   if (outcome.mult > 0) {
-    const p   = battleData.player;
-    const e   = battleData.enemy;
-    const sfx = getSkillEffects(state.creatures[state.activeCreatureIdx] || p);
-
-    // Type multiplier -- pierceType ignores type disadvantage
-    let typeMult = getTypeMult(p.element, e.element);
-    if (sfx.pierceType) typeMult = Math.max(1, typeMult);
+    const p        = battleData.player;
+    const e        = battleData.enemy;
+    const typeMult = getTypeMult(p.element, e.element);
     if (typeMult > 1) blogLog('Super effective!', 'log-crit');
     if (typeMult < 1) blogLog('Not very effective...', 'log-info');
 
-    // Invincible skip
-    if (battleData.enemyInvincible) { blogLog('Attack had no effect!','log-miss'); battleData.enemyInvincible=false; }
-    else {
-      // Dodge check (enemy)
-      const enemySfx = getSkillEffects(e);
-      if (enemySfx.dodgeChance && Math.random() < enemySfx.dodgeChance) {
-        blogLog(`${e.name} dodged the attack!`,'log-miss');
-      } else {
-        let powerBoost = actionId==='power' ? 1.5 : actionId==='special' ? (sfx.specialMult||2.5) : 1.0;
-        if (actionId==='special' && sfx.specialBoost) powerBoost += sfx.specialBoost;
-        // Skill ATK boosts
-        let atkBoost = p.attack;
-        if (sfx.atkMult)  atkBoost *= (1 + sfx.atkMult);
-        if (sfx.atkFlat)  atkBoost += sfx.atkFlat;
-        // First attack boost
-        if (sfx.firstAtkBoost && !battleData.playerAttacked) {
-          powerBoost += sfx.firstAtkBoost;
-          blogLog('First strike bonus!','log-crit');
-        }
-        battleData.playerAttacked = true;
-        // Surge hit (every 3rd)
-        battleData.surgeCount = (battleData.surgeCount||0)+1;
-        if (sfx.surgeHit && battleData.surgeCount%3===0) { powerBoost*=2; blogLog('Surge hit!','log-crit'); }
-        // Titan hit (next hit triple)
-        if (battleData.titanHitReady) { powerBoost*=3; battleData.titanHitReady=false; blogLog('TITAN FORCE!','log-crit'); }
-        if (sfx.titanHit && !battleData.titanHitUsed) { battleData.titanHitReady=true; battleData.titanHitUsed=true; }
-        // DEF pen
-        let defVal = e.defense;
-        if (sfx.defPen) defVal *= (1 - sfx.defPen);
-        // Crit threshold
-        const critThresh = sfx.critOn || 20;
-        let mult = outcome.mult;
-        if (roll >= critThresh && mult < 2) { mult = sfx.critMult||2; blogLog('CRITICAL!','log-crit'); }
-        // Death mark
-        if (sfx.deathMark && !battleData.deathMarkUsed) {
-          const markDmg = Math.floor(e.maxHp * 0.4);
-          e.currentHp = Math.max(0, e.currentHp - markDmg);
-          battleData.deathMarkUsed = true;
-          blogLog(`DEATH MARK! ${markDmg} instant damage!`,'log-crit');
-        }
-        const dmg = Math.max(1, Math.round((atkBoost / Math.max(1,defVal)) * 15 * mult * typeMult * powerBoost));
-        e.currentHp = Math.max(0, e.currentHp - dmg);
-        flashHit('enemy');
-        blogLog(`${p.name} deals ${dmg} damage!`, 'log-hit');
-        // Thorn reflect on enemy
-        if (enemySfx.thornDmg) { p.currentHp=Math.max(0,p.currentHp-enemySfx.thornDmg); blogLog(`${e.name}'s thorns deal ${enemySfx.thornDmg} back!`,'log-miss'); }
-        if (enemySfx.thornPct) { const td=Math.floor(dmg*enemySfx.thornPct); p.currentHp=Math.max(0,p.currentHp-td); blogLog(`Reflected ${td} dmg!`,'log-miss'); }
-      }
-      // Shatter crit -- mark to hit again next turn
-      if (outcome.mult >= 2 && sfx.shatterCrit && !battleData.shatterReady) { battleData.shatterReady=true; blogLog('Gem shatter -- strikes again next turn!','log-crit'); }
-    }
+    const powerBoost = actionId === 'power' ? 1.5 : actionId === 'special' ? 2.5 : 1.0;
+    const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost));
+
+    e.currentHp = Math.max(0, e.currentHp - dmg);
+    flashHit('enemy');
+    blogLog(`${p.name} deals ${dmg} damage!`, 'log-hit');
 
     // Energy gain
-    let energyGain = outcome.energy;
-    if (sfx.energyBoost) energyGain = Math.round(energyGain * (1 + sfx.energyBoost));
-    p.energy = Math.min(100, p.energy + energyGain);
-    // Special cost override
-    const specialCost = sfx.specialCost || 100;
-    if (actionId === 'special') {
-      if (battleData.freeSpecialUsed === false && sfx.freeSpecial) { battleData.freeSpecialUsed=true; blogLog('Free special -- no energy cost!','log-crit'); }
-      else p.energy = 0;
-    }
-    // HP burst -- use 40% of own HP as bonus
-    if (actionId==='special' && sfx.hpBurst) {
-      const burst=Math.floor(p.currentHp*0.4);
-      p.currentHp=Math.max(1,p.currentHp-burst);
-      e.currentHp=Math.max(0,e.currentHp-burst);
-      blogLog(`HP Burst! Used ${burst} HP for extra damage!`,'log-crit');
-    }
+    p.energy = Math.min(100, p.energy + outcome.energy);
+    if (actionId === 'special') p.energy = 0;
   }
 
   updateBattleUI();
@@ -2039,27 +1684,13 @@ async function playerAction(actionId) {
       const leveled = grantXP(pc, xpGain);
       blogLog(`${pc.name} gained ${xpGain} XP! (Lv${pc.level})`, 'log-crit');
       if (leveled) {
-        blogLog(`LEVEL UP! Lv${pc.level} -- +2 Skill Points!`, 'log-crit');
+        blogLog(`LEVEL UP! Lv${pc.level} — +2 Skill Points!`, 'log-crit');
       }
     }
     state.coins += Math.floor(battleData.enemy.level * 3);
     // Mark boss as defeated
     if (battleData.enemy.bossKey) {
       state.defeatedBosses.add(battleData.enemy.bossKey);
-      // Unlock next level in this region
-      if (battleData.enemy.isFinalBoss) {
-        const nextLv = state.currentLevel + 1;
-        const key    = state.currentRegion + '_' + nextLv;
-        if (nextLv <= 3 && !state.unlockedLevels[key]) {
-          state.unlockedLevels[key] = true;
-          saveGame();
-          const lvData = REGION_LEVELS[state.currentRegion]?.[nextLv];
-          const lvName = lvData ? lvData.name : 'Level ' + nextLv;
-          setTimeout(()=>showDialog('LEVEL UNLOCKED!',
-            'You have unlocked ' + lvName + '!\n\nA deeper, more dangerous area is now accessible.\n\nAccess it from MENU → Change Level.',
-            [{label:'Incredible!',fn:closeDialog}]), 2000);
-        }
-      }
       const reward = battleData.enemy.isFinalBoss ? 200 : 50;
       state.coins += reward;
       blogLog(battleData.enemy.isFinalBoss
@@ -2075,87 +1706,29 @@ async function playerAction(actionId) {
 }
 
 async function enemyTurn() {
-  if (!battleData || battleData.over) return;
+  if (battleData.over) return;
   const e = battleData.enemy;
   const p = battleData.player;
 
   const roll    = rollD20();
   await showDice(roll, `${e.name} ATTACKS`);
   const outcome = getOutcome(roll);
-  blogLog(`${e.name} roll: ${roll} -- ${outcome.label}`, outcome.cls);
+  blogLog(`${e.name} roll: ${roll} — ${outcome.label}`, outcome.cls);
 
   if (outcome.mult > 0) {
-    const sfx = getSkillEffects(state.creatures[state.activeCreatureIdx] || p);
-    // Player invincible this turn
-    if (battleData.playerInvincible) {
-      blogLog(`${p.name} is invincible! No damage taken!`,'log-crit');
-      battleData.playerInvincible = false;
-    }
-    // Dodge
-    else if (sfx.dodgeChance && Math.random() < sfx.dodgeChance) {
-      blogLog(`${p.name} dodged the attack!`,'log-miss');
-      if (sfx.counterDodge) {
-        const ctrDmg = Math.floor(p.attack * 0.5);
-        e.currentHp = Math.max(0, e.currentHp - ctrDmg);
-        blogLog(`Counter attack! ${ctrDmg} damage!`,'log-crit');
-      }
-    }
-    // Acc debuff (ink trail etc)
-    else if (battleData.accDebuff && Math.random() < battleData.accDebuff) {
-      blogLog(`${e.name} missed! (accuracy debuffed)`,'log-miss');
-      battleData.accDebuffTurns = (battleData.accDebuffTurns||1) - 1;
-      if (battleData.accDebuffTurns <= 0) { battleData.accDebuff=0; }
-    }
-    else {
-      const typeMult = getTypeMult(e.element, p.element);
-      if (typeMult > 1) blogLog('Super effective!', 'log-crit');
-      let dmg = Math.max(1, Math.round((e.attack / Math.max(1,p.defense)) * 12 * outcome.mult * typeMult));
-      // Damage reduce
-      if (sfx.dmgReduce) dmg = Math.max(1, Math.floor(dmg * (1 - sfx.dmgReduce)));
-      // Reflect
-      if (sfx.reflect) { const rd=Math.floor(dmg*sfx.reflect); e.currentHp=Math.max(0,e.currentHp-rd); blogLog(`Reflected ${rd} dmg!`,'log-crit'); }
-      p.currentHp = Math.max(0, p.currentHp - dmg);
-      flashHit('player');
-      // Thorn damage to attacker
-      if (sfx.thornDmg) { e.currentHp=Math.max(0,e.currentHp-sfx.thornDmg); blogLog(`Thorns! ${sfx.thornDmg} dmg to ${e.name}!`,'log-hit'); }
-      if (sfx.thornPct) { const td=Math.floor(dmg*sfx.thornPct); e.currentHp=Math.max(0,e.currentHp-td); blogLog(`Reflected ${td} dmg!`,'log-hit'); }
-      // Paralyse attacker
-      if (sfx.paralyseChance && Math.random() < sfx.paralyseChance) { blogLog(`${e.name} is paralysed!`,'log-crit'); battleData.enemyParalysed=true; }
-      // Status immune
-      if (!sfx.statusImmune) {
-        if (sfx.slowChance && Math.random() < sfx.slowChance) blogLog(`${e.name} is slowed!`,'log-crit');
-        if (sfx.freezeOnCrit && outcome.mult>=2) blogLog(`${e.name} is frozen!`,'log-crit');
-        if (sfx.poisonChance && Math.random() < sfx.poisonChance) { battleData.enemyPoisoned=true; blogLog(`${e.name} is poisoned!`,'log-crit'); }
-      }
-      // Acc debuff applied on this hit
-      if (sfx.accDebuff) { battleData.accDebuff=sfx.accDebuff; battleData.accDebuffTurns=sfx.accTurns||2; blogLog(`${e.name}'s accuracy reduced!`,'log-crit'); }
-      const hitEnergyGain = Math.min(25, Math.max(8, Math.floor(dmg / 4)));
-      p.energy = Math.min(100, (p.energy||0) + hitEnergyGain);
-      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
-        state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
-        state.creatures[state.activeCreatureIdx].energy    = p.energy;
-      }
-      blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
-    }
-  }
-  // HP regen at end of enemy turn
-  const regenSfx = getSkillEffects(state.creatures[state.activeCreatureIdx] || p);
-  if (regenSfx.regenHp && p.currentHp > 0 && p.currentHp < p.maxHp) {
-    const regen = Math.min(regenSfx.regenHp, p.maxHp - p.currentHp);
-    p.currentHp += regen;
-    if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx])
+    const typeMult = getTypeMult(e.element, p.element);
+    if (typeMult > 1) blogLog('Super effective!', 'log-crit');
+    const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
+    p.currentHp = Math.max(0, p.currentHp - dmg);
+    flashHit('player');
+
+    // Update stored creature HP
+    if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
       state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
-    blogLog(`${p.name} regenerates ${regen} HP!`,'log-heal');
+    }
+
+    blogLog(`${e.name} deals ${dmg} damage!`, 'log-hit');
   }
-  // Shatter follow-up
-  if (battleData.shatterReady) {
-    battleData.shatterReady = false;
-    const shatterDmg = Math.floor(p.attack * 0.5);
-    e.currentHp = Math.max(0, e.currentHp - shatterDmg);
-    blogLog(`Gem shatter follow-up: ${shatterDmg} damage!`,'log-crit');
-  }
-  // Poison tick on enemy
-  if (battleData.enemyPoisoned) { const pd=Math.floor(e.maxHp*0.05); e.currentHp=Math.max(0,e.currentHp-pd); blogLog(`Poison deals ${pd} to ${e.name}!`,'log-hit'); }
 
   updateBattleUI();
   updateHUD();
@@ -2180,7 +1753,7 @@ function showDice(roll, label) {
       i++;
       if (i > 10) {
         clearInterval(interval);
-        el.textContent = `${label}: [${roll}] -- ${getOutcome(roll).label}`;
+        el.textContent = `${label}: [${roll}] — ${getOutcome(roll).label}`;
         resolve();
       }
     }, 70);
@@ -2191,7 +1764,7 @@ function disableMoveButtons(disabled) {
   document.querySelectorAll('.move-btn').forEach(b => b.disabled = disabled);
 }
 
-// -- BATTLE ART LOADER ------------------------------------
+// ── BATTLE ART LOADER ────────────────────────────────────
 function loadBattleArt(side, creature) {
   const artPath = getArt(creature.id);
   const imgEl   = document.getElementById(`${side}-art-img`);
@@ -2220,7 +1793,7 @@ function loadBattleArt(side, creature) {
   if (lvEl) lvEl.textContent = `Lv${creature.level||1}`;
 }
 
-// -- HIT FLASH EFFECT -------------------------------------
+// ── HIT FLASH EFFECT ─────────────────────────────────────
 function flashHit(side) {
   const el = document.getElementById(`${side}-flash`);
   if (!el) return;
@@ -2230,7 +1803,7 @@ function flashHit(side) {
   setTimeout(()=>{ el.style.opacity='0'; }, 180);
 }
 
-// -- BATTLE ARENA RENDERING --------------------------------
+// ── BATTLE ARENA RENDERING ────────────────────────────────
 function renderBattleArena() {
   const bg  = document.getElementById('battle-arena-bg');
   if (!bg) return;
@@ -2416,9 +1989,6 @@ function endBattle(won, caught) {
     document.getElementById('battle-overlay').classList.remove('show');
     document.getElementById('battle-log').innerHTML = '';
     document.getElementById('dice-display').textContent = '';
-    if (battleData && state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
-      state.creatures[state.activeCreatureIdx].energy = battleData.player.energy || 0;
-    }
     battleData = null;
 
     if (!won && !caught) {
@@ -2426,14 +1996,13 @@ function endBattle(won, caught) {
       if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
         const c = state.creatures[state.activeCreatureIdx];
         c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
-        c.energy = 0;
       }
     }
     updateHUD();
   }, 1500);
 }
 
-// -- DIALOG SYSTEM -----------------------------------------
+// ── DIALOG SYSTEM ─────────────────────────────────────────
 function showDialog(name, text, options) {
   state.inDialog = true;
   document.getElementById('dialog').style.display = 'block';
@@ -2455,133 +2024,7 @@ function closeDialog() {
   document.getElementById('dialog').style.display = 'none';
 }
 
-// -- MAIN MENU DIALOG --------------------------------------
-
-// ===========================================================
-//  SAVE / LOAD SYSTEM
-// ===========================================================
-
-const SAVE_KEY = 'worldhatch_save';
-
-function saveGame() {
-  try {
-    const save = {
-      version: 1,
-      playerName:       state.playerName,
-      homeRegion:       state.homeRegion,
-      currentRegion:    state.currentRegion,
-      mapSeed:          state.mapSeed,
-      px: state.px, py: state.py,
-      playerDir:        state.playerDir,
-      coins:            state.coins,
-      time:             state.time,
-      weather:          state.weather,
-      activeCreatureIdx:state.activeCreatureIdx,
-      creatures:        state.creatures,
-      eggs:             state.eggs,
-      exploredTiles:    [...state.exploredTiles],
-      visitedNests:     [...state.visitedNests],
-      visitedPoI:       [...state.visitedPoI],
-      defeatedBosses:   [...state.defeatedBosses],
-      unlockedLevels:   state.unlockedLevels,
-      currentLevel:     state.currentLevel,
-      savedAt:          new Date().toLocaleString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const save = JSON.parse(raw);
-    if (!save || save.version !== 1) return false;
-
-    state.playerName        = save.playerName       || 'Trainer';
-    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
-    state.px                = save.px                || 64;
-    state.py                = save.py                || 64;
-    state.playerDir         = save.playerDir         || 'down';
-    state.coins             = save.coins             || 0;
-    state.time              = save.time              || 8;
-    state.weather           = save.weather           || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-    state.creatures         = save.creatures         || [];
-    state.eggs              = save.eggs              || [];
-    state.exploredTiles     = new Set(save.exploredTiles  || []);
-    state.visitedNests      = new Set(save.visitedNests   || []);
-    state.visitedPoI        = new Set(save.visitedPoI     || []);
-    state.defeatedBosses    = new Set(save.defeatedBosses || []);
-    state.unlockedLevels    = save.unlockedLevels || {'suncrest_expanse_1':true,'sakurami_highlands_1':true,'frostspire_reach_1':true,'shadowmere_hollows_1':true};
-    state.currentLevel      = save.currentLevel || 1;
-
-    // Rebuild map from saved seed + region
-    state.map  = generateMap(state.currentRegion, state.mapSeed);
-    state.camX = Math.max(0, Math.min(MAP_W - VIEW_W_CUR, state.px - Math.floor(VIEW_W_CUR/2)));
-    state.camY = Math.max(0, Math.min(MAP_H - VIEW_H_CUR, state.py - Math.floor(VIEW_H_CUR/2)));
-
-    document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
-    document.getElementById('top-player').textContent = `${state.playerName} -- ${(REGIONS[state.currentRegion]?.name||'').toUpperCase()}`;
-    updateHUD();
-    return save.savedAt || true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function hasSave() {
-  return !!localStorage.getItem(SAVE_KEY);
-}
-
-function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
-}
-
-function showSaveMenu() {
-  closeDialog();
-  const saved = hasSave();
-  const opts = [
-    { label: 'SAVE GAME', fn: () => {
-        const ok = saveGame();
-        closeDialog();
-        showDialog('GAME SAVED', ok ? 'Your progress has been saved!' : 'Save failed -- storage may be full.', [{ label:'OK', fn:closeDialog }]);
-    }},
-  ];
-  if (saved) {
-    opts.push({ label: 'LOAD GAME', fn: () => {
-      closeDialog();
-      showDialog('LOAD GAME', 'Load your saved game? Current progress will be lost.', [
-        { label:'LOAD', fn:() => {
-          const savedAt = loadGame();
-          closeDialog();
-          if(savedAt) {
-            showDialog('LOADED', `Game loaded!\nSaved: ${savedAt}`, [{ label:'OK', fn:closeDialog }]);
-          } else {
-            showDialog('ERROR', 'Could not load save file.', [{ label:'OK', fn:closeDialog }]);
-          }
-        }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-    opts.push({ label: 'DELETE SAVE', fn: () => {
-      closeDialog();
-      showDialog('DELETE SAVE', 'Delete your saved game permanently?', [
-        { label:'DELETE', fn:() => { deleteSave(); closeDialog(); showDialog('DELETED','Save file deleted.',[{label:'OK',fn:closeDialog}]); }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-  }
-  opts.push({ label:'Cancel', fn:closeDialog });
-  const info = saved ? 'A save file exists.' : 'No save file found.';
-  showDialog('SAVE & LOAD', info, opts);
-}
-
+// ── MAIN MENU DIALOG ──────────────────────────────────────
 function showMainMenu() {
   const pc = state.creatures[state.activeCreatureIdx];
   showDialog(
@@ -2590,53 +2033,11 @@ function showMainMenu() {
     [
       { label: 'Skills & Rest',   fn: openSkillPanel },
       { label: 'Switch Region',   fn: showRegionMenu },
-      { label: 'Change Level',    fn: showLevelMenu },
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
-      { label: 'Save / Load',     fn: showSaveMenu },
       { label: 'Close',           fn: closeDialog },
     ]
   );
-}
-
-
-function showLevelMenu() {
-  closeDialog();
-  const opts = [];
-  [1,2,3].forEach(lv => {
-    const key      = state.currentRegion + '_' + lv;
-    const unlocked = state.unlockedLevels[key];
-    const lvData   = lv === 1 ? null : (REGION_LEVELS[state.currentRegion]?.[lv] || null);
-    const lvName   = lv === 1 ? REGIONS[state.currentRegion].name + ' (Surface)' : (lvData ? lvData.name : 'Level ' + lv);
-    const isCurrent = state.currentLevel === lv;
-    if (unlocked) {
-      opts.push({
-        label: (isCurrent ? '> ' : '') + 'Lv' + lv + ': ' + lvName,
-        fn: () => {
-          state.currentLevel  = lv;
-          state.mapSeed       = (Date.now() + lv * 9999) % 99991;
-          state.map           = generateMap(state.currentRegion, state.mapSeed);
-          state.px            = 64; state.py = 64;
-          state.camX          = Math.max(0, 64 - Math.floor(VIEW_W/2));
-          state.camY          = Math.max(0, 64 - Math.floor(VIEW_H/2));
-          state.exploredTiles = new Set();
-          state.visitedNests  = new Set();
-          state.visitedPoI    = new Set();
-          const dn = lv === 1 ? REGIONS[state.currentRegion].name : (lvData ? lvData.name : 'Level ' + lv);
-          document.getElementById('top-region').textContent = dn + ' Lv' + lv;
-          closeDialog();
-          saveGame();
-        }
-      });
-    } else {
-      opts.push({ label: '[LOCKED] Lv' + lv + ' - Beat Lv' + (lv-1) + ' boss first', fn: closeDialog });
-    }
-  });
-  opts.push({ label: 'Cancel', fn: closeDialog });
-  const curName = state.currentLevel === 1
-    ? REGIONS[state.currentRegion].name
-    : (REGION_LEVELS[state.currentRegion]?.[state.currentLevel]?.name || 'Level ' + state.currentLevel);
-  showDialog('CHOOSE LEVEL', 'Current: Level ' + state.currentLevel + ' - ' + curName, opts);
 }
 
 function showRegionMenu() {
@@ -2651,7 +2052,6 @@ function showRegionMenu() {
 }
 
 function switchRegion(regionId) {
-  saveGame(); // auto-save on region switch
   state.currentRegion = regionId;
   state.mapSeed       = Date.now() % 99991;
   state.map           = generateMap(regionId, state.mapSeed);
@@ -2661,9 +2061,9 @@ function switchRegion(regionId) {
   state.visitedNests    = new Set();
   state.visitedPoI      = new Set();
   state.exploredTiles   = new Set();
-  // Don't reset defeatedBosses -- they persist across region visits
-  document.getElementById('top-region').textContent = REGIONS[regionId].name + (state.currentLevel > 1 ? ' Lv' + state.currentLevel : '');
-  document.getElementById('top-player').textContent = `${state.playerName} -- ${REGIONS[regionId].name.toUpperCase()}`;
+  // Don't reset defeatedBosses — they persist across region visits
+  document.getElementById('top-region').textContent = REGIONS[regionId].name;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[regionId].name.toUpperCase()}`;
 }
 
 function showCreatureMenu() {
@@ -2753,7 +2153,7 @@ function hatchEgg(idx) {
   updateHUD();
 }
 
-// -- TIME & WEATHER ----------------------------------------
+// ── TIME & WEATHER ────────────────────────────────────────
 function updateTimeWeather(dt) {
   state.time = (state.time + state.timeSpeed * dt) % 24;
   state.weatherTimer -= dt;
@@ -2772,10 +2172,10 @@ function updateTimeWeather(dt) {
   document.getElementById('top-time').textContent = `${timeStr} ${icon} ${state.weather.toUpperCase()} ${wIcon}`;
 }
 
-// -- HUD UPDATE --------------------------------------------
+// ── HUD UPDATE ────────────────────────────────────────────
 function updateHUD() {
   const pc = state.activeCreatureIdx >= 0 ? state.creatures[state.activeCreatureIdx] : null;
-  document.getElementById('hud-creature').textContent = pc ? `${pc.name} Lv${pc.level||1}` : '-- none --';
+  document.getElementById('hud-creature').textContent = pc ? `${pc.name} Lv${pc.level||1}` : '— none —';
   // Portrait
   const portImg  = document.getElementById('hud-portrait-img');
   const portIcon = document.getElementById('hud-portrait-icon');
@@ -2789,7 +2189,7 @@ function updateHUD() {
     } else {
       portImg.style.display = 'none';
       portIcon.style.display = 'block';
-      const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'!',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
+      const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
       portIcon.textContent = ELEM_ICONS[pc.element] || '❓';
     }
   }
@@ -2805,7 +2205,7 @@ function updateHUD() {
   if (spEl) spEl.textContent = pc ? (pc.skillPoints || 0) : 0;
 }
 
-// -- RENDERER ----------------------------------------------
+// ── RENDERER ──────────────────────────────────────────────
 let animFrame = 0;
 
 function render() {
@@ -2866,17 +2266,6 @@ function render() {
     }
   }
 
-  // Tap indicator
-  if (state.tapTarget) {
-    const ttx = (state.tapTarget.x - state.camX) * TILE;
-    const tty = (state.tapTarget.y - state.camY) * TILE;
-    if (ttx >= 0 && tty >= 0 && ttx < VIEW_W*TILE && tty < VIEW_H*TILE) {
-      const pulse = Math.sin(animFrame * 0.2) * 0.3 + 0.7;
-      ctx.strokeStyle = `rgba(200,140,255,${pulse})`;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(ttx+2, tty+2, TILE-4, TILE-4);
-    }
-  }
   // Player
   drawPlayer(ctx);
 
@@ -2886,7 +2275,7 @@ function render() {
   animFrame++;
 }
 
-// -- 16-BIT TILE RENDERER ---------------------------------
+// ── 16-BIT TILE RENDERER ─────────────────────────────────
 function p(ctx, x, y, w, h, color) {
   ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
 }
@@ -2957,7 +2346,7 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
     p(ctx, px+10, py+16, 4, 8,  '#7a5228');
     // Root flare
     p(ctx, px+7,  py+21, 10, 3, '#4a3010');
-    // Canopy -- layered circles
+    // Canopy — layered circles
     p(ctx, px+4,  py+6,  16, 12, pal.sh);
     p(ctx, px+6,  py+4,  12, 14, pal.base);
     p(ctx, px+8,  py+2,  8,  6,  pal.hi);
@@ -3022,7 +2411,7 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
     // Outer rock face
     p(ctx, px,    py,    T24, T24, pal.sh);
     p(ctx, px+1,  py+1,  T24-2, T24-2, pal.base);
-    // Wide cave mouth -- dark void
+    // Wide cave mouth — dark void
     p(ctx, px+3,  py+10, 18, 14, '#000000');
     p(ctx, px+4,  py+8,  16, 14, '#05000a');
     p(ctx, px+5,  py+6,  14, 12, '#08000f');
@@ -3093,7 +2482,7 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
   }
 
   if (tile === T.NEST) {
-    // Egg nest -- twigs and golden egg
+    // Egg nest — twigs and golden egg
     const pulse = Math.sin(af*0.08)*0.4+0.7;
     // Nest twigs
     p(ctx, px+4,  py+14, 16, 5,  '#6a4020');
@@ -3113,7 +2502,7 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
   }
 
   if (tile === T.FLOWER) {
-    // Flower patch -- multiple blooms
+    // Flower patch — multiple blooms
     const fswap = Math.floor(af*0.02+mx) % 2;
     const fcol  = fswap ? '#ff66aa' : '#ffaa22';
     const fcol2 = fswap ? '#cc3388' : '#cc8800';
@@ -3213,7 +2602,7 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
   }
 }
 
-// -- 16-BIT PLAYER SPRITE ---------------------------------
+// ── 16-BIT PLAYER SPRITE ─────────────────────────────────
 function drawPlayer(ctx) {
   const sx  = (state.px - state.camX) * TILE;
   const sy  = (state.py - state.camY) * TILE;
@@ -3232,7 +2621,7 @@ function drawPlayer(ctx) {
   ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Scarf / cape (behind body) -- direction specific
+  // Scarf / cape (behind body) — direction specific
   if (dir === 'down' || dir === 'right' || dir === 'left') {
     p(ctx, sx+7, sy+7+bob, 10, 2, '#cc2200');
     p(ctx, sx+8, sy+9+bob, 8,  3, '#ee3300');
@@ -3247,7 +2636,7 @@ function drawPlayer(ctx) {
     p(ctx, sx+14, sy+8+bob, 4, 8, '#8844aa');
   }
 
-  // Legs -- walking animation
+  // Legs — walking animation
   if (dir === 'down' || dir === 'up') {
     // Left leg
     p(ctx, sx+8,  sy+16+bob,       4, 6+legA, '#2244aa');
@@ -3301,7 +2690,7 @@ function drawPlayer(ctx) {
   p(ctx, sx+6,  sy+1+bob,  3,  4, '#4a2800');  // side hair L
   p(ctx, sx+15, sy+1+bob,  3,  4, '#4a2800');  // side hair R
 
-  // Eyes -- direction aware
+  // Eyes — direction aware
   if (dir === 'up') {
     // back of head, no eyes
     p(ctx, sx+6, sy+1+bob, 12, 6, '#4a2800');
@@ -3322,7 +2711,7 @@ function drawPlayer(ctx) {
     p(ctx, sx+13, sy+7+bob, 1, 1, '#cc7755');
   }
 
-  // Hat -- iconic trainer style
+  // Hat — iconic trainer style
   p(ctx, sx+5,  sy-2+bob, 14, 5, '#dd2200');  // hat brim
   p(ctx, sx+7,  sy-5+bob, 10, 5, '#ee3300');  // hat crown
   p(ctx, sx+8,  sy-5+bob, 8,  3, '#ff4400');  // hat highlight
@@ -3340,7 +2729,7 @@ function drawMinimap() {
   mmCtx.fillStyle = '#020008';
   mmCtx.fillRect(0, 0, S, S);
 
-  // Boss proximity reveal radius (tiles) -- bosses show up when within 20 tiles
+  // Boss proximity reveal radius (tiles) — bosses show up when within 20 tiles
   const BOSS_REVEAL  = 20;
   // Build a set of boss positions for distance check
   const bossPositions = [];
@@ -3362,7 +2751,7 @@ function drawMinimap() {
         if(dist<=BOSS_REVEAL) { nearBoss=true; if(b.tile===T.BOSS) nearFinal=true; }
       }
 
-      // Boss tiles -- always visible once within range, pulse red
+      // Boss tiles — always visible once within range, pulse red
       if(nearBoss && (tile===T.BOSS||tile===T.MINIBOSS)) {
         const pulse = Math.sin(Date.now()*0.004)*0.4+0.6;
         mmCtx.fillStyle = tile===T.BOSS
@@ -3372,7 +2761,7 @@ function drawMinimap() {
         continue;
       }
 
-      // Explored tiles -- show terrain in muted tones
+      // Explored tiles — show terrain in muted tones
       if(explored) {
         let color = '#1a2010';
         if(tile===T.WALL||tile===T.TREE) color='#161008';
@@ -3386,7 +2775,7 @@ function drawMinimap() {
         continue;
       }
 
-      // Unexplored but near boss -- show faint red haze as warning
+      // Unexplored but near boss — show faint red haze as warning
       if(nearBoss) {
         const d = bossPositions.reduce((mn,b)=>Math.min(mn,Math.sqrt((x-b.x)**2+(y-b.y)**2)),999);
         const intensity = Math.max(0, 1 - d/BOSS_REVEAL) * 0.15;
@@ -3397,7 +2786,7 @@ function drawMinimap() {
     }
   }
 
-  // Player dot -- always visible
+  // Player dot — always visible
   mmCtx.fillStyle = '#ff6644';
   const pd = Math.max(2, s+1);
   mmCtx.fillRect(state.px*s+off - 1, state.py*s+off - 1, pd, pd);
@@ -3407,7 +2796,7 @@ function drawMinimap() {
   mmCtx.lineWidth   = 1;
   mmCtx.strokeRect(state.camX*s+off, state.camY*s+off, VIEW_W_CUR*s, VIEW_H_CUR*s);
 
-  // Legend -- only show boss indicator if any are near
+  // Legend — only show boss indicator if any are near
   const anyNearBoss = bossPositions.some(b=>
     Math.sqrt((state.px-b.x)**2+(state.py-b.y)**2)<=BOSS_REVEAL
   );
@@ -3420,9 +2809,9 @@ function drawMinimap() {
   }
 }
 
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
 //  SKILL & STAT LEVELING SYSTEM
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
 
 // Stat upgrade costs (skill points)
 const STAT_UPGRADE = {
@@ -3433,283 +2822,81 @@ const STAT_UPGRADE = {
 };
 
 // Skill tree nodes per element type
-
-// ===========================================================
-//  SKILL TREES -- branching paths, each unlocks differently
-//
-//  Structure per element:
-//    path A = Offensive growth
-//    path B = Defensive growth
-//    path C = Utility/Evolution path (unlocks name change at rank 3)
-//
-//  requires: previous skill in same path must be learned first
-//  evolveAt: creature renames + gets visual tag when this is maxed
-// ===========================================================
-
 const SKILL_TREES = {
-  fire: {
-    pathA: {
-      name:'Blazeborn',
-      skills:[
-        {id:'ember_fang',   name:'Ember Fang',    rank:1, cost:2, desc:'ATK +12%',              effect:{atkMult:0.12}},
-        {id:'fire_heart',   name:'Fire Heart',    rank:2, cost:3, desc:'ATK +20%, crits on 18+', effect:{atkMult:0.2, critOn:18}, requires:'ember_fang'},
-        {id:'inferno_soul', name:'Inferno Soul',  rank:3, cost:4, desc:'ATK +30%, crit = 3x dmg', effect:{atkMult:0.3, critMult:3}, requires:'fire_heart', evolveAt:true},
-      ]
-    },
-    pathB: {
-      name:'Embershell',
-      skills:[
-        {id:'heat_shell',   name:'Heat Shell',    rank:1, cost:2, desc:'DEF +10, -15% ice dmg',  effect:{defFlat:10, iceResist:0.15}},
-        {id:'lava_skin',    name:'Lava Skin',     rank:2, cost:3, desc:'Reflect 8 dmg on hit',   effect:{thornDmg:8}, requires:'heat_shell'},
-        {id:'magma_fortress',name:'Magma Fort',   rank:3, cost:4, desc:'DEF +20, immune to burn',effect:{defFlat:20, burnImmune:true}, requires:'lava_skin', evolveAt:true},
-      ]
-    },
-    pathC: {
-      name:'Phoenix',
-      skills:[
-        {id:'blaze_dash',   name:'Blaze Dash',    rank:1, cost:2, desc:'SPD +6, energy +10%',    effect:{spdFlat:6, energyBoost:0.1}},
-        {id:'rising_ember', name:'Rising Ember',  rank:2, cost:3, desc:'Survive KO once at 1HP', effect:{survive:true}, requires:'blaze_dash'},
-        {id:'phoenix_will', name:'Phoenix Will',  rank:3, cost:5, desc:'Revive with 50% HP once',effect:{survive:true, reviveHp:0.5}, requires:'rising_ember', evolveAt:true},
-      ]
-    },
-  },
-  ice: {
-    pathA: {
-      name:'Glacierfang',
-      skills:[
-        {id:'frost_bite',   name:'Frost Bite',    rank:1, cost:2, desc:'25% slow enemy on hit',  effect:{slowChance:0.25}},
-        {id:'deep_freeze',  name:'Deep Freeze',   rank:2, cost:3, desc:'40% freeze on crit',     effect:{freezeOnCrit:0.4}, requires:'frost_bite'},
-        {id:'absolute_zero',name:'Absolute Zero', rank:3, cost:5, desc:'Skip enemy turn once',   effect:{skipTurn:true}, requires:'deep_freeze', evolveAt:true},
-      ]
-    },
-    pathB: {
-      name:'Frostplate',
-      skills:[
-        {id:'ice_armor',    name:'Ice Armor',     rank:1, cost:2, desc:'DEF +12, -20% fire dmg', effect:{defFlat:12, fireResist:0.2}},
-        {id:'glacier_body', name:'Glacier Body',  rank:2, cost:3, desc:'HP +25 permanently',     effect:{hpFlat:25}, requires:'ice_armor'},
-        {id:'permafrost',   name:'Permafrost',    rank:3, cost:4, desc:'DEF +20, reflect freeze', effect:{defFlat:20, reflectFreeze:true}, requires:'glacier_body', evolveAt:true},
-      ]
-    },
-    pathC: {
-      name:'Rimewalker',
-      skills:[
-        {id:'chill_step',   name:'Chill Step',    rank:1, cost:2, desc:'SPD +8 permanently',     effect:{spdFlat:8}},
-        {id:'ice_veil',     name:'Ice Veil',      rank:2, cost:3, desc:'Dodge 20% of attacks',   effect:{dodgeChance:0.2}, requires:'chill_step'},
-        {id:'blizzard_form',name:'Blizzard Form', rank:3, cost:4, desc:'All stats +6',           effect:{allStats:6}, requires:'ice_veil', evolveAt:true},
-      ]
-    },
-  },
-  dark: {
-    pathA: {
-      name:'Voidclaw',
-      skills:[
-        {id:'shadow_claw',  name:'Shadow Claw',   rank:1, cost:2, desc:'ATK +14, always hits',   effect:{atkFlat:14, alwaysHit:true}},
-        {id:'void_strike',  name:'Void Strike',   rank:2, cost:3, desc:'ATK +20, ignore 25% DEF',effect:{atkFlat:20, defPen:0.25}, requires:'shadow_claw'},
-        {id:'oblivion',     name:'Oblivion',      rank:3, cost:5, desc:'ATK +30, crits drain energy',effect:{atkFlat:30, critDrain:true}, requires:'void_strike', evolveAt:true},
-      ]
-    },
-    pathB: {
-      name:'Shadowmantle',
-      skills:[
-        {id:'void_mantle',  name:'Void Mantle',   rank:1, cost:2, desc:'Reduce dmg taken 15%',   effect:{dmgReduce:0.15}},
-        {id:'ink_trail',    name:'Ink Trail',     rank:2, cost:3, desc:'Enemy acc -20% for 3 turns',effect:{accDebuff:0.2, accTurns:3}, requires:'void_mantle'},
-        {id:'sovereign_veil',name:'Sovereign Veil',rank:3,cost:4,desc:'Immune to status effects', effect:{statusImmune:true, dmgReduce:0.25}, requires:'ink_trail', evolveAt:true},
-      ]
-    },
-    pathC: {
-      name:'Nightreaper',
-      skills:[
-        {id:'phantom_step', name:'Phantom Step',  rank:1, cost:2, desc:'Dodge 15% of attacks',   effect:{dodgeChance:0.15}},
-        {id:'mimic_aura',   name:'Mimic Aura',    rank:2, cost:3, desc:'Copy enemy element 1 hit',effect:{mimic:true}, requires:'phantom_step'},
-        {id:'death_mark',   name:'Death Mark',    rank:3, cost:5, desc:'Next hit = instant 40% HP',effect:{deathMark:true}, requires:'mimic_aura', evolveAt:true},
-      ]
-    },
-  },
-  spirit: {
-    pathA: {
-      name:'Soulsurge',
-      skills:[
-        {id:'soul_strike',  name:'Soul Strike',   rank:1, cost:2, desc:'Ignore 25% of enemy DEF', effect:{defPen:0.25}},
-        {id:'spirit_burst', name:'Spirit Burst',  rank:2, cost:3, desc:'Special deals +40% dmg',  effect:{specialBoost:0.4}, requires:'soul_strike'},
-        {id:'astral_form',  name:'Astral Form',   rank:3, cost:5, desc:'Invincible for 1 turn once',effect:{invincible:true}, requires:'spirit_burst', evolveAt:true},
-      ]
-    },
-    pathB: {
-      name:'Auraweave',
-      skills:[
-        {id:'phase_step',   name:'Phase Step',    rank:1, cost:2, desc:'20% dodge chance',        effect:{dodgeChance:0.2}},
-        {id:'spirit_link',  name:'Spirit Link',   rank:2, cost:3, desc:'Heal 6 HP each turn',     effect:{regenHp:6}, requires:'phase_step'},
-        {id:'transcendence',name:'Transcendence', rank:3, cost:4, desc:'All stats +8',            effect:{allStats:8}, requires:'spirit_link', evolveAt:true},
-      ]
-    },
-    pathC: {
-      name:'Lightbody',
-      skills:[
-        {id:'light_body',   name:'Light Body',    rank:1, cost:2, desc:'SPD +10 permanently',     effect:{spdFlat:10}},
-        {id:'swift_aura',   name:'Swift Aura',    rank:2, cost:3, desc:'Always act first',        effect:{alwaysFirst:true}, requires:'light_body'},
-        {id:'ghost_form',   name:'Ghost Form',    rank:3, cost:4, desc:'50% dodge, +SPD 15',      effect:{dodgeChance:0.5, spdFlat:15}, requires:'swift_aura', evolveAt:true},
-      ]
-    },
-  },
-  nature: {
-    pathA: {
-      name:'Thornlord',
-      skills:[
-        {id:'thorn_hide',   name:'Thorn Hide',    rank:1, cost:2, desc:'Attacker takes 6 dmg',    effect:{thornDmg:6}},
-        {id:'briar_shell',  name:'Briar Shell',   rank:2, cost:3, desc:'Reflect 12 dmg on hit',   effect:{thornDmg:12}, requires:'thorn_hide'},
-        {id:'world_thorn',  name:'World Thorn',   rank:3, cost:4, desc:'Reflect 20% of all dmg',  effect:{thornPct:0.2}, requires:'briar_shell', evolveAt:true},
-      ]
-    },
-    pathB: {
-      name:'Rootwarden',
-      skills:[
-        {id:'root_pulse',   name:'Root Pulse',    rank:1, cost:2, desc:'Regen 6 HP per turn',     effect:{regenHp:6}},
-        {id:'ancient_bark', name:'Ancient Bark',  rank:2, cost:3, desc:'DEF +16 permanently',     effect:{defFlat:16}, requires:'root_pulse'},
-        {id:'world_root',   name:'World Root',    rank:3, cost:4, desc:'Full heal once per battle',effect:{battleHeal:true}, requires:'ancient_bark', evolveAt:true},
-      ]
-    },
-    pathC: {
-      name:'Verdant',
-      skills:[
-        {id:'verdant_rush', name:'Verdant Rush',  rank:1, cost:2, desc:'First attack +30%',       effect:{firstAtkBoost:0.3}},
-        {id:'spore_cloud',  name:'Spore Cloud',   rank:2, cost:3, desc:'30% poison on hit',       effect:{poisonChance:0.3}, requires:'verdant_rush'},
-        {id:'overgrowth',   name:'Overgrowth',    rank:3, cost:5, desc:'HP+30, ATK+10, regen 8', effect:{hpFlat:30, atkFlat:10, regenHp:8}, requires:'spore_cloud', evolveAt:true},
-      ]
-    },
-  },
-  water: {
-    pathA: {name:'Tidalclaw', skills:[
-      {id:'pressure_wave',name:'Pressure Wave',rank:1,cost:2,desc:'ATK +10',effect:{atkFlat:10}},
-      {id:'deep_surge',   name:'Deep Surge',  rank:2,cost:3,desc:'ATK +18, ignore type res',effect:{atkFlat:18,pierceType:true},requires:'pressure_wave'},
-      {id:'abyssal_surge',name:'Abyss Surge', rank:3,cost:5,desc:'Use 40% HP as bonus dmg',effect:{hpBurst:true},requires:'deep_surge',evolveAt:true},
-    ]},
-    pathB: {name:'Seafoam',skills:[
-      {id:'tidal_flow',   name:'Tidal Flow',  rank:1,cost:2,desc:'Regen 4 HP per turn',     effect:{regenHp:4}},
-      {id:'seafoam_guard',name:'Seafoam Guard',rank:2,cost:3,desc:'DEF +14 permanently',    effect:{defFlat:14},requires:'tidal_flow'},
-      {id:'deep_current', name:'Deep Current',rank:3,cost:4,desc:'DEF+20, regen 10HP/turn', effect:{defFlat:20,regenHp:10},requires:'seafoam_guard',evolveAt:true},
-    ]},
-    pathC: {name:'Ripple',skills:[
-      {id:'swift_current',name:'Swift Current',rank:1,cost:2,desc:'SPD +8',               effect:{spdFlat:8}},
-      {id:'water_veil',   name:'Water Veil',  rank:2,cost:3,desc:'Dodge 20% of attacks',  effect:{dodgeChance:0.2},requires:'swift_current'},
-      {id:'tsunami_form', name:'Tsunami Form',rank:3,cost:4,desc:'All stats +7',          effect:{allStats:7},requires:'water_veil',evolveAt:true},
-    ]},
-  },
-  storm: {
-    pathA: {name:'Thunderstrike',skills:[
-      {id:'thunder_rush', name:'Thunder Rush',rank:1,cost:2,desc:'SPD +8, act first',      effect:{spdFlat:8,alwaysFirst:true}},
-      {id:'storm_surge',  name:'Storm Surge', rank:2,cost:3,desc:'Every 3rd hit double dmg',effect:{surgeHit:true},requires:'thunder_rush'},
-      {id:'lightning_rod',name:'Lightning Rod',rank:3,cost:5,desc:'Absorb storm dmg as HP',effect:{absorbStorm:true},requires:'storm_surge',evolveAt:true},
-    ]},
-    pathB: {name:'Stormwall',skills:[
-      {id:'static_field', name:'Static Field', rank:1,cost:2,desc:'15% paralyse attacker', effect:{paralyseChance:0.15}},
-      {id:'eye_of_storm', name:'Eye of Storm', rank:2,cost:3,desc:'Immune to weather/storm',effect:{weatherImmune:true},requires:'static_field'},
-      {id:'storm_aegis',  name:'Storm Aegis',  rank:3,cost:4,desc:'Reduce all dmg by 25%', effect:{dmgReduce:0.25},requires:'eye_of_storm',evolveAt:true},
-    ]},
-    pathC: {name:'Arcstep',skills:[
-      {id:'arc_step',     name:'Arc Step',     rank:1,cost:2,desc:'Dodge 15% of attacks',  effect:{dodgeChance:0.15}},
-      {id:'charge_step',  name:'Charge Step',  rank:2,cost:3,desc:'Energy gains +25%',     effect:{energyBoost:0.25},requires:'arc_step'},
-      {id:'arc_form',     name:'Arc Form',     rank:3,cost:5,desc:'Special costs 0 energy once/battle',effect:{freeSpecial:true},requires:'charge_step',evolveAt:true},
-    ]},
-  },
-  sand: {
-    pathA: {name:'Duneclaw',skills:[
-      {id:'sandblast',    name:'Sandblast',    rank:1,cost:2,desc:'Enemy acc -30% 2 turns', effect:{accDebuff:0.3,accTurns:2}},
-      {id:'buried_trap',  name:'Buried Trap',  rank:2,cost:3,desc:'Counter on dodge',       effect:{counterDodge:true},requires:'sandblast'},
-      {id:'desert_king',  name:'Desert King',  rank:3,cost:5,desc:'All stats +6 permanently',effect:{allStats:6},requires:'buried_trap',evolveAt:true},
-    ]},
-    pathB: {name:'Duneplate',skills:[
-      {id:'dust_cloak',   name:'Dust Cloak',   rank:1,cost:2,desc:'Dodge +20%',             effect:{dodgeChance:0.2}},
-      {id:'dune_shell',   name:'Dune Shell',   rank:2,cost:3,desc:'DEF +14 permanently',    effect:{defFlat:14},requires:'dust_cloak'},
-      {id:'sandstone',    name:'Sandstone',    rank:3,cost:4,desc:'DEF +22, thorns 8',      effect:{defFlat:22,thornDmg:8},requires:'dune_shell',evolveAt:true},
-    ]},
-    pathC: {name:'Mirageborn',skills:[
-      {id:'mirage_step',  name:'Mirage Step',  rank:1,cost:2,desc:'SPD +8',                 effect:{spdFlat:8}},
-      {id:'sand_veil',    name:'Sand Veil',    rank:2,cost:3,desc:'25% dodge, immune blind', effect:{dodgeChance:0.25},requires:'mirage_step'},
-      {id:'sandstorm',    name:'Sandstorm',    rank:3,cost:5,desc:'50% miss rate for enemy', effect:{accDebuff:0.5},requires:'sand_veil',evolveAt:true},
-    ]},
-  },
-  magma: {
-    pathA: {name:'Magmalord',skills:[
-      {id:'molten_core',  name:'Molten Core',  rank:1,cost:2,desc:'ATK +14 permanently',    effect:{atkFlat:14}},
-      {id:'eruption',     name:'Eruption',     rank:2,cost:3,desc:'AoE hits enemy 2x',      effect:{eruption:true},requires:'molten_core'},
-      {id:'titan_force',  name:'Titan Force',  rank:3,cost:5,desc:'Next hit 3x power',      effect:{titanHit:true},requires:'eruption',evolveAt:true},
-    ]},
-    pathB: {name:'Magmaskin',skills:[
-      {id:'lava_coat',    name:'Lava Coat',    rank:1,cost:2,desc:'Attacker takes 10 dmg',  effect:{thornDmg:10}},
-      {id:'magma_skin',   name:'Magma Skin',   rank:2,cost:3,desc:'Immune to burn, +DEF 10',effect:{burnImmune:true,defFlat:10},requires:'lava_coat'},
-      {id:'magma_shell',  name:'Magma Shell',  rank:3,cost:4,desc:'Reflect 20% dmg, +DEF 18',effect:{thornPct:0.2,defFlat:18},requires:'magma_skin',evolveAt:true},
-    ]},
-    pathC: {name:'Pyroclasm',skills:[
-      {id:'heat_wave',    name:'Heat Wave',    rank:1,cost:2,desc:'Energy gains +20%',       effect:{energyBoost:0.2}},
-      {id:'superheated',  name:'Superheated',  rank:2,cost:3,desc:'Special costs 60 energy', effect:{specialCost:60},requires:'heat_wave'},
-      {id:'pyroclasm',    name:'Pyroclasm',    rank:3,cost:5,desc:'Special = 4x dmg, costs 60',effect:{specialMult:4,specialCost:60},requires:'superheated',evolveAt:true},
-    ]},
-  },
-  crystal: {
-    pathA: {name:'Gemclaw',skills:[
-      {id:'gem_shard',    name:'Gem Shard',    rank:1,cost:2,desc:'Crits hit again next turn',effect:{shatterCrit:true}},
-      {id:'prismatic',    name:'Prismatic',    rank:2,cost:3,desc:'Attacks neutral vs all types',effect:{pierceType:true},requires:'gem_shard'},
-      {id:'peak_form',    name:'Peak Form',    rank:3,cost:5,desc:'All stats +10',            effect:{allStats:10},requires:'prismatic',evolveAt:true},
-    ]},
-    pathB: {name:'Crystalwall',skills:[
-      {id:'crystal_wall', name:'Crystal Wall', rank:1,cost:2,desc:'DEF +16 permanently',    effect:{defFlat:16}},
-      {id:'refraction',   name:'Refraction',   rank:2,cost:3,desc:'25% reflect spell dmg',  effect:{reflect:0.25},requires:'crystal_wall'},
-      {id:'diamond_form', name:'Diamond Form', rank:3,cost:4,desc:'DEF +25, reflect 35%',   effect:{defFlat:25,reflect:0.35},requires:'refraction',evolveAt:true},
-    ]},
-    pathC: {name:'Prism',skills:[
-      {id:'light_refract',name:'Light Refract',rank:1,cost:2,desc:'Dodge 15% of attacks',   effect:{dodgeChance:0.15}},
-      {id:'crystal_veil', name:'Crystal Veil', rank:2,cost:3,desc:'Immune to status effects',effect:{statusImmune:true},requires:'light_refract'},
-      {id:'prism_form',   name:'Prism Form',   rank:3,cost:5,desc:'Dodge 30%, status immune, SPD+10',effect:{dodgeChance:0.3,statusImmune:true,spdFlat:10},requires:'crystal_veil',evolveAt:true},
-    ]},
-  },
+  fire: [
+    {id:'ember_fang',   name:'Ember Fang',    desc:'Fire attacks deal +15% dmg',   cost:2, maxRank:3, effect:{atkMult:0.15}},
+    {id:'heat_shell',   name:'Heat Shell',    desc:'Defense +8 vs ice attacks',     cost:2, maxRank:3, effect:{defBonus:8}},
+    {id:'blaze_dash',   name:'Blaze Dash',    desc:'Speed +5, energy gains +10%',   cost:3, maxRank:2, effect:{spdBonus:5}},
+    {id:'inferno_core', name:'Inferno Core',  desc:'All fire moves crit on 18+',    cost:4, maxRank:1, effect:{critBoost:true}},
+    {id:'phoenix_will', name:'Phoenix Will',  desc:'Survive one KO at 1 HP (once)', cost:5, maxRank:1, effect:{survive:true}},
+  ],
+  ice: [
+    {id:'frost_bite',   name:'Frost Bite',    desc:'Chance to slow enemy on hit',   cost:2, maxRank:3, effect:{slowChance:0.2}},
+    {id:'ice_armor',    name:'Ice Armor',     desc:'Defense +10 vs fire',           cost:2, maxRank:3, effect:{defBonus:10}},
+    {id:'chill_step',   name:'Chill Step',    desc:'Freeze chance on crits',        cost:3, maxRank:2, effect:{freezeOnCrit:true}},
+    {id:'glacier_body', name:'Glacier Body',  desc:'HP +20 permanently',            cost:3, maxRank:2, effect:{hpFlat:20}},
+    {id:'absolute_zero',name:'Absolute Zero', desc:'Once per battle: skip enemy turn',cost:5,maxRank:1,effect:{skipTurn:true}},
+  ],
+  nature: [
+    {id:'thorn_hide',   name:'Thorn Hide',    desc:'Attacker takes 5 dmg on hit',   cost:2, maxRank:3, effect:{thornDmg:5}},
+    {id:'root_pulse',   name:'Root Pulse',    desc:'Regen 5 HP each turn',          cost:3, maxRank:3, effect:{regenHp:5}},
+    {id:'verdant_rush', name:'Verdant Rush',  desc:'First attack each battle +25%', cost:3, maxRank:2, effect:{firstAtkBoost:0.25}},
+    {id:'ancient_bark', name:'Ancient Bark',  desc:'Defense +15 permanently',       cost:4, maxRank:1, effect:{defFlat:15}},
+    {id:'world_root',   name:'World Root',    desc:'Fully heal once per region',    cost:5, maxRank:1, effect:{regionHeal:true}},
+  ],
+  spirit: [
+    {id:'phase_step',   name:'Phase Step',    desc:'10% chance to dodge any hit',   cost:2, maxRank:3, effect:{dodgeChance:0.1}},
+    {id:'soul_strike',  name:'Soul Strike',   desc:'Attacks ignore 30% defense',    cost:3, maxRank:2, effect:{defPen:0.3}},
+    {id:'light_body',   name:'Light Body',    desc:'Speed +8 permanently',          cost:2, maxRank:3, effect:{spdFlat:8}},
+    {id:'spirit_link',  name:'Spirit Link',   desc:'Share 20% dmg with all allies', cost:4, maxRank:1, effect:{dmgShare:true}},
+    {id:'astral_form',  name:'Astral Form',   desc:'Become invincible for 1 turn',  cost:5, maxRank:1, effect:{invincible:true}},
+  ],
+  dark: [
+    {id:'shadow_claw',  name:'Shadow Claw',   desc:'ATK +10, always hits',          cost:3, maxRank:3, effect:{atkFlat:10}},
+    {id:'void_mantle',  name:'Void Mantle',   desc:'Reduce incoming dmg by 15%',    cost:3, maxRank:2, effect:{dmgReduce:0.15}},
+    {id:'ink_trail',    name:'Ink Trail',     desc:'Enemy accuracy -20% for 2 turns',cost:2,maxRank:3,effect:{accReduce:0.2}},
+    {id:'mimic_aura',   name:'Mimic Aura',    desc:'Copy enemy element for 1 hit',  cost:4, maxRank:1, effect:{mimic:true}},
+    {id:'sovereign_veil',name:'Sovereign Veil',desc:'Immune to status effects',     cost:5, maxRank:1, effect:{statusImmune:true}},
+  ],
+  storm: [
+    {id:'thunder_rush', name:'Thunder Rush',  desc:'Speed +6, first to act each turn',cost:2,maxRank:3,effect:{spdFlat:6}},
+    {id:'static_field', name:'Static Field',  desc:'Attacker paralysed 10% chance', cost:3, maxRank:2, effect:{paralyseChance:0.1}},
+    {id:'storm_surge',  name:'Storm Surge',   desc:'Every 3rd hit deals double dmg', cost:3, maxRank:2, effect:{surgeHit:true}},
+    {id:'eye_of_storm', name:'Eye of Storm',  desc:'Ignore weather penalties',      cost:2, maxRank:1, effect:{weatherImmune:true}},
+    {id:'lightning_rod','name':'Lightning Rod',desc:'Absorb storm dmg as HP',       cost:5, maxRank:1, effect:{absorbStorm:true}},
+  ],
+  water: [
+    {id:'tidal_flow',   name:'Tidal Flow',    desc:'HP regen +3 each turn',         cost:2, maxRank:3, effect:{regenHp:3}},
+    {id:'deep_current', name:'Deep Current',  desc:'Speed +5 on water tiles',       cost:2, maxRank:2, effect:{spdBonus:5}},
+    {id:'pressure_wave',name:'Pressure Wave', desc:'ATK +8, pushes enemy back',     cost:3, maxRank:3, effect:{atkFlat:8}},
+    {id:'seafoam_guard','name':'Seafoam Guard',desc:'Defense +12 permanently',      cost:4, maxRank:1, effect:{defFlat:12}},
+    {id:'abyssal_surge','name':'Abyssal Surge',desc:'Unleash full HP as dmg once',  cost:5, maxRank:1, effect:{hpBurst:true}},
+  ],
+  sand: [
+    {id:'dust_cloak',   name:'Dust Cloak',    desc:'Dodge chance +15% in deserts',  cost:2, maxRank:3, effect:{dodgeChance:0.15}},
+    {id:'dune_shell',   name:'Dune Shell',    desc:'Defense +10 permanently',       cost:3, maxRank:2, effect:{defFlat:10}},
+    {id:'sandblast',    name:'Sandblast',     desc:'Enemy accuracy -30% for 1 turn',cost:3,maxRank:2, effect:{blindChance:true}},
+    {id:'buried_trap',  name:'Buried Trap',   desc:'Counter attack on dodge',       cost:4, maxRank:1, effect:{counterDodge:true}},
+    {id:'desert_king',  name:'Desert King',   desc:'All stats +5 in sand regions',  cost:5, maxRank:1, effect:{regionBoost:true}},
+  ],
+  magma: [
+    {id:'lava_coat',    name:'Lava Coat',     desc:'Attackers take 8 burn dmg',     cost:2, maxRank:3, effect:{thornDmg:8}},
+    {id:'molten_core',  name:'Molten Core',   desc:'ATK +12 permanently',           cost:3, maxRank:3, effect:{atkFlat:12}},
+    {id:'eruption',     name:'Eruption',      desc:'AoE blast once per battle',     cost:4, maxRank:2, effect:{eruption:true}},
+    {id:'magma_skin',   name:'Magma Skin',    desc:'Immune to burn status',         cost:3, maxRank:1, effect:{burnImmune:true}},
+    {id:'titan_force',  name:'Titan Force',   desc:'Next hit triples in power',     cost:5, maxRank:1, effect:{titanHit:true}},
+  ],
+  crystal: [
+    {id:'gem_shard',    name:'Gem Shard',     desc:'Crits shatter: hit 2 turns',    cost:3, maxRank:2, effect:{shatterCrit:true}},
+    {id:'crystal_wall', name:'Crystal Wall',  desc:'Defense +14 permanently',       cost:3, maxRank:3, effect:{defFlat:14}},
+    {id:'refraction',   name:'Refraction',    desc:'20% chance to reflect spells',  cost:4, maxRank:2, effect:{reflect:0.2}},
+    {id:'prismatic',    name:'Prismatic',     desc:'Attacks hit all elements at 1x', cost:4, maxRank:1, effect:{allElement:true}},
+    {id:'peak_form',    name:'Peak Form',     desc:'All stats +8 permanently',      cost:5, maxRank:1, effect:{allStats:8}},
+  ],
 };
+
+// Fallback skill tree for undefined elements
 SKILL_TREES.default = SKILL_TREES.dark;
-
-// -- GET COMBINED SKILL EFFECTS for a creature ------------
-function getSkillEffects(creature) {
-  const effects = {};
-  if (!creature.skills) return effects;
-  const tree = SKILL_TREES[creature.element] || SKILL_TREES.default;
-  Object.values(tree).forEach(path => {
-    path.skills.forEach(sk => {
-      if (creature.skills[sk.id]) {
-        // skill is learned -- apply its effect
-        Object.entries(sk.effect).forEach(([k,v]) => {
-          if (typeof v === 'number' && typeof effects[k] === 'number') {
-            effects[k] = effects[k] + v;
-          } else {
-            effects[k] = v;
-          }
-        });
-      }
-    });
-  });
-  return effects;
-}
-
-// -- CHECK EVOLUTION --------------------------------------
-function checkEvolution(creature) {
-  if (!creature.skills) return null;
-  const tree = SKILL_TREES[creature.element] || SKILL_TREES.default;
-  for (const [pathKey, path] of Object.entries(tree)) {
-    const lastSkill = path.skills[path.skills.length - 1];
-    if (lastSkill.evolveAt && creature.skills[lastSkill.id]) {
-      return path.name; // return evolution name
-    }
-  }
-  return null;
-}
-
-function applyEvolution(creature) {
-  const evolveName = checkEvolution(creature);
-  if (evolveName && !creature.evolved) {
-    creature.evolved     = evolveName;
-    creature.displayName = `${creature.name} [${evolveName}]`;
-    return evolveName;
-  }
-  return null;
-}
-
 
 function initCreatureSkills(c) {
   if (c.skillPoints !== undefined) return; // already init'd
@@ -3746,7 +2933,7 @@ function grantXP(creature, amount) {
   return leveled;
 }
 
-// -- SKILL PANEL UI ----------------------------------------
+// ── SKILL PANEL UI ────────────────────────────────────────
 let skillPanelCreatureIdx = -1;
 
 function openSkillPanel() {
@@ -3773,13 +2960,13 @@ function renderSkillPanel() {
   listEl.innerHTML = '';
   mainEl.innerHTML = '';
 
+  // Creature list
   state.creatures.forEach((c, i) => {
     initCreatureSkills(c);
-    const btn = document.createElement('button');
+    const btn  = document.createElement('button');
     btn.className = 'sp-c-btn' + (i === skillPanelCreatureIdx ? ' active' : '');
-    const dispName = c.displayName || c.name;
-    btn.innerHTML = `${dispName.substring(0,14)}<br><span style="color:#553377">Lv${c.level} ${c.element.toUpperCase()}</span><br><span style="color:#228844">${c.currentHp}/${c.hp} HP</span>`;
-    btn.onclick = () => { skillPanelCreatureIdx = i; renderSkillPanel(); };
+    btn.innerHTML = `${c.name.substring(0,12)}<br><span style="color:#553377">Lv${c.level} ${c.element.toUpperCase()}</span><br><span style="color:#228844">${c.currentHp}/${c.hp} HP</span>`;
+    btn.onclick   = () => { skillPanelCreatureIdx = i; renderSkillPanel(); };
     listEl.appendChild(btn);
   });
 
@@ -3789,156 +2976,78 @@ function renderSkillPanel() {
 
   const xpNext = xpToNextLevel(c.level);
   const xpPct  = Math.min(100, Math.round(((c.xp||0) / xpNext) * 100));
-  const dispName = c.displayName || c.name;
-  const evoName  = checkEvolution(c);
 
-  mainEl.innerHTML = `
-    <div style="font-size:8px;color:#ffcc44;margin-bottom:4px;">${dispName.toUpperCase()}${evoName?` <span style="color:#44ffcc;font-size:6px;">[${evoName}]</span>`:''}</div>
-    <div style="font-size:6px;color:#553377;margin-bottom:6px;">Lv${c.level} · ${c.element.toUpperCase()} · <span style="color:#ffcc44">${c.skillPoints||0} SP unspent</span></div>
-    <div style="font-size:6px;color:#553377;margin-bottom:2px;">XP: ${c.xp||0} / ${xpNext}</div>
+  // XP & skill points card
+  const xpCard = document.createElement('div');
+  xpCard.className = 'sp-card';
+  xpCard.innerHTML = `
+    <div class="sp-card-title">${c.name} — Lv${c.level}</div>
     <div class="sp-xp-bar-wrap"><div class="sp-xp-bar" style="width:${xpPct}%"></div></div>
-    <div style="font-size:7px;color:#cc88ff;margin:10px 0 4px;border-bottom:1px solid #330055;padding-bottom:3px;">BASE STATS</div>
+    <div class="sp-xp-label">XP: ${c.xp||0} / ${xpNext} &nbsp;|&nbsp; <span style="color:#ffcc44">SP: ${c.skillPoints} unspent</span></div>
   `;
+  mainEl.appendChild(xpCard);
 
-  // Stat upgrades
-  const STAT_KEYS = [
-    {key:'hp',      label:'HP',  cost:1, max:20, col:'#44ff88', gain:8},
-    {key:'attack',  label:'ATK', cost:1, max:20, col:'#ff6644', gain:4},
-    {key:'defense', label:'DEF', cost:1, max:20, col:'#4488ff', gain:4},
-    {key:'speed',   label:'SPD', cost:1, max:20, col:'#ffcc00', gain:3},
-  ];
-  STAT_KEYS.forEach(st => {
-    const upgrades = (c.statUpgrades && c.statUpgrades[st.key]) || 0;
-    const atMax    = upgrades >= st.max;
-    const pct      = Math.min(100, Math.round((upgrades / st.max) * 100));
+  // Stat upgrades card
+  const statsCard = document.createElement('div');
+  statsCard.className = 'sp-card';
+  statsCard.innerHTML = '<div class="sp-card-title">STAT UPGRADES  <span style="color:#553377;font-size:5px">(1 SP each)</span></div>';
+
+  const STAT_MAX_DISP = { hp: c.hp, attack: c.attack, defense: c.defense, speed: c.speed };
+  const BASE_MAX      = 200;
+
+  Object.entries(STAT_UPGRADE).forEach(([key, info]) => {
+    const curVal  = c[key] || 0;
+    const upgrades = c.statUpgrades[key] || 0;
+    const atMax   = upgrades >= info.max;
+    const pct     = Math.min(100, Math.round((curVal / BASE_MAX) * 100));
+
     const row = document.createElement('div');
     row.className = 'sp-stat-row';
     row.innerHTML = `
-      <div class="sp-stat-lbl">${st.label}</div>
-      <div class="sp-stat-bar-wrap" style="flex:1;height:8px;background:#1a0030;border-radius:2px;overflow:hidden;">
-        <div style="width:${pct}%;height:100%;background:${st.col};border-radius:2px;transition:width 0.3s;"></div>
-      </div>
-      <div class="sp-stat-val">${upgrades}/${st.max}</div>
-      <button class="sp-stat-up-btn" ${(atMax||(c.skillPoints||0)<st.cost)?'disabled':''} onclick="upgradeStatSP('${st.key}',${skillPanelCreatureIdx})">+${st.gain} (1SP)</button>
+      <div class="sp-stat-name">${info.label}</div>
+      <div class="sp-stat-bar-wrap"><div class="sp-stat-bar" style="width:${pct}%;background:${info.barColor}"></div></div>
+      <div class="sp-stat-val">${curVal}</div>
+      <button class="sp-stat-up-btn" ${(atMax||c.skillPoints<1)?'disabled':''} onclick="upgradeStatSP('${key}',${skillPanelCreatureIdx})">
+        ${atMax ? 'MAX' : '+1'}
+      </button>
     `;
-    mainEl.appendChild(row);
+    statsCard.appendChild(row);
   });
+  mainEl.appendChild(statsCard);
 
-  // Skill paths
-  const tree = SKILL_TREES[c.element] || SKILL_TREES.default;
-  const pathDiv = document.createElement('div');
-  pathDiv.innerHTML = '<div style="font-size:7px;color:#cc88ff;margin:12px 0 6px;border-bottom:1px solid #330055;padding-bottom:3px;">SKILL PATHS -- choose your evolution</div>';
-  mainEl.appendChild(pathDiv);
+  // Skill tree card
+  const tree   = SKILL_TREES[c.element] || SKILL_TREES.default;
+  const skillCard = document.createElement('div');
+  skillCard.className = 'sp-card';
+  skillCard.innerHTML = '<div class="sp-card-title">SKILL TREE  <span style="color:#553377;font-size:5px">(SP cost varies)</span></div>';
 
-  const PATH_COLORS = {pathA:'#ff8844', pathB:'#4488ff', pathC:'#44ff88'};
-  const PATH_LABELS = {pathA:'⚔ OFFENSIVE', pathB:'🛡 DEFENSIVE', pathC:'* SPECIAL'};
+  const treeWrap = document.createElement('div');
+  treeWrap.className = 'skill-tree';
 
-  Object.entries(tree).forEach(([pathKey, path]) => {
-    const pathColor = PATH_COLORS[pathKey] || '#cc88ff';
-    const pathLabel = PATH_LABELS[pathKey] || pathKey;
-    const pathEl = document.createElement('div');
-    pathEl.style.cssText = `margin-bottom:12px;border:1px solid ${pathColor}33;border-radius:4px;padding:8px;background:rgba(0,0,0,0.2);`;
-
-    const evolved = checkEvolution(c);
-    const pathEvolved = path.skills[path.skills.length-1].evolveAt && c.skills?.[path.skills[path.skills.length-1].id];
-
-    pathEl.innerHTML = `<div style="font-size:6px;color:${pathColor};margin-bottom:6px;letter-spacing:1px;">${pathLabel} → <span style="color:#ffcc44">${path.name}</span>${pathEvolved?` <span style="color:#44ffcc">* EVOLVED</span>`:''}</div>`;
-
-    path.skills.forEach((sk, idx) => {
-      const rank    = (c.skills && c.skills[sk.id]) ? 1 : 0;
-      const learned = rank > 0;
-      // Check if previous skill in path is required
-      const prevSk  = idx > 0 ? path.skills[idx-1] : null;
-      const prevLearned = prevSk ? ((c.skills && c.skills[prevSk.id]) ? true : false) : true;
-      const canAfford   = (c.skillPoints||0) >= sk.cost;
-      const locked      = !prevLearned;
-
-      const skBtn = document.createElement('div');
-      skBtn.style.cssText = `
-        display:flex;align-items:center;gap:6px;margin-bottom:4px;
-        padding:6px 8px;border-radius:3px;
-        background:${learned?'rgba(0,80,0,0.3)':locked?'rgba(0,0,0,0.3)':'rgba(0,0,30,0.4)'};
-        border:1px solid ${learned?'#44ff88':locked?'#330033':pathColor+'66'};
-        opacity:${locked?0.5:1};
-      `;
-
-      const lockIcon = locked ? '🔒 ' : learned ? '* ' : '○ ';
-      const costStr  = learned ? 'LEARNED' : locked ? `LOCKED` : `${sk.cost} SP`;
-      const costCol  = learned ? '#44ff88' : locked ? '#553355' : canAfford ? '#ffcc44' : '#ff4444';
-
-      skBtn.innerHTML = `
-        <div style="flex:1;">
-          <div style="font-size:6px;color:${learned?'#44ff88':locked?'#553355':'#cc88ff'}">${lockIcon}${sk.name}</div>
-          <div style="font-size:5px;color:#553377;margin-top:2px;">${sk.desc}</div>
-        </div>
-        <div style="font-size:5px;color:${costCol};white-space:nowrap;">${costStr}</div>
-      `;
-
-      if (!learned && !locked && canAfford) {
-        skBtn.style.cursor = 'pointer';
-        skBtn.onclick = () => learnSkillSP(sk.id, skillPanelCreatureIdx, path.skills);
-        skBtn.onmouseenter = () => skBtn.style.background = `rgba(40,0,60,0.6)`;
-        skBtn.onmouseleave = () => skBtn.style.background = `rgba(0,0,30,0.4)`;
-      }
-
-      pathEl.appendChild(skBtn);
+  tree.forEach(skill => {
+    const rank    = c.skills[skill.id] || 0;
+    const maxed   = rank >= skill.maxRank;
+    const canAfford = c.skillPoints >= skill.cost;
+    const node    = document.createElement('div');
+    node.className = 'skill-node' + (maxed ? ' maxed' : rank > 0 ? ' unlocked' : canAfford ? '' : ' locked');
+    node.innerHTML = `
+      <span class="skill-node-name">${skill.name}</span>
+      <div class="skill-node-rank">${'★'.repeat(rank)}${'☆'.repeat(skill.maxRank - rank)}</div>
+      <span class="skill-node-cost">${maxed ? 'MAXED' : `${skill.cost} SP`}</span>
+    `;
+    if (!maxed && canAfford) {
+      node.onclick = () => unlockSkill(skill.id, skillPanelCreatureIdx);
+      node.title   = skill.desc;
+    }
+    // Tooltip on hover
+    node.addEventListener('mouseenter', () => {
+      document.getElementById('rest-info').textContent = `${skill.name}: ${skill.desc}`;
     });
-
-    mainEl.appendChild(pathEl);
+    treeWrap.appendChild(node);
   });
 
-  // Rest options
-  const restDiv = document.createElement('div');
-  restDiv.style.cssText = 'margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;';
-  restDiv.innerHTML = `
-    <div style="font-size:7px;color:#cc88ff;width:100%;margin-bottom:4px;border-top:1px solid #330055;padding-top:6px;">REST & HEAL</div>
-  `;
-  const restBtns = [
-    {label:'Camp (free · 50% heal)', fn:()=>{ c.currentHp=Math.min(c.hp,Math.floor(c.hp*0.5)+c.currentHp); updateHUD(); renderSkillPanel(); }},
-    {label:'Inn (30c · full heal)',  fn:()=>{ if(state.coins<30){alert('Not enough coins');return;} state.coins-=30; c.currentHp=c.hp; c.status=null; updateHUD(); renderSkillPanel(); }},
-    {label:'Potion (20c · +30HP)',   fn:()=>{ if(state.coins<20){alert('Not enough coins');return;} state.coins-=20; c.currentHp=Math.min(c.hp,c.currentHp+30); updateHUD(); renderSkillPanel(); }},
-  ];
-  restBtns.forEach(rb => {
-    const btn = document.createElement('button');
-    btn.className = 'sp-stat-up-btn';
-    btn.textContent = rb.label;
-    btn.style.cssText = 'margin:2px;font-size:5px;padding:6px 8px;';
-    btn.onclick = rb.fn;
-    restDiv.appendChild(btn);
-  });
-  mainEl.appendChild(restDiv);
-}
-
-function learnSkillSP(skillId, creatureIdx, pathSkills) {
-  const c = state.creatures[creatureIdx];
-  if (!c) return;
-  initCreatureSkills(c);
-  const skill = pathSkills.find(s => s.id === skillId);
-  if (!skill) return;
-  // Check requirement
-  if (skill.requires && !(c.skills && c.skills[skill.requires])) {
-    blogLog && blogLog('Requires previous skill first!','log-miss');
-    return;
-  }
-  if ((c.skillPoints||0) < skill.cost) return;
-  if (c.skills && c.skills[skillId]) return; // already learned
-  c.skillPoints -= skill.cost;
-  c.skills[skillId] = 1;
-  // Apply permanent effects
-  if (skill.effect.atkFlat)  c.attack  = (c.attack ||0) + skill.effect.atkFlat;
-  if (skill.effect.defFlat)  c.defense = (c.defense||0) + skill.effect.defFlat;
-  if (skill.effect.spdFlat)  c.speed   = (c.speed  ||0) + skill.effect.spdFlat;
-  if (skill.effect.hpFlat)   { c.hp=(c.hp||0)+skill.effect.hpFlat; c.maxHp=c.hp; c.currentHp=Math.min(c.currentHp||c.hp,c.hp); }
-  if (skill.effect.allStats) { const v=skill.effect.allStats; c.attack=(c.attack||0)+v; c.defense=(c.defense||0)+v; c.speed=(c.speed||0)+v; c.hp=(c.hp||0)+(v*2); c.maxHp=c.hp; }
-  // Check evolution
-  const evoName = applyEvolution(c);
-  if (evoName) {
-    closeSkillPanel();
-    showDialog('* EVOLUTION!', `${c.name} has evolved into ${evoName}!
-
-The ${evoName} path has been fully mastered!`, [{label:'Amazing!',fn:closeDialog}]);
-  }
-  renderSkillPanel();
+  skillCard.appendChild(treeWrap);
+  mainEl.appendChild(skillCard);
 }
 
 function upgradeStatSP(stat, idx) {
@@ -3987,12 +3096,12 @@ function unlockSkill(skillId, idx) {
   updateHUD();
 }
 
-// -- REST & HEAL SYSTEM ------------------------------------
+// ── REST & HEAL SYSTEM ────────────────────────────────────
 function doRest(type) {
   const infoEl = document.getElementById('rest-info');
 
   if (type === 'camp') {
-    // Free rest -- heals 50% HP for all creatures
+    // Free rest — heals 50% HP for all creatures
     let msg = '';
     state.creatures.forEach(c => {
       const heal = Math.floor(c.hp * 0.5);
@@ -4005,7 +3114,7 @@ function doRest(type) {
   }
 
   else if (type === 'inn') {
-    // Inn -- full heal + status clear, costs 30 coins
+    // Inn — full heal + status clear, costs 30 coins
     if (state.coins < 30) { infoEl.textContent = 'Not enough coins! Need 30.'; return; }
     state.coins -= 30;
     state.creatures.forEach(c => {
@@ -4017,7 +3126,7 @@ function doRest(type) {
   }
 
   else if (type === 'potion') {
-    // Potion -- 30 HP to active creature, costs 20 coins
+    // Potion — 30 HP to active creature, costs 20 coins
     if (state.coins < 20) { infoEl.textContent = 'Not enough coins! Need 20.'; return; }
     const pc = state.creatures[state.activeCreatureIdx];
     if (!pc) { infoEl.textContent = 'No active creature!'; return; }
@@ -4031,24 +3140,24 @@ function doRest(type) {
 }
 
 
-// ===========================================================
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 //  ATTACK CUTSCENE SYSTEM
-// ===========================================================
+// ═══════════════════════════════════════════════════════════
 
 
 
-// ===========================================================
-
-
-
-
+// ═══════════════════════════════════════════════════════════
 
 
 
 
-// ===========================================================
-// -- MAIN LOOP ---------------------------------------------
+
+
+
+
+// ═══════════════════════════════════════════════════════════
+// ── MAIN LOOP ─────────────────────────────────────────────
 let lastTime = 0;
 
 function gameLoop(timestamp) {
@@ -4064,10 +3173,10 @@ function gameLoop(timestamp) {
 }
 
 
-// ==========================================================
+// ══════════════════════════════════════════════════════════
 //  OPENING MENU SYSTEM
-//  All buttons wired here -- no inline onclick attributes
-// ==========================================================
+//  All buttons wired here — no inline onclick attributes
+// ══════════════════════════════════════════════════════════
 
 const MENU_REGIONS = {
   suncrest_expanse:   { name:'Suncrest Expanse',   elem:'fire',    icon:'🔥', tag:'FIRE · WEST COAST',    color:'#ff6600' },
@@ -4093,7 +3202,7 @@ function menuScreen(show) {
   document.getElementById('menu-dice').style.display    = show==='dice'    ? 'flex' : 'none';
 }
 
-// -- Stars background --------------------------------------
+// ── Stars background ──────────────────────────────────────
 function menuDrawStars() {
   const cv = document.getElementById('menu-stars');
   if(!cv) return;
@@ -4112,7 +3221,7 @@ function menuDrawStars() {
   }
 }
 
-// -- Globe animation on title ------------------------------
+// ── Globe animation on title ──────────────────────────────
 let globeFrame = 0;
 function menuDrawGlobe() {
   const cv = document.getElementById('menu-globe');
@@ -4148,7 +3257,7 @@ function menuDrawGlobe() {
     requestAnimationFrame(menuDrawGlobe);
 }
 
-// -- Build region grid -------------------------------------
+// ── Build region grid ─────────────────────────────────────
 function menuBuildRegions() {
   const grid = document.getElementById('menu-regions-grid');
   grid.innerHTML='';
@@ -4167,7 +3276,7 @@ function menuBuildRegions() {
   });
 }
 
-// -- Egg coloring ------------------------------------------
+// ── Egg coloring ──────────────────────────────────────────
 function menuColorEgg(rarity) {
   const col = EGG_COLORS[rarity] || EGG_COLORS.common;
   const hi  = document.getElementById('egg-hi');
@@ -4185,7 +3294,7 @@ function menuColorEgg(rarity) {
   });
 }
 
-// -- Dice roll ---------------------------------------------
+// ── Dice roll ─────────────────────────────────────────────
 function menuRollDice() {
   const stage   = document.getElementById('egg-stage');
   const rollEl  = document.getElementById('dice-roll-display');
@@ -4222,7 +3331,7 @@ function menuRollDice() {
   // Count down display
   let countdown=20;
   const countInterval=setInterval(()=>{
-    rollEl.textContent=`D20 -- ${countdown--}`;
+    rollEl.textContent=`D20 — ${countdown--}`;
     if(countdown<0) clearInterval(countInterval);
   }, 80);
 
@@ -4233,7 +3342,7 @@ function menuRollDice() {
 
     // Actual D20 roll
     const roll = Math.floor(Math.random()*20)+1;
-    rollEl.textContent=`D20 -- ${roll}`;
+    rollEl.textContent=`D20 — ${roll}`;
 
     // Map roll → creature by rarity weight
     const bucket=[];
@@ -4246,7 +3355,7 @@ function menuRollDice() {
     stage.classList.add('revealed');
 
     // Show result
-    const ICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'!',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
+    const ICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
     const RARITY_EGGS={common:'🥚',uncommon:'🔵',rare:'🟣',legendary:'🌟'};
     document.getElementById('cr-egg-icon').textContent = RARITY_EGGS[menuRolledCreature.rarity]||'🥚';
     document.getElementById('cr-name').textContent     = menuRolledCreature.name.toUpperCase();
@@ -4263,7 +3372,7 @@ function menuRollDice() {
   }, 1800);
 }
 
-// -- Begin game --------------------------------------------
+// ── Begin game ────────────────────────────────────────────
 function menuBeginGame() {
   if(!menuRolledCreature||!menuSelectedRegion) return;
   const c0 = menuRolledCreature;
@@ -4292,7 +3401,7 @@ function menuBeginGame() {
         state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
   document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
-  document.getElementById('top-player').textContent = `TRAINER -- ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
+  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
 
   document.getElementById('menu-overlay').style.display='none';
   document.getElementById('world').style.pointerEvents='all';
@@ -4302,7 +3411,7 @@ function menuBeginGame() {
   updateHUD();
 }
 
-// -- Wire everything -- called at bottom of init() ----------
+// ── Wire everything — called at bottom of init() ──────────
 function menuInit() {
   menuDrawStars();
   menuBuildRegions();
@@ -4313,25 +3422,6 @@ function menuInit() {
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
   };
-
-  // Show CONTINUE button if a save exists
-  const loadBtn = document.getElementById('menu-load-btn');
-  if (loadBtn && hasSave()) {
-    loadBtn.style.display = 'block';
-    loadBtn.onclick = () => {
-      const savedAt = loadGame();
-      if (savedAt) {
-        document.getElementById('menu-overlay').style.display = 'none';
-        document.getElementById('top-bar').style.display='flex';
-        document.getElementById('hud').style.display='flex';
-        document.getElementById('mob-btns').style.display='flex';
-        updateHUD();
-        showDialog('GAME LOADED', 'Welcome back!\nSaved: ' + savedAt, [{label:'Play!', fn:closeDialog}]);
-      } else {
-        showDialog('LOAD FAILED', 'Could not load save file.', [{label:'OK', fn:closeDialog}]);
-      }
-    };
-  }
 
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
@@ -4371,7 +3461,7 @@ function menuInit() {
   },{capture:true});
 }
 
-// -- INIT --------------------------------------------------
+// ── INIT ──────────────────────────────────────────────────
 function init() {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
@@ -4383,7 +3473,7 @@ function init() {
   state.camY = Math.max(0, state.py - Math.floor(VIEW_H / 2));
 
   document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
-  document.getElementById('top-player').textContent = `${state.playerName} -- ${REGIONS[state.currentRegion].name.toUpperCase()}`;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
 
   // Starter creature given by opening menu (menuBeginGame)
 
@@ -4391,11 +3481,6 @@ function init() {
   menuInit();
   updateHUD();
   requestAnimationFrame(gameLoop);
-// Wire mobile buttons
-  const mobMenu = document.getElementById('mob-menu');
-  const mobAction = document.getElementById('mob-action');
-  if(mobMenu){ mobMenu.onclick = handleEsc; mobMenu.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false}); }
-  if(mobAction){ mobAction.onclick = handleInteract; mobAction.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false}); }
 }
 
 init();
@@ -4404,5 +3489,67 @@ init();
 <!-- ══════════════════════════════════════════════
      OPENING MENU — wired entirely in JS after load
 ══════════════════════════════════════════════ -->
+<div id="menu-overlay">
+  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+
+  <!-- SCREEN 0: TITLE -->
+  <div id="menu-title">
+    <div class="menu-logo">WORLDHATCH</div>
+    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
+    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
+    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+  </div>
+
+  <!-- SCREEN 1: REGION SELECT -->
+  <div id="menu-regions">
+    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
+    <div class="menu-regions-grid" id="menu-regions-grid"></div>
+    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
+  </div>
+
+  <!-- SCREEN 2: DICE ROLL -->
+  <div id="menu-dice">
+    <div class="dice-title">YOUR STARTER EGG</div>
+    <div class="dice-region-name" id="dice-region-label"></div>
+    <div class="egg-stage" id="egg-stage">
+      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
+        <defs>
+          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
+            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
+            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
+          </radialGradient>
+          <filter id="eggGlow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
+        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+        <!-- Speckles -->
+        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
+        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
+        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
+        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
+      </svg>
+      <div class="egg-glow" id="egg-glow"></div>
+    </div>
+    <div class="dice-roll-display" id="dice-roll-display"></div>
+    <div class="creature-reveal" id="creature-reveal">
+      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
+      <div class="cr-info">
+        <div class="cr-name" id="cr-name"></div>
+        <div class="cr-elem" id="cr-elem"></div>
+        <div class="cr-rarity" id="cr-rarity"></div>
+        <div class="cr-desc" id="cr-desc"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
+      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
