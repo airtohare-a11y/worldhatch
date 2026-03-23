@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;}
+body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;width:100vw;height:100vh;margin:0;padding:0;}
 
 
 
@@ -286,7 +286,9 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   width:100%;gap:18px;padding:20px;
+  box-sizing:border-box;
 }
+#menu-globe{width:160px;height:160px;display:block;border:2px solid #c8960c;border-radius:50%;}
 .menu-logo{
   font-size:clamp(14px,4vw,22px);
   color:#ffcc44;letter-spacing:4px;
