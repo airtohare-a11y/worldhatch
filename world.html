@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;}
+body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;position:fixed;inset:0;}
 
 
 
@@ -270,7 +270,7 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;w
    OPENING MENU
 ══════════════════════════════════════════════ */
 #menu-overlay{
-  position:fixed;inset:0;z-index:9999;
+  position:fixed;inset:0;z-index:99999;
   background:#080010;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
@@ -303,10 +303,11 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;w
   border-radius:4px;margin-top:8px;
   box-shadow:0 0 20px rgba(255,200,0,0.4);
   animation:startBlink 1.2s step-end infinite;
-  position:relative;z-index:10000;
+  position:relative;z-index:100000;
   -webkit-tap-highlight-color:rgba(0,0,0,0);
   user-select:none;
   touch-action:manipulation;
+  pointer-events:all !important;
 }
 @keyframes startBlink{50%{opacity:0.4;}}
 .menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
@@ -569,6 +570,8 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;w
 const TILE   = 24;  // 16-bit SNES style — bigger tiles
 const VIEW_W = 13;
 const VIEW_H = 10;
+let VIEW_W_CUR = 13;
+let VIEW_H_CUR = 10;
 let VIEW_W_CUR = 13;
 let VIEW_H_CUR = 10;
 
