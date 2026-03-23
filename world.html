@@ -7,9 +7,86 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;}
+body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;}
 
+/* ── OPENING SCREEN ── */
+#opening{position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;}
+#opening.hidden{display:none;}
+.ob-panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity 0.6s;pointer-events:none;}
+.ob-panel.active{opacity:1;pointer-events:all;}
+.ob-art{width:100%;max-width:420px;height:220px;border:3px solid #c8960c;border-radius:8px;overflow:hidden;margin-bottom:16px;position:relative;background:#0a0018;}
+.ob-art canvas{display:block;width:100%;height:100%;image-rendering:pixelated;}
+.ob-text-box{width:100%;max-width:420px;background:rgba(8,0,20,0.92);border:2px solid #440088;border-radius:4px;padding:14px 16px;min-height:80px;}
+.ob-speaker{font-size:8px;color:#ffcc44;margin-bottom:8px;letter-spacing:1px;}
+.ob-line{font-size:8px;color:#e0d0ff;line-height:2;min-height:40px;}
+.ob-cursor{display:inline-block;width:8px;height:12px;background:#cc88ff;margin-left:2px;animation:blink 0.7s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.ob-nav{display:flex;gap:12px;margin-top:14px;}
+.ob-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:#0e0022;color:#cc88ff;border:2px solid #440088;padding:8px 14px;cursor:pointer;border-radius:3px;}
+.ob-btn:hover{background:#1a0040;border-color:#cc44ff;}
+.ob-btn.primary{border-color:#ffcc44;color:#ffcc44;}
 
+/* Region select */
+#region-select{width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.region-opt{font-family:'Press Start 2P',monospace;font-size:7px;background:#0a0018;color:#cc88ff;border:2px solid #330055;padding:10px 14px;cursor:pointer;border-radius:4px;display:flex;justify-content:space-between;align-items:center;transition:all 0.15s;}
+.region-opt:hover{background:#160030;border-color:#8833cc;}
+.region-opt.selected{border-color:#ffcc44;color:#ffcc44;background:#1a1000;}
+.region-elem{font-size:8px;}
+
+/* Dice reveal */
+#dice-reveal{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.dice-face{width:100px;height:100px;border:4px solid #c8960c;border-radius:12px;background:#0e0022;display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 0 30px rgba(200,150,0,0.4);}
+.dice-spinning{animation:diceSpin 0.1s linear infinite;}
+@keyframes diceSpin{0%{transform:rotateY(0deg) scale(1);}50%{transform:rotateY(180deg) scale(0.8);}100%{transform:rotateY(360deg) scale(1);}}
+.dice-result-card{width:100%;background:#0a0018;border:3px solid #c8960c;border-radius:8px;padding:14px;display:flex;gap:12px;align-items:center;}
+.dice-creature-art{width:80px;height:80px;border:2px solid #440088;border-radius:4px;overflow:hidden;background:#060010;flex-shrink:0;}
+.dice-creature-art img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;}
+.dice-creature-art canvas{display:block;image-rendering:pixelated;}
+.dice-creature-info{flex:1;}
+.dice-creature-name{font-size:9px;color:#ffcc44;margin-bottom:6px;letter-spacing:1px;}
+.dice-creature-elem{font-size:7px;color:#cc88ff;margin-bottom:4px;}
+.dice-creature-rarity{font-size:7px;}
+.rarity-common{color:#aaaacc;} .rarity-uncommon{color:#4488ff;} .rarity-rare{color:#cc44ff;} .rarity-legendary{color:#ffcc00;}
+.dice-roll-num{font-size:28px;color:#ffcc44;text-align:center;text-shadow:0 0 12px rgba(255,200,0,0.7);}
+
+/* ── ATTACK CUTSCENE ── */
+#attack-cutscene{position:absolute;inset:0;z-index:200;display:none;overflow:hidden;background:#000;}
+#attack-cutscene.show{display:flex;}
+.cut-split{position:absolute;inset:0;display:flex;}
+.cut-panel{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.cut-panel-left{border-right:3px solid #fff;}
+.cut-panel-right{border-left:3px solid #fff;}
+.cut-bg-left{position:absolute;inset:0;background:linear-gradient(135deg,#0a0018,#1a0030);}
+.cut-bg-right{position:absolute;inset:0;background:linear-gradient(225deg,#1a0000,#300000);}
+.cut-sprite{position:absolute;image-rendering:pixelated;transition:transform 0.15s;}
+.cut-sprite-left{left:10%;bottom:20%;}
+.cut-sprite-right{right:10%;bottom:20%;transform:scaleX(-1);}
+.cut-sprite-left.charge{animation:chargeLeft 0.3s ease-out forwards;}
+.cut-sprite-right.charge{animation:chargeRight 0.3s ease-out forwards;}
+.cut-sprite-left.recoil{animation:recoilLeft 0.25s ease-in-out forwards;}
+.cut-sprite-right.recoil{animation:recoilRight 0.25s ease-in-out forwards;}
+@keyframes chargeLeft{0%{transform:translateX(0);}60%{transform:translateX(80%);}100%{transform:translateX(60%);}}
+@keyframes chargeRight{0%{transform:scaleX(-1) translateX(0);}60%{transform:scaleX(-1) translateX(80%);}100%{transform:scaleX(-1) translateX(60%);}}
+@keyframes recoilLeft{0%{transform:translateX(0);}40%{transform:translateX(-20%);}100%{transform:translateX(0);}}
+@keyframes recoilRight{0%{transform:scaleX(-1) translateX(0);}40%{transform:scaleX(-1) translateX(-20%);}100%{transform:scaleX(-1) translateX(0);}}
+.cut-impact{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+.cut-impact.flash{animation:impactFlash 0.35s ease-out forwards;}
+@keyframes impactFlash{0%{opacity:0;}15%{opacity:0.9;}100%{opacity:0;}}
+.cut-lines{position:absolute;inset:0;overflow:hidden;opacity:0;}
+.cut-lines.show{opacity:1;}
+.cut-line{position:absolute;height:3px;background:#fff;transform-origin:left center;}
+.cut-move-name{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;font-size:14px;color:#ffcc44;text-shadow:0 0 20px rgba(255,200,0,0.9);white-space:nowrap;z-index:10;opacity:0;pointer-events:none;}
+.cut-move-name.show{animation:moveNamePop 0.5s ease-out forwards;}
+@keyframes moveNamePop{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5);}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}100%{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+
+/* ── CAVE INTERIOR ── */
+#cave-overlay{position:absolute;inset:0;z-index:105;display:none;flex-direction:column;}
+#cave-overlay.show{display:flex;}
+#cave-canvas{display:block;image-rendering:pixelated;width:100%;flex:1;}
+.cave-hud{padding:6px 12px;background:#0a000e;border-top:2px solid #440066;display:flex;justify-content:space-between;align-items:center;}
+.cave-hud-text{font-size:7px;color:#8844aa;}
+.cave-exit-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#1a0020;color:#ff6666;border:1px solid #882222;padding:5px 10px;cursor:pointer;border-radius:2px;}
+.cave-exit-btn:hover{background:#2a0030;}
 
 /* ── LAYOUT ── */
 #game-wrap{position:relative;width:100vw;max-width:800px;}
@@ -18,7 +95,7 @@ body{background:#080010;display:flex;flex-direction:column;align-items:center;ju
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;}
 
 /* ── HUD ── */
 #hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
@@ -194,8 +271,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
-#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:2px solid #6622aa;border-radius:3px;padding:4px;cursor:crosshair;}
-#minimap canvas{display:block;image-rendering:pixelated;cursor:crosshair;}
+#minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
+#minimap canvas{display:block;image-rendering:pixelated;}
 
 /* ── SKILL & REST PANEL ── */
 #skill-panel{
@@ -265,253 +342,109 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .rest-btn.item{background:#1a0a00;color:#ffaa44;border-color:#884400;}
 .rest-btn.item:hover{background:#281200;box-shadow:0 0 8px rgba(200,120,0,0.3);}
 .rest-info{font-size:6px;color:#443366;margin-top:6px;line-height:1.8;}
-
-/* ══════════════════════════════════════════════
-   OPENING MENU
-══════════════════════════════════════════════ */
-#menu-overlay{
-  position:fixed;inset:0;z-index:9999;
-  background:#080010;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:0;overflow-y:auto;overflow-x:hidden;
-  pointer-events:all;
-  cursor:default;
-}
-/* title screen */
-#menu-title, #menu-regions, #menu-dice{
-  position:relative;z-index:10000;
-}
-#menu-title{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  width:100%;gap:18px;padding:20px;
-}
-.menu-logo{
-  font-size:clamp(14px,4vw,22px);
-  color:#ffcc44;letter-spacing:4px;
-  text-shadow:0 0 20px rgba(255,200,0,0.6),0 0 40px rgba(255,150,0,0.3);
-  animation:logoPulse 3s ease-in-out infinite;
-}
-@keyframes logoPulse{0%,100%{text-shadow:0 0 20px rgba(255,200,0,0.6);}50%{text-shadow:0 0 35px rgba(255,200,0,0.9),0 0 60px rgba(255,150,0,0.5);}}
-.menu-sub{font-size:8px;color:#6622aa;letter-spacing:2px;margin-top:-8px;}
-.menu-start-btn{
-  font-family:'Press Start 2P',monospace;
-  font-size:10px;color:#080010;
-  background:#ffcc44;border:none;
-  padding:18px 36px;cursor:pointer;
-  border-radius:4px;margin-top:8px;
-  box-shadow:0 0 20px rgba(255,200,0,0.4);
-  animation:startBlink 1.2s step-end infinite;
-  position:relative;z-index:10000;
-  -webkit-tap-highlight-color:rgba(0,0,0,0);
-  user-select:none;
-  touch-action:manipulation;
-}
-@keyframes startBlink{50%{opacity:0.4;}}
-.menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
-
-/* region select */
-#menu-regions{
-  display:none;flex-direction:column;
-  align-items:center;width:100%;gap:10px;padding:16px 20px;
-}
-.menu-regions-title{font-size:9px;color:#ffcc44;letter-spacing:2px;margin-bottom:4px;}
-.menu-regions-grid{
-  display:grid;grid-template-columns:repeat(2,1fr);
-  gap:8px;width:100%;max-width:520px;
-}
-.region-card{
-  background:#0e0022;border:2px solid #330055;
-  border-radius:5px;padding:10px 12px;
-  cursor:pointer;transition:all 0.15s;
-  display:flex;flex-direction:column;gap:4px;
-}
-.region-card:hover{background:#180038;border-color:#8833cc;transform:translateY(-2px);}
-.region-card.selected{border-color:#ffcc44;background:#1a1000;}
-.rc-name{font-size:7px;color:#cc88ff;}
-.rc-elem{font-size:16px;line-height:1;}
-.rc-tag{font-size:5px;color:#553377;letter-spacing:1px;}
-.menu-choose-btn{
-  font-family:'Press Start 2P',monospace;font-size:8px;
-  background:#0e0022;color:#ffcc44;
-  border:2px solid #cc8800;padding:10px 20px;
-  cursor:pointer;border-radius:3px;margin-top:6px;
-  opacity:0.4;pointer-events:none;transition:all 0.2s;
-}
-.menu-choose-btn.ready{opacity:1;pointer-events:all;}
-.menu-choose-btn.ready:hover{background:#1a1000;box-shadow:0 0 12px rgba(255,200,0,0.3);}
-
-/* dice roll screen */
-#menu-dice{
-  display:none;flex-direction:column;
-  align-items:center;width:100%;gap:14px;padding:16px 20px;
-}
-.dice-title{font-size:8px;color:#ffcc44;letter-spacing:2px;}
-.dice-region-name{font-size:7px;color:#8844cc;margin-top:-6px;}
-
-/* The egg display area */
-.egg-stage{
-  position:relative;width:140px;height:160px;
-  display:flex;align-items:center;justify-content:center;
-}
-.egg-svg{transition:transform 0.1s;}
-.egg-stage.spinning .egg-svg{animation:eggSpin 0.12s linear infinite;}
-@keyframes eggSpin{
-  0%  {transform:rotate(-8deg) scale(1);}
-  25% {transform:rotate(0deg)  scale(1.05);}
-  50% {transform:rotate(8deg)  scale(1);}
-  75% {transform:rotate(0deg)  scale(1.05);}
-  100%{transform:rotate(-8deg) scale(1);}
-}
-.egg-glow{
-  position:absolute;inset:0;border-radius:50%;
-  opacity:0;transition:opacity 0.4s;
-  pointer-events:none;
-}
-.egg-stage.revealed .egg-glow{opacity:1;}
-
-.dice-roll-display{
-  font-size:32px;color:#ffcc44;min-height:44px;
-  text-align:center;
-  text-shadow:0 0 16px rgba(255,200,0,0.8);
-  font-family:'Press Start 2P',monospace;
-}
-.creature-reveal{
-  width:100%;max-width:400px;
-  background:#0a0018;border:3px solid #c8960c;
-  border-radius:8px;padding:12px 16px;
-  display:none;flex-direction:row;
-  align-items:center;gap:14px;
-}
-.cr-egg-icon{font-size:40px;flex-shrink:0;}
-.cr-info{flex:1;}
-.cr-name{font-size:9px;color:#ffcc44;margin-bottom:6px;letter-spacing:1px;}
-.cr-elem{font-size:7px;color:#cc88ff;margin-bottom:4px;}
-.cr-rarity{font-size:7px;letter-spacing:1px;}
-.cr-rarity.common   {color:#aaaacc;}
-.cr-rarity.uncommon {color:#4488ff;}
-.cr-rarity.rare     {color:#cc44ff;}
-.cr-rarity.legendary{color:#ffcc00;text-shadow:0 0 8px rgba(255,200,0,0.6);}
-.cr-desc{font-size:5px;color:#553377;line-height:1.8;margin-top:6px;}
-.dice-begin-btn{
-  font-family:'Press Start 2P',monospace;font-size:9px;
-  background:#0a0018;color:#44ff88;
-  border:2px solid #228844;padding:11px 22px;
-  cursor:pointer;border-radius:3px;
-  display:none;
-  box-shadow:0 0 12px rgba(50,200,100,0.3);
-}
-.dice-begin-btn:hover{background:#0e1818;box-shadow:0 0 20px rgba(50,200,100,0.5);}
-.dice-reroll-btn{
-  font-family:'Press Start 2P',monospace;font-size:7px;
-  background:#0a0018;color:#cc88ff;
-  border:2px solid #440088;padding:8px 16px;
-  cursor:pointer;border-radius:3px;display:none;
-}
-/* stars bg */
-#menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
-
-
-/* ── MOBILE BUTTONS ── */
-#mob-btns{
-  position:fixed;bottom:16px;right:14px;
-  z-index:9000;
-  display:flex;flex-direction:row;
-  align-items:center;gap:10px;
-}
-.mob-btn{
-  font-family:'Press Start 2P',monospace;
-  font-size:9px;
-  background:rgba(10,0,30,0.92);
-  color:#cc88ff;
-  border:2px solid #7722cc;
-  padding:18px 22px;
-  border-radius:10px;
-  cursor:pointer;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
-  min-width:70px;
-  min-height:60px;
-  text-align:center;
-}
-.mob-btn:active{background:rgba(100,0,200,0.9);border-color:#cc88ff;}
-#mob-action{border-color:#cc8800;color:#ffcc44;}
-#mob-action:active{background:rgba(120,60,0,0.9);}
 </style>
 </head>
 <body>
-
-
-<div id="menu-overlay">
-  <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
-
-  <!-- SCREEN 0: TITLE -->
-  <div id="menu-title">
-    <div class="menu-logo">WORLDHATCH</div>
-    <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
-    <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
-    <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
-  </div>
-
-  <!-- SCREEN 1: REGION SELECT -->
-  <div id="menu-regions">
-    <div class="menu-regions-title">CHOOSE YOUR REGION</div>
-    <div class="menu-regions-grid" id="menu-regions-grid"></div>
-    <button class="menu-choose-btn" id="menu-choose-btn">CONFIRM REGION ▶</button>
-  </div>
-
-  <!-- SCREEN 2: DICE ROLL -->
-  <div id="menu-dice">
-    <div class="dice-title">YOUR STARTER EGG</div>
-    <div class="dice-region-name" id="dice-region-label"></div>
-    <div class="egg-stage" id="egg-stage">
-      <svg class="egg-svg" id="egg-svg" width="120" height="140" viewBox="0 0 120 140">
-        <defs>
-          <radialGradient id="eggGrad" cx="35%" cy="30%" r="65%">
-            <stop offset="0%" id="egg-hi" stop-color="#ffffff"/>
-            <stop offset="60%" id="egg-mid" stop-color="#888888"/>
-            <stop offset="100%" id="egg-sh" stop-color="#333333"/>
-          </radialGradient>
-          <filter id="eggGlow">
-            <feGaussianBlur stdDeviation="4" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
-        </defs>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="url(#eggGrad)" filter="url(#eggGlow)"/>
-        <ellipse cx="60" cy="72" rx="46" ry="56" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-        <!-- Speckles -->
-        <circle id="spk1" cx="44" cy="58" r="3" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk2" cx="72" cy="50" r="2" fill="rgba(0,0,0,0.15)"/>
-        <circle id="spk3" cx="50" cy="88" r="4" fill="rgba(0,0,0,0.1)"/>
-        <circle id="spk4" cx="76" cy="80" r="2.5" fill="rgba(0,0,0,0.12)"/>
-        <circle id="spk5" cx="60" cy="42" r="2" fill="rgba(0,0,0,0.1)"/>
-      </svg>
-      <div class="egg-glow" id="egg-glow"></div>
+<!-- ══ OPENING SCREEN — buttons wired in JS after load ══ -->
+<div id="opening">
+  <!-- Panel 0: Title -->
+  <div class="ob-panel active" id="ob-p0">
+    <div class="ob-art"><canvas id="ob-title-canvas" width="420" height="220"></canvas></div>
+    <div class="ob-text-box">
+      <div class="ob-speaker">WORLDHATCH</div>
+      <div class="ob-line" id="ob-line-0"></div>
     </div>
-    <div class="dice-roll-display" id="dice-roll-display"></div>
-    <div class="creature-reveal" id="creature-reveal">
-      <div class="cr-egg-icon" id="cr-egg-icon">🥚</div>
-      <div class="cr-info">
-        <div class="cr-name" id="cr-name"></div>
-        <div class="cr-elem" id="cr-elem"></div>
-        <div class="cr-rarity" id="cr-rarity"></div>
-        <div class="cr-desc" id="cr-desc"></div>
+    <div class="ob-nav">
+      <button class="ob-btn primary" id="ob-next-0">NEXT ▶</button>
+    </div>
+  </div>
+  <!-- Panel 1: Lore -->
+  <div class="ob-panel" id="ob-p1">
+    <div class="ob-art"><canvas id="ob-lore-canvas" width="420" height="220"></canvas></div>
+    <div class="ob-text-box">
+      <div class="ob-speaker">THE ELDER SPEAKS</div>
+      <div class="ob-line" id="ob-line-1"></div>
+    </div>
+    <div class="ob-nav">
+      <button class="ob-btn" id="ob-prev-1">◀ BACK</button>
+      <button class="ob-btn primary" id="ob-next-1">NEXT ▶</button>
+    </div>
+  </div>
+  <!-- Panel 2: Choose Region -->
+  <div class="ob-panel" id="ob-p2">
+    <div class="ob-text-box" style="margin-bottom:10px;">
+      <div class="ob-speaker">CHOOSE YOUR HOME REGION</div>
+      <div class="ob-line" id="ob-line-2">Each region shapes the creatures you will bond with. Choose wisely — your first companion awaits.</div>
+    </div>
+    <div id="region-select"></div>
+    <div class="ob-nav">
+      <button class="ob-btn" id="ob-prev-2">◀ BACK</button>
+      <button class="ob-btn primary" id="ob-choose-btn" disabled>CHOOSE ▶</button>
+    </div>
+  </div>
+  <!-- Panel 3: Dice Roll -->
+  <div class="ob-panel" id="ob-p3">
+    <div class="ob-text-box" style="margin-bottom:10px;">
+      <div class="ob-speaker">YOUR FIRST COMPANION</div>
+      <div class="ob-line" id="ob-line-3">The dice of fate determine which creature hatches for you...</div>
+    </div>
+    <div id="dice-reveal">
+      <div class="dice-face" id="ob-dice">🎲</div>
+      <div class="dice-roll-num" id="ob-roll-num" style="display:none"></div>
+      <div class="dice-result-card" id="ob-result-card" style="display:none">
+        <div class="dice-creature-art"><canvas id="ob-creature-canvas" width="48" height="48" style="width:80px;height:80px;"></canvas></div>
+        <div class="dice-creature-info">
+          <div class="dice-creature-name" id="ob-cname">—</div>
+          <div class="dice-creature-elem" id="ob-celem">—</div>
+          <div class="dice-creature-rarity" id="ob-crarity">—</div>
+        </div>
       </div>
+      <button class="ob-btn primary" id="ob-roll-btn">ROLL THE DICE ▶</button>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
-      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+  </div>
+  <!-- Panel 4: Confirm -->
+  <div class="ob-panel" id="ob-p4">
+    <div class="ob-art"><canvas id="ob-confirm-canvas" width="420" height="220"></canvas></div>
+    <div class="ob-text-box">
+      <div class="ob-speaker">YOUR JOURNEY BEGINS</div>
+      <div class="ob-line" id="ob-line-4"></div>
+    </div>
+    <div class="ob-nav">
+      <button class="ob-btn" id="ob-prev-4">◀ REROLL</button>
+      <button class="ob-btn primary" id="ob-begin-btn">BEGIN! ▶</button>
     </div>
   </div>
 </div>
 
-<div id="mob-btns">
-  <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION ▶</button>
+<!-- ══ ATTACK CUTSCENE ══ -->
+<div id="attack-cutscene">
+  <div class="cut-split">
+    <div class="cut-panel cut-panel-left" id="cut-left">
+      <div class="cut-bg-left" id="cut-bg-left"></div>
+      <canvas id="cut-sprite-left" class="cut-sprite cut-sprite-left" width="48" height="48" style="width:96px;height:96px;"></canvas>
+      <img id="cut-img-left" class="cut-sprite cut-sprite-left" src="" alt="" style="width:96px;height:96px;display:none;object-fit:contain;image-rendering:pixelated;"/>
+    </div>
+    <div class="cut-panel cut-panel-right" id="cut-right">
+      <div class="cut-bg-right" id="cut-bg-right"></div>
+      <canvas id="cut-sprite-right" class="cut-sprite cut-sprite-right" width="48" height="48" style="width:96px;height:96px;"></canvas>
+      <img id="cut-img-right" class="cut-sprite cut-sprite-right" src="" alt="" style="width:96px;height:96px;display:none;object-fit:contain;image-rendering:pixelated;"/>
+    </div>
+  </div>
+  <div class="cut-lines" id="cut-lines"></div>
+  <div class="cut-impact" id="cut-impact"></div>
+  <div class="cut-move-name" id="cut-move-name"></div>
 </div>
 
-<div id="game-wrap">
+<!-- ══ CAVE INTERIOR ══ -->
+<div id="cave-overlay">
+  <canvas id="cave-canvas"></canvas>
+  <div class="cave-hud">
+    <div class="cave-hud-text" id="cave-hud-text">CAVE INTERIOR — Lv1 creatures inside</div>
+    <button class="cave-exit-btn" onclick="exitCave()">EXIT CAVE ▶</button>
+  </div>
+</div>
+
+<div id="game-wrap" style="display:none">
   <div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
     <div class="region-name" id="top-region">Suncrest Expanse</div>
@@ -1167,7 +1100,6 @@ const state = {
 
   // Camera
   camX: 0, camY: 0,
-  tapTarget: null,
 };
 
 // ── CANVAS SETUP ──────────────────────────────────────────
@@ -1177,62 +1109,6 @@ ctx.imageSmoothingEnabled = false;
 
 const mmCanvas = document.getElementById('mm');
 const mmCtx    = mmCanvas.getContext('2d');
-
-// ── TAP / CLICK TO MOVE ──────────────────────────────────
-function handleCanvasTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = (VIEW_W * TILE) / rect.width;
-  const scaleY = (VIEW_H * TILE) / rect.height;
-  const tx = Math.floor((cx - rect.left) * scaleX / TILE) + state.camX;
-  const ty = Math.floor((cy - rect.top)  * scaleY / TILE) + state.camY;
-  state.tapTarget = { x: tx, y: ty };
-}
-
-// Main canvas — click or touch
-canvas.addEventListener('click', e => {
-  handleCanvasTap(e.clientX, e.clientY);
-});
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
-// Minimap — click or touch to set long-distance travel target
-function handleMinimapTap(cx, cy) {
-  if (state.inBattle || state.inDialog) return;
-  const menuEl = document.getElementById('menu-overlay');
-  if (menuEl && menuEl.style.display !== 'none') return;
-  const rect = mmCanvas.getBoundingClientRect();
-  const S   = 90;
-  const s   = Math.max(1, Math.floor(S / MAP_W));
-  const off = Math.floor((S - MAP_W * s) / 2);
-  // Convert click position to map tile
-  const canvasX = (cx - rect.left) * (S / rect.width);
-  const canvasY = (cy - rect.top)  * (S / rect.height);
-  const tx = Math.floor((canvasX - off) / s);
-  const ty = Math.floor((canvasY - off) / s);
-  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
-    state.tapTarget = { x: tx, y: ty };
-  }
-}
-
-mmCanvas.addEventListener('click', e => {
-  handleMinimapTap(e.clientX, e.clientY);
-  e.stopPropagation();
-});
-mmCanvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  e.stopPropagation();
-  handleMinimapTap(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: false });
-
 
 function resizeCanvas() {
   const wrap = document.getElementById('game-canvas-wrap');
@@ -1246,19 +1122,12 @@ function resizeCanvas() {
 
 // ── INPUT ─────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  // Don't swallow events when opening menu is visible
-  const menuOpen = document.getElementById('menu-overlay') &&
-                   document.getElementById('menu-overlay').style.display !== 'none';
-  if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = true;
   if (e.key === 'e' || e.key === 'E') handleInteract();
   if (e.key === 'Escape') handleEsc();
   e.preventDefault();
 });
 document.addEventListener('keyup', e => {
-  const menuOpen = document.getElementById('menu-overlay') &&
-                   document.getElementById('menu-overlay').style.display !== 'none';
-  if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = false;
 });
 
@@ -1286,14 +1155,6 @@ function handleMovement(dt) {
   if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
   if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
 
-  // Tap-to-move
-  if (dx === 0 && dy === 0 && state.tapTarget) {
-    const tdx = state.tapTarget.x - state.px;
-    const tdy = state.tapTarget.y - state.py;
-    if (Math.abs(tdx) < 1 && Math.abs(tdy) < 1) { state.tapTarget = null; }
-    else if (Math.abs(tdx) >= Math.abs(tdy)) { dx = tdx > 0 ? 1 : -1; state.playerDir = dx > 0 ? 'right' : 'left'; }
-    else { dy = tdy > 0 ? 1 : -1; state.playerDir = dy > 0 ? 'down' : 'up'; }
-  }
   if (dx === 0 && dy === 0) return;
   moveTimer = 0;
 
@@ -1341,8 +1202,8 @@ function handleMovement(dt) {
 
   // PoI check
   if (tile === T.CAVE) {
-    const poiKey = `${nx},${ny}`;
-    if (!state.visitedPoI.has(poiKey)) { triggerPoI(tile); }
+    enterCave(tile);
+    return;
   }
   if (tile === T.SHRINE || tile === T.RUIN) {
     const poiKey = `${nx},${ny}`;
@@ -1652,6 +1513,7 @@ function startBattle(playerCreature, wildCreature, isSurrender) {
   loadBattleArt('enemy',  wildCreature);
 
   renderBattleArena();
+  startArenaAnim();
   blogLog(`Wild ${wildCreature.name} appeared! (Lv${wildCreature.level})`, 'log-info');
   blogLog(`${playerCreature.name} vs ${wildCreature.name}!`, 'log-info');
 
@@ -1724,7 +1586,7 @@ function buildMoveButtons() {
 }
 
 async function playerAction(actionId) {
-  if (!battleData || battleData.turn !== 'player' || battleData.over) return;
+  if (battleData.turn !== 'player' || battleData.over) return;
   disableMoveButtons(true);
 
   if (actionId === 'run') {
@@ -1804,7 +1666,9 @@ async function playerAction(actionId) {
   const roll    = rollD20();
 
   // Play attack cutscene
+  const ELEM_COLORS_CUT = {fire:'#ff6600',ice:'#88ddff',nature:'#44ff22',spirit:'#ffcc44',dark:'#cc44ff',storm:'#8866ff',water:'#2288ff',sand:'#ddaa22',magma:'#ff4400',crystal:'#aaddff'};
   const moveLabelCut = actionId==='special'?'SPECIAL MOVE!':actionId==='power'?'POWER STRIKE':'BASE ATTACK';
+  await new Promise(res=>playAttackCutscene(battleData.player, battleData.enemy, moveLabelCut, ELEM_COLORS_CUT[battleData.player.element]||'#ffcc44', res));
 
   await showDice(roll, 'YOUR ATTACK');
   const outcome = getOutcome(roll);
@@ -1862,9 +1726,13 @@ async function playerAction(actionId) {
 }
 
 async function enemyTurn() {
-  if (!battleData || battleData.over) return;
+  if (battleData.over) return;
   const e = battleData.enemy;
   const p = battleData.player;
+
+  // Enemy attack cutscene
+  const ELEM_COLORS_E = {fire:'#ff6600',ice:'#88ddff',nature:'#44ff22',spirit:'#ffcc44',dark:'#cc44ff',storm:'#8866ff',water:'#2288ff',sand:'#ddaa22',magma:'#ff4400',crystal:'#aaddff'};
+  await new Promise(res => playAttackCutscene(battleData.enemy, battleData.player, `${e.name} ATTACKS`, ELEM_COLORS_E[e.element]||'#ff4444', res));
 
   const roll    = rollD20();
   await showDice(roll, `${e.name} ATTACKS`);
@@ -1877,13 +1745,13 @@ async function enemyTurn() {
     const dmg = Math.max(1, Math.round((e.attack / p.defense) * 12 * outcome.mult * typeMult));
     p.currentHp = Math.max(0, p.currentHp - dmg);
     flashHit('player');
-    const hitEnergyGain = Math.min(25, Math.max(8, Math.floor(dmg / 4)));
-    p.energy = Math.min(100, (p.energy || 0) + hitEnergyGain);
+
+    // Update stored creature HP
     if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
       state.creatures[state.activeCreatureIdx].currentHp = p.currentHp;
-      state.creatures[state.activeCreatureIdx].energy = p.energy;
     }
-    blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
+
+    blogLog(`${e.name} deals ${dmg} damage!`, 'log-hit');
   }
 
   updateBattleUI();
@@ -2136,6 +2004,15 @@ function drawCreatureSprite(canvasId, element, isEnemy) {
   c.globalCompositeOperation = 'source-over';
 }
 
+let arenaAnimId = null;
+function startArenaAnim() {
+  if (arenaAnimId) cancelAnimationFrame(arenaAnimId);
+  function loop() {
+    renderBattleArena();
+    if (battleData && !battleData.over) arenaAnimId = requestAnimationFrame(loop);
+  }
+  loop();
+}
 
 function endBattle(won, caught) {
   battleData.over = true;
@@ -2145,9 +2022,6 @@ function endBattle(won, caught) {
     document.getElementById('battle-overlay').classList.remove('show');
     document.getElementById('battle-log').innerHTML = '';
     document.getElementById('dice-display').textContent = '';
-    if (battleData && state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
-      state.creatures[state.activeCreatureIdx].energy = battleData.player.energy || 0;
-    }
     battleData = null;
 
     if (!won && !caught) {
@@ -2155,7 +2029,6 @@ function endBattle(won, caught) {
       if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
         const c = state.creatures[state.activeCreatureIdx];
         c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
-        c.energy = 0;
       }
     }
     updateHUD();
@@ -2185,128 +2058,6 @@ function closeDialog() {
 }
 
 // ── MAIN MENU DIALOG ──────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════
-//  SAVE / LOAD SYSTEM
-// ═══════════════════════════════════════════════════════════
-
-const SAVE_KEY = 'worldhatch_save';
-
-function saveGame() {
-  try {
-    const save = {
-      version: 1,
-      playerName:       state.playerName,
-      homeRegion:       state.homeRegion,
-      currentRegion:    state.currentRegion,
-      mapSeed:          state.mapSeed,
-      px: state.px, py: state.py,
-      playerDir:        state.playerDir,
-      coins:            state.coins,
-      time:             state.time,
-      weather:          state.weather,
-      activeCreatureIdx:state.activeCreatureIdx,
-      creatures:        state.creatures,
-      eggs:             state.eggs,
-      exploredTiles:    [...state.exploredTiles],
-      visitedNests:     [...state.visitedNests],
-      visitedPoI:       [...state.visitedPoI],
-      defeatedBosses:   [...state.defeatedBosses],
-      savedAt:          new Date().toLocaleString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const save = JSON.parse(raw);
-    if (!save || save.version !== 1) return false;
-
-    state.playerName        = save.playerName       || 'Trainer';
-    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
-    state.px                = save.px                || 64;
-    state.py                = save.py                || 64;
-    state.playerDir         = save.playerDir         || 'down';
-    state.coins             = save.coins             || 0;
-    state.time              = save.time              || 8;
-    state.weather           = save.weather           || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-    state.creatures         = save.creatures         || [];
-    state.eggs              = save.eggs              || [];
-    state.exploredTiles     = new Set(save.exploredTiles  || []);
-    state.visitedNests      = new Set(save.visitedNests   || []);
-    state.visitedPoI        = new Set(save.visitedPoI     || []);
-    state.defeatedBosses    = new Set(save.defeatedBosses || []);
-
-    // Rebuild map from saved seed + region
-    state.map  = generateMap(state.currentRegion, state.mapSeed);
-    state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
-    state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
-
-    document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
-    document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[state.currentRegion]?.name||'').toUpperCase()}`;
-    updateHUD();
-    return save.savedAt || true;
-  } catch(e) {
-    return false;
-  }
-}
-
-function hasSave() {
-  return !!localStorage.getItem(SAVE_KEY);
-}
-
-function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
-}
-
-function showSaveMenu() {
-  closeDialog();
-  const saved = hasSave();
-  const opts = [
-    { label: 'SAVE GAME', fn: () => {
-        const ok = saveGame();
-        closeDialog();
-        showDialog('GAME SAVED', ok ? 'Your progress has been saved!' : 'Save failed — storage may be full.', [{ label:'OK', fn:closeDialog }]);
-    }},
-  ];
-  if (saved) {
-    opts.push({ label: 'LOAD GAME', fn: () => {
-      closeDialog();
-      showDialog('LOAD GAME', 'Load your saved game? Current progress will be lost.', [
-        { label:'LOAD', fn:() => {
-          const savedAt = loadGame();
-          closeDialog();
-          if(savedAt) {
-            showDialog('LOADED', `Game loaded!\nSaved: ${savedAt}`, [{ label:'OK', fn:closeDialog }]);
-          } else {
-            showDialog('ERROR', 'Could not load save file.', [{ label:'OK', fn:closeDialog }]);
-          }
-        }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-    opts.push({ label: 'DELETE SAVE', fn: () => {
-      closeDialog();
-      showDialog('DELETE SAVE', 'Delete your saved game permanently?', [
-        { label:'DELETE', fn:() => { deleteSave(); closeDialog(); showDialog('DELETED','Save file deleted.',[{label:'OK',fn:closeDialog}]); }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-  }
-  opts.push({ label:'Cancel', fn:closeDialog });
-  const info = saved ? 'A save file exists.' : 'No save file found.';
-  showDialog('SAVE & LOAD', info, opts);
-}
-
 function showMainMenu() {
   const pc = state.creatures[state.activeCreatureIdx];
   showDialog(
@@ -2317,7 +2068,6 @@ function showMainMenu() {
       { label: 'Switch Region',   fn: showRegionMenu },
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
-      { label: 'Save / Load',     fn: showSaveMenu },
       { label: 'Close',           fn: closeDialog },
     ]
   );
@@ -2335,7 +2085,6 @@ function showRegionMenu() {
 }
 
 function switchRegion(regionId) {
-  saveGame(); // auto-save on region switch
   state.currentRegion = regionId;
   state.mapSeed       = Date.now() % 99991;
   state.map           = generateMap(regionId, state.mapSeed);
@@ -2550,17 +2299,6 @@ function render() {
     }
   }
 
-  // Tap indicator
-  if (state.tapTarget) {
-    const ttx = (state.tapTarget.x - state.camX) * TILE;
-    const tty = (state.tapTarget.y - state.camY) * TILE;
-    if (ttx >= 0 && tty >= 0 && ttx < VIEW_W*TILE && tty < VIEW_H*TILE) {
-      const pulse = Math.sin(animFrame * 0.2) * 0.3 + 0.7;
-      ctx.strokeStyle = `rgba(200,140,255,${pulse})`;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(ttx+2, tty+2, TILE-4, TILE-4);
-    }
-  }
   // Player
   drawPlayer(ctx);
 
@@ -3434,22 +3172,553 @@ function doRest(type) {
   updateHUD();
 }
 
-
 // ═══════════════════════════════════════════════════════════
+//  OPENING SCREEN SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+const OB_PANELS = [
+  { text: "In the world of WORLDHATCH, creatures of elemental power roam vast and mysterious realms. Ancient regions pulse with life — fire, ice, shadow and stone." },
+  { text: "For generations, Trainers have journeyed across the realms to hatch, battle and trade these wondrous beings. Now it is your time. The first egg awaits." },
+  null, // region select
+  null, // dice
+  null, // confirm — filled dynamically
+];
+
+let obCurrentPanel  = 0;
+let obSelectedRegion = null;
+let obStarterCreature = null;
+let obTypeTimer      = null;
+
+function obTypeText(elId, text, speed=38) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = '';
+  let i = 0;
+  clearInterval(obTypeTimer);
+  obTypeTimer = setInterval(() => {
+    el.innerHTML = text.substring(0,i) + '<span class="ob-cursor"></span>';
+    i++;
+    if (i > text.length) {
+      el.innerHTML = text;
+      clearInterval(obTypeTimer);
+    }
+  }, speed);
+}
+
+function drawOpeningArt(canvasId, panelIdx) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#060010'; c.fillRect(0,0,420,220);
+
+  if (panelIdx === 0) {
+    // Title panel — stylised world map silhouette
+    c.fillStyle = '#0e0020'; c.fillRect(0,0,420,220);
+    // Stars
+    for(let i=0;i<80;i++){
+      const x=Math.sin(i*127.1)*43758%420,y=Math.cos(i*311.7)*43758%220;
+      c.fillStyle=`rgba(255,255,255,${0.3+Math.random()*0.5})`;
+      c.fillRect(Math.abs(x),Math.abs(y),1+Math.floor(i%2),1+Math.floor(i%2));
+    }
+    // Globe silhouette
+    c.fillStyle='#1a0838';
+    c.beginPath(); c.arc(210,120,90,0,Math.PI*2); c.fill();
+    c.strokeStyle='#c8960c'; c.lineWidth=3;
+    c.beginPath(); c.arc(210,120,90,0,Math.PI*2); c.stroke();
+    // Latitude/longitude lines
+    c.strokeStyle='rgba(200,150,0,0.3)'; c.lineWidth=1;
+    for(let lat=-60;lat<=60;lat+=30){
+      const r=Math.cos(lat*Math.PI/180)*90;
+      const cy=120+Math.sin(lat*Math.PI/180)*90;
+      c.beginPath(); c.arc(210,120,r,0,Math.PI*2); c.stroke();
+    }
+    for(let lon=0;lon<360;lon+=45){
+      c.beginPath();
+      c.moveTo(210+Math.cos(lon*Math.PI/180)*90,120+Math.sin(lon*Math.PI/180)*90);
+      c.lineTo(210,120); c.stroke();
+    }
+    // Title text
+    c.fillStyle='#ffcc44';
+    c.font='bold 22px "Press Start 2P", monospace';
+    c.textAlign='center';
+    c.fillText('WORLDHATCH',210,40);
+    c.font='10px "Press Start 2P", monospace';
+    c.fillStyle='#8844aa';
+    c.fillText('HATCH · BATTLE · TRADE',210,58);
+  }
+
+  if (panelIdx === 1) {
+    // Lore panel — elder with fire/glow
+    c.fillStyle='#0a0420'; c.fillRect(0,0,420,220);
+    // Moon
+    c.fillStyle='#ddeeff';
+    c.beginPath(); c.arc(350,40,28,0,Math.PI*2); c.fill();
+    c.fillStyle='#b8ccee';
+    c.beginPath(); c.arc(360,36,18,0,Math.PI*2); c.fill();
+    // Ground
+    c.fillStyle='#0e0828'; c.fillRect(0,160,420,60);
+    c.fillStyle='#160e38'; c.fillRect(0,155,420,12);
+    // Ancient pillar
+    c.fillStyle='#1a0a30';
+    c.fillRect(60,80,30,80); c.fillRect(55,75,40,12);
+    c.fillRect(320,70,30,90); c.fillRect(315,65,40,12);
+    // Egg glow
+    const glow = 0.5 + 0.3*Math.sin(Date.now()*0.003);
+    c.fillStyle=`rgba(150,80,255,${glow})`;
+    c.beginPath(); c.arc(210,130,40,0,Math.PI*2); c.fill();
+    c.fillStyle='#e0c0ff';
+    c.beginPath(); c.ellipse(210,135,18,24,0,0,Math.PI*2); c.fill();
+    c.fillStyle='#ffffff';
+    c.beginPath(); c.ellipse(204,125,5,7,Math.PI/6,0,Math.PI*2); c.fill();
+  }
+
+  if (panelIdx === 4 && obStarterCreature) {
+    // Confirm panel — show chosen region atmosphere
+    const reg = REGIONS[obSelectedRegion];
+    const elemColors = {fire:'#3a1000',ice:'#001828',nature:'#081808',spirit:'#1a1400',dark:'#08020e',storm:'#080414',water:'#060e20',sand:'#201000',magma:'#1a0200',crystal:'#060e18'};
+    c.fillStyle = elemColors[reg?.element]||'#080010'; c.fillRect(0,0,420,220);
+    // Creature sprite centre stage
+    if (obStarterCreature) {
+      const sc = document.createElement('canvas');
+      sc.width=48; sc.height=48;
+      drawCreatureSprite(sc, obStarterCreature.element, false);
+      c.drawImage(sc, 420/2-80, 220/2-80, 160, 160);
+    }
+  }
+}
+
+function obShowPanel(idx) {
+  document.querySelectorAll('.ob-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  obCurrentPanel = idx;
+
+  if(idx===0){ drawOpeningArt('ob-title-canvas',0); obTypeText('ob-line-0', OB_PANELS[0].text); }
+  if(idx===1){ drawOpeningArt('ob-lore-canvas',1);  obTypeText('ob-line-1', OB_PANELS[1].text); }
+  if(idx===2){ obBuildRegionSelect(); }
+  if(idx===4 && obStarterCreature){
+    drawOpeningArt('ob-confirm-canvas',4);
+    const reg = REGIONS[obSelectedRegion];
+    obTypeText('ob-line-4', `${obStarterCreature.name} has chosen you. Together you will explore the ${reg?.name||'realms'}. Your journey begins now.`);
+  }
+}
+
+function obNext() { if(obCurrentPanel<4) obShowPanel(obCurrentPanel+1); }
+function obPrev() { if(obCurrentPanel>0) obShowPanel(obCurrentPanel-1); }
+
+function obWireButtons() {
+  // Wire all opening screen buttons safely after JS is loaded
+  const wire = (id, fn) => { const el=document.getElementById(id); if(el) el.onclick=fn; };
+  wire('ob-next-0', ()=>obNext());
+  wire('ob-prev-1', ()=>obPrev());
+  wire('ob-next-1', ()=>obNext());
+  wire('ob-prev-2', ()=>obPrev());
+  wire('ob-choose-btn', ()=>obChooseRegion());
+  wire('ob-roll-btn',   ()=>obRollDice());
+  wire('ob-prev-4',     ()=>obPrev());
+  wire('ob-begin-btn',  ()=>obStartGame());
+}
+
+function obBuildRegionSelect() {
+  const wrap = document.getElementById('region-select');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const ELEM_ICONS = {fire:'🔥',ice:'❄',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜',magma:'🌋',crystal:'💎'};
+  Object.entries(REGIONS).forEach(([id,reg])=>{
+    const btn = document.createElement('div');
+    btn.className = 'region-opt' + (obSelectedRegion===id?' selected':'');
+    btn.innerHTML = `<span>${reg.name}</span><span class="region-elem">${ELEM_ICONS[reg.element]||'?'} ${reg.element.toUpperCase()}</span>`;
+    btn.onclick = () => {
+      obSelectedRegion = id;
+      document.querySelectorAll('.region-opt').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('ob-choose-btn').disabled = false;
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function obChooseRegion() {
+  if(!obSelectedRegion) return;
+  obShowPanel(3); // go to dice
+}
+
+function obRollDice() {
+  if(!obSelectedRegion) return;
+  const btn = document.getElementById('ob-roll-btn');
+  btn.disabled = true;
+  const die = document.getElementById('ob-dice');
+  const numEl = document.getElementById('ob-roll-num');
+  const card  = document.getElementById('ob-result-card');
+  const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅','🎲'];
+
+  die.classList.add('dice-spinning');
+  card.style.display = 'none';
+  numEl.style.display = 'none';
+
+  let count = 0;
+  const spinInterval = setInterval(()=>{
+    die.textContent = FACES[count%FACES.length]; count++;
+  }, 80);
+
+  setTimeout(()=>{
+    clearInterval(spinInterval);
+    die.classList.remove('dice-spinning');
+
+    // Roll D20
+    const roll = Math.floor(Math.random()*20)+1;
+    die.textContent = '🎲';
+    numEl.textContent = `D20 — ${roll}`;
+    numEl.style.display = 'block';
+
+    // Map roll to creature by rarity weight
+    const region = REGIONS[obSelectedRegion];
+    const pool   = region.creatures;
+    // Build weighted pool: common=40 uncommon=20 rare=8 legendary=2
+    const weights = {common:40,uncommon:20,rare:8,legendary:2};
+    const weighted = [];
+    pool.forEach(c=>{ for(let i=0;i<(weights[c.rarity]||10);i++) weighted.push(c); });
+    // Use roll to index into weighted pool
+    const idx = Math.floor((roll/20)*weighted.length);
+    obStarterCreature = {...weighted[Math.min(idx,weighted.length-1)]};
+
+    // Show result
+    card.style.display = 'flex';
+    document.getElementById('ob-cname').textContent    = obStarterCreature.name.toUpperCase();
+    document.getElementById('ob-celem').textContent    = obStarterCreature.element.toUpperCase();
+    const rarEl = document.getElementById('ob-crarity');
+    rarEl.textContent = obStarterCreature.rarity.toUpperCase();
+    rarEl.className   = `dice-creature-rarity rarity-${obStarterCreature.rarity}`;
+
+    // Draw creature sprite on canvas
+    const sc = document.getElementById('ob-creature-canvas');
+    if(sc) drawCreatureSprite(sc, obStarterCreature.element, false);
+
+    // Enable continue after short delay
+    setTimeout(()=>{
+      btn.disabled = false;
+      btn.textContent = 'CONTINUE ▶';
+      btn.onclick = () => obShowPanel(4);  // safe — set programmatically after load
+    }, 600);
+  }, 1800);
+}
+
+function obStartGame() {
+  if(!obStarterCreature) return;
+
+  // Apply starter creature to game state
+  const starter = {
+    ...obStarterCreature,
+    hp:        obStarterCreature.hp,
+    currentHp: obStarterCreature.hp,
+    maxHp:     obStarterCreature.hp,
+    attack:    obStarterCreature.atk || obStarterCreature.attack,
+    defense:   obStarterCreature.def || obStarterCreature.defense,
+    speed:     obStarterCreature.spd || obStarterCreature.speed,
+    xp: 0, level:1, energy:0, status:null,
+    id: Date.now(),
+  };
+  initCreatureSkills(starter);
+  state.creatures  = [starter];
+  state.activeCreatureIdx = 0;
+  state.homeRegion = obSelectedRegion;
+  state.currentRegion = obSelectedRegion;
+
+  // Generate map for chosen region
+  state.mapSeed = Date.now() % 99991;
+  state.map     = generateMap(obSelectedRegion, state.mapSeed);
+  document.getElementById('top-region').textContent = REGIONS[obSelectedRegion]?.name || obSelectedRegion;
+  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[obSelectedRegion]?.name||obSelectedRegion).toUpperCase()}`;
+
+  // Seed initial fog
+  const INIT_R = 8;
+  for(let ey=-INIT_R;ey<=INIT_R;ey++)
+    for(let ex=-INIT_R;ex<=INIT_R;ex++)
+      if(ex*ex+ey*ey<=INIT_R*INIT_R)
+        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
+
+  document.getElementById('opening').classList.add('hidden');
+  document.getElementById('game-wrap').style.display = '';
+  updateHUD();
+}
+
 // ═══════════════════════════════════════════════════════════
 //  ATTACK CUTSCENE SYSTEM
 // ═══════════════════════════════════════════════════════════
 
+function playAttackCutscene(attacker, defender, moveName, elemColor, callback) {
+  const cs = document.getElementById('attack-cutscene');
+  cs.style.display = 'flex';
 
+  // Set backgrounds based on element
+  const ELEM_BG = {
+    fire:  ['#2a0800','#400c00'], ice:   ['#001828','#002040'],
+    nature:['#081808','#0c2008'], spirit:['#1a1000','#28180a'],
+    dark:  ['#06000e','#0e0018'], storm: ['#060414','#0e061c'],
+    water: ['#060e20','#0a1428'], sand:  ['#1e1000','#2e1800'],
+    magma: ['#1a0200','#2c0400'], crystal:['#060e18','#0a1424'],
+  };
+  const [bg1,bg2] = ELEM_BG[attacker.element||'dark']||['#0a0018','#140030'];
+  document.getElementById('cut-bg-left').style.background  = `linear-gradient(135deg,${bg1},${bg2})`;
+  document.getElementById('cut-bg-right').style.background = `linear-gradient(225deg,#200008,#340010)`;
+
+  // Load attacker sprite/art
+  function loadCutSprite(side, creature) {
+    const canv = document.getElementById(`cut-sprite-${side}`);
+    const img  = document.getElementById(`cut-img-${side}`);
+    const art  = getArt(creature.id);
+    if (art && img) {
+      img.src = art;
+      img.style.display = 'block';
+      canv.style.display = 'none';
+      img.onerror = () => { img.style.display='none'; canv.style.display='block'; drawCreatureSprite(canv,creature.element,side==='right'); };
+    } else {
+      if(img) img.style.display='none';
+      if(canv){ canv.style.display='block'; drawCreatureSprite(canv,creature.element,side==='right'); }
+    }
+  }
+  loadCutSprite('left',  attacker);
+  loadCutSprite('right', defender);
+
+  // Speed lines
+  const linesEl = document.getElementById('cut-lines');
+  linesEl.innerHTML = '';
+  for(let i=0;i<16;i++){
+    const ln = document.createElement('div');
+    ln.className='cut-line';
+    const angle = -15 + Math.random()*30;
+    const len   = 80 + Math.random()*160;
+    const top   = Math.random()*100;
+    const left  = 20 + Math.random()*60;
+    ln.style.cssText=`width:${len}px;top:${top}%;left:${left}%;transform:rotate(${angle}deg);opacity:${0.3+Math.random()*0.5};`;
+    linesEl.appendChild(ln);
+  }
+
+  // Move name
+  const moveEl = document.getElementById('cut-move-name');
+  moveEl.textContent   = moveName.toUpperCase();
+  moveEl.style.color   = elemColor || '#ffcc44';
+  moveEl.className     = 'cut-move-name';
+
+  // Sequence
+  setTimeout(()=>{ linesEl.classList.add('show'); }, 50);
+  setTimeout(()=>{ document.getElementById('cut-sprite-left').classList.add('charge');
+                    document.getElementById('cut-img-left').classList.add('charge'); }, 150);
+  setTimeout(()=>{ document.getElementById('cut-impact').classList.add('flash');
+                    moveEl.classList.add('show'); }, 420);
+  setTimeout(()=>{ document.getElementById('cut-sprite-right').classList.add('recoil');
+                    document.getElementById('cut-img-right').classList.add('recoil'); }, 450);
+
+  setTimeout(()=>{
+    // Reset
+    cs.style.display = 'none';
+    linesEl.classList.remove('show');
+    linesEl.innerHTML = '';
+    document.getElementById('cut-impact').className='cut-impact';
+    document.getElementById('cut-sprite-left').className='cut-sprite cut-sprite-left';
+    document.getElementById('cut-sprite-right').className='cut-sprite cut-sprite-right';
+    document.getElementById('cut-img-left').className='cut-sprite cut-sprite-left';
+    document.getElementById('cut-img-right').className='cut-sprite cut-sprite-right';
+    moveEl.className='cut-move-name';
+    if(callback) callback();
+  }, 850);
+}
 
 // ═══════════════════════════════════════════════════════════
+//  CAVE INTERIOR SYSTEM
+// ═══════════════════════════════════════════════════════════
 
+const CAVE_W = 40, CAVE_H = 30;
+let caveState = null;
 
+function enterCave(entranceTile) {
+  showDialog(
+    'CAVE ENTRANCE',
+    'Enter the cave?
 
+WARNING: The cave map is randomly generated.
+If you leave and return, the layout will change.
 
+Creatures inside are stronger than outside.',
+    [
+      { label: 'ENTER', fn: () => { closeDialog(); startCave(); }},
+      { label: 'Stay outside', fn: closeDialog },
+    ]
+  );
+}
 
+function startCave() {
+  const seed = Date.now() % 99991;
+  const region = REGIONS[state.currentRegion];
+  const lvlBonus = Math.max(0, state.creatures.reduce((m,c)=>Math.max(m,c.level||1),0) - 1);
 
+  // Generate cave map
+  const cmap = Array.from({length:CAVE_H},()=>new Array(CAVE_W).fill(T.WALL));
+  // Drunk walk carve
+  let cx=CAVE_W/2|0, cy=CAVE_H/2|0;
+  cmap[cy][cx] = T.CAVE_FLOOR;
+  const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+  for(let step=0;step<400;step++){
+    const [dx,dy] = dirs[Math.floor(Math.random()*4)];
+    cx = Math.max(1,Math.min(CAVE_W-2,cx+dx));
+    cy = Math.max(1,Math.min(CAVE_H-2,cy+dy));
+    cmap[cy][cx] = T.CAVE_FLOOR;
+    if(Math.random()<0.3){ cmap[cy][cx+1<CAVE_W-1?cx+1:cx] = T.CAVE_FLOOR; }
+    if(Math.random()<0.3){ cmap[cy+1<CAVE_H-1?cy+1:cy][cx] = T.CAVE_FLOOR; }
+  }
+  // Place features
+  let placed=0;
+  for(let y=1;y<CAVE_H-1&&placed<2;y++)
+    for(let x=1;x<CAVE_W-1&&placed<2;x++)
+      if(cmap[y][x]===T.CAVE_FLOOR&&Math.random()<0.01){ cmap[y][x]=T.NEST; placed++; }
+  placed=0;
+  for(let y=1;y<CAVE_H-1&&placed<3;y++)
+    for(let x=1;x<CAVE_W-1&&placed<3;x++)
+      if(cmap[y][x]===T.CAVE_FLOOR&&Math.random()<0.02){ cmap[y][x]=T.CHEST; placed++; }
 
+  caveState = {
+    map: cmap, px: CAVE_W/2|0, py: CAVE_H/2|0,
+    camX:0, camY:0, seed,
+    lvlBonus,
+    region: state.currentRegion,
+  };
+
+  document.getElementById('cave-overlay').classList.add('show');
+  document.getElementById('cave-hud-text').textContent =
+    `${region.name} CAVE — Creatures Lv${1+lvlBonus}-${4+lvlBonus}`;
+
+  state.inDialog = true; // block world movement
+  requestAnimationFrame(caveDraw);
+}
+
+let caveKeys = {};
+document.addEventListener('keydown', e=>{ if(caveState) caveKeys[e.key.toLowerCase()]=true; });
+document.addEventListener('keyup',   e=>{ if(caveState) caveKeys[e.key.toLowerCase()]=false; });
+
+let caveMoveTimer=0;
+function caveDraw(ts) {
+  if(!caveState||!document.getElementById('cave-overlay').classList.contains('show')) return;
+
+  // Cave movement
+  caveMoveTimer += 16;
+  if(caveMoveTimer >= 160) {
+    caveMoveTimer = 0;
+    let dx=0,dy=0;
+    if(caveKeys['arrowleft']||caveKeys['a'])  dx=-1;
+    if(caveKeys['arrowright']||caveKeys['d']) dx=1;
+    if(caveKeys['arrowup']||caveKeys['w'])    dy=-1;
+    if(caveKeys['arrowdown']||caveKeys['s'])  dy=1;
+    if(dx||dy){
+      const nx=caveState.px+dx, ny=caveState.py+dy;
+      if(nx>0&&nx<CAVE_W-1&&ny>0&&ny<CAVE_H-1&&caveState.map[ny][nx]!==T.WALL){
+        caveState.px=nx; caveState.py=ny;
+        // Random encounter in cave (rarer)
+        if(Math.random()<0.08&&(caveState.map[ny][nx]===T.CAVE_FLOOR)&&state.activeCreatureIdx>=0) {
+          triggerCaveEncounter();
+          return;
+        }
+        // Chest
+        if(caveState.map[ny][nx]===T.CHEST){
+          caveState.map[ny][nx]=T.CAVE_FLOOR;
+          const reward=20+Math.floor(Math.random()*40);
+          state.coins+=reward;
+          showDialog('TREASURE!',`Found ${reward} coins in the cave!`,[{label:'Take it!',fn:()=>{closeDialog();requestAnimationFrame(caveDraw);}}]);
+          return;
+        }
+        // Nest
+        if(caveState.map[ny][nx]===T.NEST){
+          caveState.map[ny][nx]=T.CAVE_FLOOR;
+          triggerEggFind(); return;
+        }
+      }
+    }
+    // Camera
+    caveState.camX=Math.max(0,Math.min(CAVE_W-VIEW_W,caveState.px-Math.floor(VIEW_W/2)));
+    caveState.camY=Math.max(0,Math.min(CAVE_H-VIEW_H,caveState.py-Math.floor(VIEW_H/2)));
+  }
+
+  // Draw cave
+  const cv = document.getElementById('cave-canvas');
+  const w  = cv.clientWidth||312; const h=cv.clientHeight||240;
+  cv.width=VIEW_W*TILE; cv.height=VIEW_H*TILE;
+  const cc = cv.getContext('2d');
+  cc.imageSmoothingEnabled=false;
+
+  for(let ty=0;ty<VIEW_H;ty++){
+    for(let tx=0;tx<VIEW_W;tx++){
+      const mx=caveState.camX+tx, my=caveState.camY+ty;
+      const tile=caveState.map[my]?.[mx];
+      if(tile===undefined){cc.fillStyle='#000';cc.fillRect(tx*TILE,ty*TILE,TILE,TILE);continue;}
+      // Cave floor
+      const af2=Math.floor(Date.now()/100);
+      if(tile===T.WALL){cc.fillStyle='#080010';cc.fillRect(tx*TILE,ty*TILE,TILE,TILE);}
+      else if(tile===T.CAVE_FLOOR){
+        cc.fillStyle=(mx+my)%2?'#100820':'#0c0618';
+        cc.fillRect(tx*TILE,ty*TILE,TILE,TILE);
+        // Subtle crystal glint
+        if((mx*7+my*11+af2)%40<2){cc.fillStyle='rgba(150,80,255,0.4)';cc.fillRect(tx*TILE+8,ty*TILE+8,4,4);}
+      }
+      else if(tile===T.NEST){
+        cc.fillStyle='#0c0618';cc.fillRect(tx*TILE,ty*TILE,TILE,TILE);
+        const gp=0.5+0.3*Math.sin(Date.now()*0.005);
+        cc.fillStyle=`rgba(255,200,0,${gp})`;cc.fillRect(tx*TILE+6,ty*TILE+4,12,16);
+      }
+      else if(tile===T.CHEST){
+        cc.fillStyle='#0c0618';cc.fillRect(tx*TILE,ty*TILE,TILE,TILE);
+        cc.fillStyle='#aa8800';cc.fillRect(tx*TILE+4,ty*TILE+8,16,12);
+        cc.fillStyle='#ffcc00';cc.fillRect(tx*TILE+6,ty*TILE+10,12,4);
+      }
+    }
+  }
+
+  // Player dot in cave
+  const psx=(caveState.px-caveState.camX)*TILE;
+  const psy=(caveState.py-caveState.camY)*TILE;
+  cc.fillStyle='rgba(0,0,0,0.3)';
+  cc.beginPath();cc.ellipse(psx+12,psy+22,7,3,0,0,Math.PI*2);cc.fill();
+  p(cc,psx+6,psy+8+0,12,9,'#1a66cc');
+  p(cc,psx+5,psy+1+0,12,8,'#ffddbb');
+  p(cc,psx+6,psy+1+0,12,3,'#4a2800');
+
+  requestAnimationFrame(caveDraw);
+}
+
+function triggerCaveEncounter() {
+  const region = REGIONS[caveState.region];
+  const pool   = region.creatures;
+  const weights= pool.map(c=>c.rarity==='common'?40:c.rarity==='uncommon'?20:c.rarity==='rare'?6:1);
+  const total  = weights.reduce((a,b)=>a+b,0);
+  let r        = Math.random()*total;
+  let template = pool[0];
+  for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0){template=pool[i];break;}}
+
+  const lvl  = 1 + caveState.lvlBonus + Math.floor(Math.random()*3);
+  const mult = 1+(lvl-1)*0.1;
+  const wild = {...template,level:lvl,
+    currentHp:Math.round(template.hp*mult*1.2),maxHp:Math.round(template.hp*mult*1.2),
+    attack:Math.round(template.atk*mult*1.1),defense:Math.round(template.def*mult),
+    speed:template.spd,energy:0,status:null};
+
+  if(state.activeCreatureIdx>=0&&state.creatures[state.activeCreatureIdx]){
+    document.getElementById('cave-overlay').classList.remove('show');
+    startBattle(state.creatures[state.activeCreatureIdx], wild, false);
+    const origEnd = endBattle;
+    // resume cave after battle
+    const checkResume = setInterval(()=>{
+      if(!state.inBattle&&!battleData){
+        clearInterval(checkResume);
+        if(state.creatures.some(c=>c.currentHp>0)){
+          document.getElementById('cave-overlay').classList.add('show');
+          requestAnimationFrame(caveDraw);
+        }
+      }
+    },500);
+  }
+}
+
+function exitCave() {
+  document.getElementById('cave-overlay').classList.remove('show');
+  caveState = null;
+  state.inDialog = false;
+}
 
 // ═══════════════════════════════════════════════════════════
 // ── MAIN LOOP ─────────────────────────────────────────────
@@ -3467,292 +3736,6 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 
-
-// ══════════════════════════════════════════════════════════
-//  OPENING MENU SYSTEM
-//  All buttons wired here — no inline onclick attributes
-// ══════════════════════════════════════════════════════════
-
-const MENU_REGIONS = {
-  suncrest_expanse:   { name:'Suncrest Expanse',   elem:'fire',    icon:'🔥', tag:'FIRE · WEST COAST',    color:'#ff6600' },
-  sakurami_highlands: { name:'Sakurami Highlands',  elem:'spirit',  icon:'✨', tag:'SPIRIT · JAPAN',       color:'#ffcc44' },
-  frostspire_reach:   { name:'Frostspire Reach',    elem:'ice',     icon:'❄️', tag:'ICE · SCANDINAVIA',    color:'#88ddff' },
-  shadowmere_hollows: { name:'Shadowmere Hollows',  elem:'dark',    icon:'🌑', tag:'DARK · CARPATHIANS',   color:'#aa44ff' },
-};
-
-// Egg colors by rarity
-const EGG_COLORS = {
-  common:    { hi:'#d0c8c0', mid:'#888078', sh:'#443c38', glow:'rgba(200,190,180,0.4)',  spk:'rgba(0,0,0,0.18)' },
-  uncommon:  { hi:'#90c8ff', mid:'#3870cc', sh:'#0a2060', glow:'rgba(80,140,255,0.5)',   spk:'rgba(0,20,80,0.2)' },
-  rare:      { hi:'#e090ff', mid:'#9030cc', sh:'#380060', glow:'rgba(160,60,255,0.55)',  spk:'rgba(40,0,80,0.2)' },
-  legendary: { hi:'#ffe060', mid:'#cc8800', sh:'#502800', glow:'rgba(255,200,0,0.7)',    spk:'rgba(80,40,0,0.2)' },
-};
-
-let menuSelectedRegion = null;
-let menuRolledCreature  = null;
-
-function menuScreen(show) {
-  document.getElementById('menu-title').style.display   = show==='title'   ? 'flex' : 'none';
-  document.getElementById('menu-regions').style.display = show==='regions' ? 'flex' : 'none';
-  document.getElementById('menu-dice').style.display    = show==='dice'    ? 'flex' : 'none';
-}
-
-// ── Stars background ──────────────────────────────────────
-function menuDrawStars() {
-  const cv = document.getElementById('menu-stars');
-  if(!cv) return;
-  cv.width  = window.innerWidth;
-  cv.height = window.innerHeight;
-  const c   = cv.getContext('2d');
-  c.fillStyle = '#080010';
-  c.fillRect(0,0,cv.width,cv.height);
-  for(let i=0;i<120;i++){
-    const x = Math.abs(Math.sin(i*127.1)*cv.width*10)  % cv.width;
-    const y = Math.abs(Math.cos(i*311.7)*cv.height*10) % cv.height;
-    const r = i%7===0 ? 2 : 1;
-    const a = 0.2 + (i%4)*0.18;
-    c.fillStyle = `rgba(255,255,220,${a})`;
-    c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
-  }
-}
-
-// ── Globe animation on title ──────────────────────────────
-let globeFrame = 0;
-function menuDrawGlobe() {
-  const cv = document.getElementById('menu-globe');
-  if(!cv||document.getElementById('menu-title').style.display==='none') return;
-  const c = cv.getContext('2d');
-  const W=200, H=200, cx=100, cy=100, r=70;
-  c.fillStyle='#080010'; c.fillRect(0,0,W,H);
-  // glow
-  const grd = c.createRadialGradient(cx,cy,20,cx,cy,r);
-  grd.addColorStop(0,'#2a0660'); grd.addColorStop(1,'#080010');
-  c.fillStyle=grd; c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.fill();
-  // grid lines
-  c.strokeStyle='rgba(200,150,0,0.25)'; c.lineWidth=1;
-  const off = (globeFrame*0.3)%40;
-  for(let lat=0;lat<=180;lat+=30){
-    const ry=Math.sin(lat*Math.PI/180)*r;
-    const rx=Math.cos(lat*Math.PI/180)*r;
-    c.beginPath(); c.ellipse(cx,cy,rx,Math.abs(ry*0.3),0,0,Math.PI*2); c.stroke();
-  }
-  for(let lon=0;lon<360;lon+=30){
-    const a=(lon+off)*Math.PI/180;
-    const perspective=Math.cos(a);
-    if(perspective<0) continue;
-    c.globalAlpha=perspective*0.5;
-    c.beginPath(); c.ellipse(cx,cy,r*perspective,r,0,0,Math.PI*2); c.stroke();
-    c.globalAlpha=1;
-  }
-  // border
-  c.strokeStyle='#c8960c'; c.lineWidth=2;
-  c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
-  globeFrame++;
-  if(document.getElementById('menu-overlay').style.display!=='none')
-    requestAnimationFrame(menuDrawGlobe);
-}
-
-// ── Build region grid ─────────────────────────────────────
-function menuBuildRegions() {
-  const grid = document.getElementById('menu-regions-grid');
-  grid.innerHTML='';
-  Object.entries(MENU_REGIONS).forEach(([id, r])=>{
-    const card = document.createElement('div');
-    card.className='region-card';
-    card.innerHTML=`<div class="rc-elem">${r.icon}</div><div class="rc-name">${r.name}</div><div class="rc-tag">${r.tag}</div>`;
-    card.onclick = ()=>{
-      menuSelectedRegion = id;
-      document.querySelectorAll('.region-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-      const btn = document.getElementById('menu-choose-btn');
-      btn.classList.add('ready');
-    };
-    grid.appendChild(card);
-  });
-}
-
-// ── Egg coloring ──────────────────────────────────────────
-function menuColorEgg(rarity) {
-  const col = EGG_COLORS[rarity] || EGG_COLORS.common;
-  const hi  = document.getElementById('egg-hi');
-  const mid = document.getElementById('egg-mid');
-  const sh  = document.getElementById('egg-sh');
-  const glow= document.getElementById('egg-glow');
-  const spks= ['spk1','spk2','spk3','spk4','spk5'];
-  if(hi)  hi.setAttribute('stop-color',  col.hi);
-  if(mid) mid.setAttribute('stop-color', col.mid);
-  if(sh)  sh.setAttribute('stop-color',  col.sh);
-  if(glow){ glow.style.background=`radial-gradient(ellipse,${col.glow} 0%,transparent 70%)`; }
-  spks.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.setAttribute('fill', col.spk);
-  });
-}
-
-// ── Dice roll ─────────────────────────────────────────────
-function menuRollDice() {
-  const stage   = document.getElementById('egg-stage');
-  const rollEl  = document.getElementById('dice-roll-display');
-  const revealEl= document.getElementById('creature-reveal');
-  const beginBtn= document.getElementById('dice-begin-btn');
-  const rerollBtn=document.getElementById('dice-reroll-btn');
-  const rollBtn = document.getElementById('menu-roll-trigger');
-
-  // Reset
-  stage.classList.remove('spinning','revealed');
-  revealEl.style.display='none';
-  beginBtn.style.display='none';
-  rerollBtn.style.display='none';
-  rollEl.textContent='';
-  menuColorEgg('common');
-  if(rollBtn) rollBtn.style.display='none';
-
-  // Get region creatures
-  const region   = REGIONS[menuSelectedRegion];
-  if(!region) return;
-  const pool     = region.creatures;
-  const WEIGHTS  = {common:40,uncommon:20,rare:8,legendary:2};
-
-  // Spin egg
-  stage.classList.add('spinning');
-
-  // Cycle egg colors while spinning
-  const rarities = ['common','uncommon','rare','legendary'];
-  let colorIdx=0;
-  const colorSpin = setInterval(()=>{
-    menuColorEgg(rarities[colorIdx++ % rarities.length]);
-  }, 120);
-
-  // Count down display
-  let countdown=20;
-  const countInterval=setInterval(()=>{
-    rollEl.textContent=`D20 — ${countdown--}`;
-    if(countdown<0) clearInterval(countInterval);
-  }, 80);
-
-  setTimeout(()=>{
-    clearInterval(colorSpin);
-    clearInterval(countInterval);
-    stage.classList.remove('spinning');
-
-    // Actual D20 roll
-    const roll = Math.floor(Math.random()*20)+1;
-    rollEl.textContent=`D20 — ${roll}`;
-
-    // Map roll → creature by rarity weight
-    const bucket=[];
-    pool.forEach(c=>{ for(let i=0;i<(WEIGHTS[c.rarity]||10);i++) bucket.push(c); });
-    const idx=Math.min(Math.floor((roll/20)*bucket.length), bucket.length-1);
-    menuRolledCreature={...bucket[idx]};
-
-    // Color egg by rarity
-    menuColorEgg(menuRolledCreature.rarity);
-    stage.classList.add('revealed');
-
-    // Show result
-    const ICONS={fire:'🔥',ice:'❄️',nature:'🌿',spirit:'✨',dark:'🌑',storm:'⚡',water:'💧',sand:'🏜️',magma:'🌋',crystal:'💎'};
-    const RARITY_EGGS={common:'🥚',uncommon:'🔵',rare:'🟣',legendary:'🌟'};
-    document.getElementById('cr-egg-icon').textContent = RARITY_EGGS[menuRolledCreature.rarity]||'🥚';
-    document.getElementById('cr-name').textContent     = menuRolledCreature.name.toUpperCase();
-    document.getElementById('cr-elem').textContent     = `${ICONS[menuRolledCreature.element]||''} ${menuRolledCreature.element.toUpperCase()}`;
-    const rarEl = document.getElementById('cr-rarity');
-    rarEl.textContent  = menuRolledCreature.rarity.toUpperCase();
-    rarEl.className    = `cr-rarity ${menuRolledCreature.rarity}`;
-    document.getElementById('cr-desc').textContent =
-      `HP:${menuRolledCreature.hp}  ATK:${menuRolledCreature.atk||menuRolledCreature.attack||'?'}  SPD:${menuRolledCreature.spd||menuRolledCreature.speed||'?'}`;
-
-    revealEl.style.display='flex';
-    beginBtn.style.display='block';
-    rerollBtn.style.display='block';
-  }, 1800);
-}
-
-// ── Begin game ────────────────────────────────────────────
-function menuBeginGame() {
-  if(!menuRolledCreature||!menuSelectedRegion) return;
-  const c0 = menuRolledCreature;
-  const starter={
-    ...c0,
-    hp:      c0.hp,
-    currentHp:c0.hp,
-    maxHp:   c0.hp,
-    attack:  c0.atk||c0.attack||15,
-    defense: c0.def||c0.defense||10,
-    speed:   c0.spd||c0.speed||12,
-    xp:0, level:1, energy:0, status:null, id:Date.now()
-  };
-  initCreatureSkills(starter);
-  state.creatures         = [starter];
-  state.activeCreatureIdx = 0;
-  state.currentRegion     = menuSelectedRegion;
-  state.homeRegion        = menuSelectedRegion;
-  state.mapSeed           = Date.now() % 99991;
-  state.map               = generateMap(menuSelectedRegion, state.mapSeed);
-
-  const INIT_R=8;
-  for(let ey=-INIT_R;ey<=INIT_R;ey++)
-    for(let ex=-INIT_R;ex<=INIT_R;ex++)
-      if(ex*ex+ey*ey<=INIT_R*INIT_R)
-        state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
-
-  document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
-  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
-
-  document.getElementById('menu-overlay').style.display='none';
-  document.getElementById('world').style.pointerEvents='all';
-  updateHUD();
-}
-
-// ── Wire everything — called at bottom of init() ──────────
-function menuInit() {
-  menuDrawStars();
-  menuBuildRegions();
-  menuScreen('title');
-  requestAnimationFrame(menuDrawGlobe);
-
-  // Title → Region select
-  document.getElementById('menu-start-btn').onclick = ()=>{
-    menuScreen('regions');
-  };
-
-  // Region confirmed → Dice
-  document.getElementById('menu-choose-btn').onclick = ()=>{
-    if(!menuSelectedRegion) return;
-    const rn = MENU_REGIONS[menuSelectedRegion]?.name || menuSelectedRegion;
-    document.getElementById('dice-region-label').textContent = rn.toUpperCase();
-
-    // Add roll button dynamically once
-    const diceDiv = document.getElementById('menu-dice');
-    let rb = document.getElementById('menu-roll-trigger');
-    if(!rb){
-      rb = document.createElement('button');
-      rb.id='menu-roll-trigger';
-      rb.textContent='ROLL DICE 🎲';
-      rb.style.cssText="font-family:'Press Start 2P',monospace;font-size:9px;background:#0a0018;color:#ffcc44;border:2px solid #cc8800;padding:11px 22px;cursor:pointer;border-radius:3px;box-shadow:0 0 12px rgba(255,200,0,0.3);";
-      rb.onclick=menuRollDice;
-      diceDiv.insertBefore(rb, diceDiv.lastElementChild);
-    } else {
-      rb.style.display='block';
-    }
-    menuScreen('dice');
-  };
-
-  // Reroll
-  document.getElementById('dice-reroll-btn').onclick = menuRollDice;
-
-  // Begin
-  document.getElementById('dice-begin-btn').onclick = menuBeginGame;
-
-  // Back button on regions (ESC)
-  window.addEventListener('keydown', e=>{
-    if(e.key==='Escape'&&document.getElementById('menu-overlay').style.display!=='none'){
-      if(document.getElementById('menu-regions').style.display!=='none') menuScreen('title');
-      else if(document.getElementById('menu-dice').style.display!=='none')  menuScreen('regions');
-      e.preventDefault();
-    }
-  },{capture:true});
-}
-
 // ── INIT ──────────────────────────────────────────────────
 function init() {
   resizeCanvas();
@@ -3767,24 +3750,32 @@ function init() {
   document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
   document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
 
-  // Starter creature given by opening menu (menuBeginGame)
+  // Starter creature is given by the opening screen (obStartGame)
+  // No starter here — opening handles it
 
-  // Show opening menu (wires all buttons, then waits for player)
-  menuInit();
+  // Wire opening screen buttons (must happen after JS fully loaded)
+  obWireButtons();
+  // Show opening screen first
+  obShowPanel(0);
   updateHUD();
   requestAnimationFrame(gameLoop);
-// Wire mobile buttons
-  const mobMenu = document.getElementById('mob-menu');
-  const mobAction = document.getElementById('mob-action');
-  if(mobMenu){ mobMenu.onclick = handleEsc; mobMenu.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false}); }
-  if(mobAction){ mobAction.onclick = handleInteract; mobAction.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false}); }
+
+  // Welcome
+  setTimeout(() => {
+    showDialog(
+      'WELCOME TO WORLDHATCH',
+      'You start in the Suncrest Expanse.\n\n' +
+      'WASD or Arrow keys to move.\n' +
+      'Walk in tall grass for battles.\n' +
+      'Golden tiles are egg nests!\n' +
+      'Press ESC for the menu.\n' +
+      'Press E to interact.',
+      [{ label: 'START!', fn: closeDialog }]
+    );
+  }, 500);
 }
 
 init();
 </script>
-
-<!-- ══════════════════════════════════════════════
-     OPENING MENU — wired entirely in JS after load
-══════════════════════════════════════════════ -->
 </body>
 </html>
