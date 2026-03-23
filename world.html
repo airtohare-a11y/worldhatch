@@ -3714,7 +3714,7 @@ function menuInit() {
 
   // Title → Region select
   if(hasSave())document.getElementById('menu-load-btn').style.display='';
-  document.getElementById('menu-load-btn').onclick=()=>{if(loadGame()){document.getElementById('menu-overlay').style.display='none';}};
+  document.getElementById('menu-load-btn').onclick=()=>{if(loadGame()){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';}};
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
   };
