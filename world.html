@@ -311,6 +311,7 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;w
 }
 @keyframes startBlink{50%{opacity:0.4;}}
 .menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
+.menu-load-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:#0a1a00;color:#44ff88;border:2px solid #228844;padding:14px 28px;cursor:pointer;border-radius:4px;margin-top:4px;display:block;touch-action:manipulation;}
 
 /* region select */
 #menu-regions{
@@ -3242,14 +3243,16 @@ function menuDrawGlobe() {
   for(let lat=0;lat<=180;lat+=30){
     const ry=Math.sin(lat*Math.PI/180)*r;
     const rx=Math.cos(lat*Math.PI/180)*r;
-    c.beginPath(); c.ellipse(cx,cy,rx,Math.abs(ry*0.3),0,0,Math.PI*2); c.stroke();
+    if(Math.abs(rx)<0.5) continue;
+    c.beginPath(); c.ellipse(cx,cy,Math.abs(rx),Math.max(0.5,Math.abs(ry*0.3)),0,0,Math.PI*2); c.stroke();
   }
   for(let lon=0;lon<360;lon+=30){
     const a=(lon+off)*Math.PI/180;
     const perspective=Math.cos(a);
     if(perspective<0) continue;
     c.globalAlpha=perspective*0.5;
-    c.beginPath(); c.ellipse(cx,cy,r*perspective,r,0,0,Math.PI*2); c.stroke();
+    const rp=r*perspective; if(rp<0.5) continue;
+    c.beginPath(); c.ellipse(cx,cy,rp,r,0,0,Math.PI*2); c.stroke();
     c.globalAlpha=1;
   }
   // border
@@ -3426,6 +3429,42 @@ function menuInit() {
     menuScreen('regions');
   };
 
+  // CONTINUE GAME button
+  document.getElementById('menu-load-btn').onclick = () => {
+    const raw = localStorage.getItem('worldhatch_save');
+    if (!raw) { alert('No saved game found!'); return; }
+    try {
+      const save = JSON.parse(raw);
+      state.playerName        = save.playerName || 'Trainer';
+      state.currentRegion     = save.currentRegion || 'suncrest_expanse';
+      state.mapSeed           = save.mapSeed || (Date.now()%99991);
+      state.px                = save.px || 64;
+      state.py                = save.py || 64;
+      state.coins             = save.coins || 0;
+      state.time              = save.time || 8;
+      state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
+      state.creatures         = save.creatures || [];
+      state.eggs              = save.eggs || [];
+      state.exploredTiles     = new Set(save.exploredTiles || []);
+      state.visitedNests      = new Set(save.visitedNests || []);
+      state.visitedPoI        = new Set(save.visitedPoI || []);
+      state.defeatedBosses    = new Set(save.defeatedBosses || []);
+      state.unlockedLevels    = save.unlockedLevels || {};
+      state.currentLevel      = save.currentLevel || 1;
+      state.map = generateMap(state.currentRegion, state.mapSeed);
+      state.camX = Math.max(0,Math.min(MAP_W-VIEW_W_CUR,state.px-Math.floor(VIEW_W_CUR/2)));
+      state.camY = Math.max(0,Math.min(MAP_H-VIEW_H_CUR,state.py-Math.floor(VIEW_H_CUR/2)));
+      document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
+      document.getElementById('top-player').textContent = state.playerName;
+      document.getElementById('menu-overlay').style.display = 'none';
+      document.getElementById('world').style.pointerEvents = 'all';
+      document.getElementById('top-bar').style.display = 'flex';
+      document.getElementById('hud').style.display = 'flex';
+      document.getElementById('mob-btns').style.display = 'flex';
+      updateHUD();
+    } catch(e) { alert('Save file corrupted!'); }
+  };
+
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
     if(!menuSelectedRegion) return;
@@ -3501,6 +3540,7 @@ init();
     <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
     <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
     <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+    <button class="menu-load-btn" id="menu-load-btn">CONTINUE GAME</button>
   </div>
 
   <!-- SCREEN 1: REGION SELECT -->
