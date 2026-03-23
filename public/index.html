@@ -3711,7 +3711,7 @@ function menuBeginGame() {
         state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
   document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
-  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
+  document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
 
   document.getElementById('menu-overlay').style.display='none';
   document.getElementById('world').style.pointerEvents='all';
