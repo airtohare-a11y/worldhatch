@@ -13,7 +13,7 @@ body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;w
 
 /* ── LAYOUT ── */
 #game-wrap{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden;}
-#top-bar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(8,0,20,0.82);border-bottom:1px solid #440088;}
+#top-bar{position:absolute;top:0;left:0;right:0;z-index:20;display:none;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(8,0,20,0.82);border-bottom:1px solid #440088;}
 #top-bar .player-info{font-size:6px;color:#cc88ff;}
 #top-bar .region-name{font-size:7px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:6px;color:#8855aa;text-align:right;}
@@ -21,7 +21,7 @@ body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;w
 canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;left:0;width:100%;height:100%;cursor:crosshair;pointer-events:none;}
 
 /* ── HUD ── */
-#hud{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;gap:6px;padding:5px 8px;background:rgba(8,0,20,0.82);border-top:1px solid #440088;flex-wrap:wrap;}
+#hud{position:absolute;bottom:0;left:0;right:0;z-index:20;display:none;gap:6px;padding:5px 8px;background:rgba(8,0,20,0.82);border-top:1px solid #440088;flex-wrap:wrap;}
 .hud-box{background:#12002a;border:1px solid #330055;border-radius:3px;padding:5px 8px;font-size:6px;}
 .hud-label{color:#664488;margin-bottom:3px;}
 .hud-val{color:#cc88ff;}
@@ -512,20 +512,56 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
   </div>
 </div>
 
-<div id="mob-btns">
-  <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION ▶</button>
-</div>
 
-
-  <div id="top-bar">
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
+    <div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
     <div class="region-name" id="top-region">Suncrest Expanse</div>
     <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
   </div>
-
-  <div id="game-canvas-wrap">
-    <canvas id="world"></canvas>
+    <div id="hud">
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
+    </div>
+  </div>
+    <div id="mob-btns">
+  <button class="mob-btn" id="mob-menu">MENU</button>
+  <button class="mob-btn" id="mob-action">ACTION ▶</button>
+</div>
     <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
     <div id="encounter-flash"></div>
 
@@ -617,45 +653,6 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
       <div class="dice-display" id="dice-display"></div>
       <div class="battle-log" id="battle-log"></div>
       <div class="battle-moves" id="battle-moves"></div>
-    </div>
-  </div>
-
-  <div id="hud">
-    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
-      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
-        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
-        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div class="hud-label">ACTIVE CREATURE</div>
-        <div class="hud-val" id="hud-creature">— none —</div>
-        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
-      </div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">ENERGY</div>
-      <div class="hud-val" id="hud-energy">0/100</div>
-      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">EGGS</div>
-      <div class="hud-val" id="hud-eggs">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">CREATURES</div>
-      <div class="hud-val" id="hud-creatures">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">COINS</div>
-      <div class="hud-val" id="hud-coins">200</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">SKILL PTS</div>
-      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
-    </div>
-    <div class="hud-box" style="flex:1;min-width:120px;">
-      <div class="hud-label">CONTROLS</div>
-      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
     </div>
   </div>
 </div>
@@ -4299,6 +4296,9 @@ function menuBeginGame() {
 
   document.getElementById('menu-overlay').style.display='none';
   document.getElementById('world').style.pointerEvents='all';
+  document.getElementById('top-bar').style.display='flex';
+  document.getElementById('hud').style.display='flex';
+  document.getElementById('mob-btns').style.display='flex';
   updateHUD();
 }
 
@@ -4322,6 +4322,9 @@ function menuInit() {
       const savedAt = loadGame();
       if (savedAt) {
         document.getElementById('menu-overlay').style.display = 'none';
+        document.getElementById('top-bar').style.display='flex';
+        document.getElementById('hud').style.display='flex';
+        document.getElementById('mob-btns').style.display='flex';
         updateHUD();
         showDialog('GAME LOADED', 'Welcome back!\nSaved: ' + savedAt, [{label:'Play!', fn:closeDialog}]);
       } else {
