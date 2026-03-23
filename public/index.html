@@ -7,18 +7,18 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#080010;font-family:'Press Start 2P',monospace;overflow:hidden;margin:0;padding:0;width:100%;height:100%;}
+body{background:#080010;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;}
 
 
 
 /* ── LAYOUT ── */
-#game-wrap{position:relative;width:100vw;max-width:800px;margin:0 auto;}
+#game-wrap{position:relative;width:100vw;max-width:800px;}
 #top-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#0d001a;border-bottom:2px solid #440088;}
 #top-bar .player-info{font-size:7px;color:#cc88ff;}
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair;pointer-events:none;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;}
 
 /* ── HUD ── */
 #hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
@@ -51,7 +51,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
   border:3px solid #440088;border-radius:4px;overflow:hidden;
   background:linear-gradient(180deg,#1a0a30 0%,#0e0820 60%,#1a0a10 100%);
 }
-#battle-arena-bg{position:absolute;inset:0;pointer-events:none;}
+#battle-arena-bg{position:absolute;inset:0;}
 #battle-arena-floor{position:absolute;bottom:0;left:0;right:0;height:35px;background:linear-gradient(180deg,#2a1840,#1a0e30);}
 .arena-fighter{position:absolute;bottom:35px;display:flex;flex-direction:column;align-items:center;gap:2px;}
 .arena-fighter.player-pos{left:30px;}
@@ -194,9 +194,6 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
-#mob-btns{position:fixed;bottom:16px;right:12px;z-index:200;display:none;flex-direction:row;align-items:center;gap:10px;}
-.mob-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:rgba(10,0,30,0.9);color:#cc88ff;border:2px solid #5522aa;padding:14px 18px;border-radius:8px;cursor:pointer;touch-action:manipulation;}
-#mob-action{border-color:#cc8800;color:#ffcc44;}
 #minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
 #minimap canvas{display:block;image-rendering:pixelated;}
 
@@ -273,7 +270,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
    OPENING MENU
 ══════════════════════════════════════════════ */
 #menu-overlay{
-  position:fixed;inset:0;z-index:99999;
+  position:fixed;inset:0;z-index:9999;
   background:#080010;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
@@ -283,8 +280,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
 }
 /* title screen */
 #menu-title, #menu-regions, #menu-dice{
-  position:relative;z-index:100000;
-  pointer-events:all;
+  position:relative;z-index:10000;
 }
 #menu-title{
   display:flex;flex-direction:column;
@@ -307,11 +303,10 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
   border-radius:4px;margin-top:8px;
   box-shadow:0 0 20px rgba(255,200,0,0.4);
   animation:startBlink 1.2s step-end infinite;
-  position:relative;z-index:100000;
+  position:relative;z-index:10000;
   -webkit-tap-highlight-color:rgba(0,0,0,0);
   user-select:none;
   touch-action:manipulation;
-  pointer-events:all !important;
 }
 @keyframes startBlink{50%{opacity:0.4;}}
 .menu-start-btn:hover{animation:none;background:#ffe066;transform:scale(1.05);}
@@ -418,57 +413,23 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
 /* stars bg */
 #menu-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 
+
+#mob-btns{position:fixed;bottom:16px;right:12px;z-index:9000;display:none;flex-direction:row;align-items:center;gap:10px;}
+.mob-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:rgba(10,0,30,0.9);color:#cc88ff;border:2px solid #5522aa;padding:14px 18px;border-radius:8px;cursor:pointer;touch-action:manipulation;}
+#mob-action{border-color:#cc8800;color:#ffcc44;}
 </style>
 </head>
 <body>
 
 <div id="game-wrap">
-
-  <div id="game-canvas-wrap">
-    <canvas id="world"></canvas>
-<div id="top-bar">
+  <div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
     <div class="region-name" id="top-region">Suncrest Expanse</div>
     <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
   </div>
-<div id="hud">
-    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
-      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
-        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
-        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div class="hud-label">ACTIVE CREATURE</div>
-        <div class="hud-val" id="hud-creature">— none —</div>
-        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
-      </div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">ENERGY</div>
-      <div class="hud-val" id="hud-energy">0/100</div>
-      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">EGGS</div>
-      <div class="hud-val" id="hud-eggs">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">CREATURES</div>
-      <div class="hud-val" id="hud-creatures">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">COINS</div>
-      <div class="hud-val" id="hud-coins">200</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">SKILL PTS</div>
-      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
-    </div>
-    <div class="hud-box" style="flex:1;min-width:120px;">
-      <div class="hud-label">CONTROLS</div>
-      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
-    </div>
-  </div>
+
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
     <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
     <div id="encounter-flash"></div>
 
@@ -563,10 +524,49 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
     </div>
   </div>
 
-<div id="mob-btns">
-  <button class="mob-btn" id="mob-menu">MENU</button>
-  <button class="mob-btn" id="mob-action">ACTION</button>
+  <div id="hud">
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
+    </div>
+  </div>
 </div>
+
+<!-- ══════════════════════════════════════════════
+     OPENING MENU — wired entirely in JS after load
+══════════════════════════════════════════════ -->
 <div id="menu-overlay">
   <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
 
@@ -624,14 +624,6 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:crosshair
         <div class="cr-desc" id="cr-desc"></div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
-      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
-    </div>
-  </div>
-</div>
-</div>
-
 <script>
 // ═══════════════════════════════════════════════════════════
 //  WORLDHATCH — Browser Top-Down Explorer
@@ -2096,189 +2088,32 @@ function closeDialog() {
 
 // ── MAIN MENU DIALOG ──────────────────────────────────────
 
-// ═══════════════════════════════════════════════════════════
-//  SAVE / LOAD / EXPORT / IMPORT SYSTEM
-// ═══════════════════════════════════════════════════════════
 const SAVE_KEY = 'worldhatch_save';
-
-function buildSaveData() {
-  return {
-    version: 1,
-    playerName:        state.playerName,
-    homeRegion:        state.homeRegion,
-    currentRegion:     state.currentRegion,
-    mapSeed:           state.mapSeed,
-    px: state.px, py: state.py,
-    playerDir:         state.playerDir,
-    coins:             state.coins,
-    time:              state.time,
-    weather:           state.weather,
-    activeCreatureIdx: state.activeCreatureIdx,
-    creatures:         state.creatures,
-    eggs:              state.eggs,
-    exploredTiles:     [...state.exploredTiles],
-    visitedNests:      [...state.visitedNests],
-    visitedPoI:        [...state.visitedPoI],
-    defeatedBosses:    [...state.defeatedBosses],
-    unlockedLevels:    state.unlockedLevels || {},
-    currentLevel:      state.currentLevel || 1,
-    savedAt:           new Date().toLocaleString(),
-  };
+function buildSaveData(){return{version:1,playerName:state.playerName,homeRegion:state.homeRegion,currentRegion:state.currentRegion,mapSeed:state.mapSeed,px:state.px,py:state.py,playerDir:state.playerDir,coins:state.coins,time:state.time,weather:state.weather,activeCreatureIdx:state.activeCreatureIdx,creatures:state.creatures,eggs:state.eggs,exploredTiles:[...state.exploredTiles],visitedNests:[...state.visitedNests],visitedPoI:[...state.visitedPoI],defeatedBosses:[...state.defeatedBosses],savedAt:new Date().toLocaleString()};}
+function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(buildSaveData()));return true;}catch(e){return false;}}
+function hasSave(){return!!localStorage.getItem(SAVE_KEY);}
+function applySave(save){
+  if(!save||save.version!==1)return false;
+  state.playerName=save.playerName||'Trainer';state.homeRegion=save.homeRegion||'suncrest_expanse';state.currentRegion=save.currentRegion||'suncrest_expanse';state.mapSeed=save.mapSeed||(Date.now()%99991);state.px=save.px||64;state.py=save.py||64;state.playerDir=save.playerDir||'down';state.coins=save.coins||0;state.time=save.time||8;state.weather=save.weather||'clear';state.activeCreatureIdx=save.activeCreatureIdx??-1;state.creatures=save.creatures||[];state.eggs=save.eggs||[];state.exploredTiles=new Set(save.exploredTiles||[]);state.visitedNests=new Set(save.visitedNests||[]);state.visitedPoI=new Set(save.visitedPoI||[]);state.defeatedBosses=new Set(save.defeatedBosses||[]);
+  state.map=generateMap(state.currentRegion,state.mapSeed);
+  state.camX=Math.max(0,Math.min(MAP_W-VIEW_W,state.px-Math.floor(VIEW_W/2)));
+  state.camY=Math.max(0,Math.min(MAP_H-VIEW_H,state.py-Math.floor(VIEW_H/2)));
+  document.getElementById('top-region').textContent=REGIONS[state.currentRegion]?.name||state.currentRegion;
+  document.getElementById('top-player').textContent=state.playerName+' -- '+(REGIONS[state.currentRegion]?.name||'').toUpperCase();
+  updateHUD();return save.savedAt||true;
 }
-
-function saveGame() {
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(buildSaveData()));
-    return true;
-  } catch(e) { return false; }
-}
-
-function hasSave() {
-  return !!localStorage.getItem(SAVE_KEY);
-}
-
-function applySave(save) {
-  if (!save || save.version !== 1) return false;
-  state.playerName        = save.playerName       || 'Trainer';
-  state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-  state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-  state.mapSeed           = save.mapSeed           || (Date.now()%99991);
-  state.px                = save.px                || 64;
-  state.py                = save.py                || 64;
-  state.playerDir         = save.playerDir         || 'down';
-  state.coins             = save.coins             || 0;
-  state.time              = save.time              || 8;
-  state.weather           = save.weather           || 'clear';
-  state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-  state.creatures         = save.creatures         || [];
-  state.eggs              = save.eggs              || [];
-  state.exploredTiles     = new Set(save.exploredTiles  || []);
-  state.visitedNests      = new Set(save.visitedNests   || []);
-  state.visitedPoI        = new Set(save.visitedPoI     || []);
-  state.defeatedBosses    = new Set(save.defeatedBosses || []);
-  state.unlockedLevels    = save.unlockedLevels || {};
-  state.currentLevel      = save.currentLevel || 1;
-  state.map  = generateMap(state.currentRegion, state.mapSeed);
-  state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
-  state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
-  document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
-  document.getElementById('top-player').textContent = state.playerName + ' -- ' + (REGIONS[state.currentRegion]?.name||'').toUpperCase();
-  updateHUD();
-  return save.savedAt || true;
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    return applySave(JSON.parse(raw));
-  } catch(e) { return false; }
-}
-
-function exportSaveCode() {
-  try {
-    const data = JSON.stringify(buildSaveData());
-    // Base64 encode for a clean shareable string
-    return btoa(unescape(encodeURIComponent(data)));
-  } catch(e) { return null; }
-}
-
-function importSaveCode(code) {
-  try {
-    const data = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
-    const result = applySave(data);
-    if (result) {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-    }
-    return result;
-  } catch(e) { return false; }
-}
-
-function showSaveMenu() {
+function loadGame(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;return applySave(JSON.parse(raw));}catch(e){return false;}}
+function exportSaveCode(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(buildSaveData()))));}catch(e){return null;}}
+function importSaveCode(c){try{const d=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));const r=applySave(d);if(r)localStorage.setItem(SAVE_KEY,JSON.stringify(d));return r;}catch(e){return false;}}
+function showSaveMenu(){
   closeDialog();
-  showDialog('SAVE & LOAD', 'Manage your game progress:', [
-    { label: 'SAVE GAME', fn: () => {
-      const ok = saveGame();
-      closeDialog();
-      showDialog('SAVED', ok ? 'Game saved to this device!' : 'Save failed!', [{label:'OK',fn:closeDialog}]);
-    }},
-    { label: 'LOAD GAME', fn: () => {
-      closeDialog();
-      showDialog('LOAD GAME', 'Load saved game? Current progress will be lost.', [
-        { label: 'LOAD', fn: () => {
-          const ok = loadGame();
-          closeDialog();
-          if (ok) showDialog('LOADED', 'Game loaded!\nSaved: ' + ok, [{label:'Play!',fn:closeDialog}]);
-          else showDialog('ERROR', 'No save found on this device.', [{label:'OK',fn:closeDialog}]);
-        }},
-        { label: 'Cancel', fn: () => { closeDialog(); showSaveMenu(); }},
-      ]);
-    }},
-    { label: 'EXPORT CODE', fn: () => {
-      const code = exportSaveCode();
-      if (!code) { closeDialog(); showDialog('ERROR','Nothing to export. Save first!', [{label:'OK',fn:closeDialog}]); return; }
-      closeDialog();
-      // Show code in a copyable dialog
-      showDialog(
-        'EXPORT SAVE CODE',
-        'Copy this code and paste it on any device to load your save:\n\n' + code.slice(0,40) + '...',
-        [
-          { label: 'COPY CODE', fn: () => {
-            navigator.clipboard.writeText(code).then(()=>{
-              closeDialog();
-              showDialog('COPIED!', 'Save code copied to clipboard!\nPaste it on any device using IMPORT CODE.', [{label:'OK',fn:closeDialog}]);
-            }).catch(()=>{
-              // Fallback: show full code
-              closeDialog();
-              const ta = document.createElement('textarea');
-              ta.value = code;
-              ta.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;height:120px;font-size:10px;z-index:99999;background:#0a0018;color:#44ff88;border:2px solid #228844;padding:8px;';
-              document.body.appendChild(ta);
-              ta.select();
-              document.execCommand('copy');
-              setTimeout(()=>document.body.removeChild(ta), 3000);
-              showDialog('COPIED!', 'Code selected! Press Ctrl+C to copy if needed.', [{label:'OK',fn:closeDialog}]);
-            });
-          }},
-          { label: 'Cancel', fn: closeDialog },
-        ]
-      );
-    }},
-    { label: 'IMPORT CODE', fn: () => {
-      closeDialog();
-      showDialog(
-        'IMPORT SAVE CODE',
-        'Paste your save code below.\n(Open browser console, type your code, or use the input below)',
-        [
-          { label: 'PASTE & LOAD', fn: () => {
-            // Use clipboard API
-            navigator.clipboard.readText().then(text => {
-              const ok = importSaveCode(text);
-              closeDialog();
-              if (ok) showDialog('LOADED!', 'Save imported successfully!\nSaved: ' + ok, [{label:'Play!',fn:closeDialog}]);
-              else showDialog('ERROR', 'Invalid save code. Make sure you copied the full code.', [{label:'OK',fn:closeDialog}]);
-            }).catch(()=>{
-              // Fallback: prompt
-              const code = prompt('Paste your save code here:');
-              if (!code) return;
-              const ok = importSaveCode(code);
-              closeDialog();
-              if (ok) showDialog('LOADED!', 'Save imported!\nSaved: ' + ok, [{label:'Play!',fn:closeDialog}]);
-              else showDialog('ERROR', 'Invalid save code.', [{label:'OK',fn:closeDialog}]);
-            });
-          }},
-          { label: 'Cancel', fn: closeDialog },
-        ]
-      );
-    }},
-    { label: 'DELETE SAVE', fn: () => {
-      closeDialog();
-      showDialog('DELETE SAVE', 'Delete save on this device? Cannot be undone.', [
-        { label: 'DELETE', fn: () => { localStorage.removeItem(SAVE_KEY); closeDialog(); showDialog('DELETED','Save deleted.',[{label:'OK',fn:closeDialog}]); }},
-        { label: 'Cancel', fn: () => { closeDialog(); showSaveMenu(); }},
-      ]);
-    }},
-    { label: 'Close', fn: closeDialog },
+  showDialog('SAVE & LOAD','Manage your progress:',[
+    {label:'SAVE GAME',fn:()=>{const ok=saveGame();closeDialog();showDialog('SAVED',ok?'Game saved!':'Save failed!',[{label:'OK',fn:closeDialog}]);}},
+    {label:'LOAD GAME',fn:()=>{closeDialog();showDialog('LOAD?','Load saved game?',[{label:'LOAD',fn:()=>{const ok=loadGame();closeDialog();if(ok)showDialog('LOADED','Loaded! Saved: '+ok,[{label:'Play!',fn:closeDialog}]);else showDialog('ERROR','No save found.',[{label:'OK',fn:closeDialog}]);}},{label:'Cancel',fn:()=>{closeDialog();showSaveMenu();}}]);}},
+    {label:'EXPORT CODE',fn:()=>{const c=exportSaveCode();if(!c){closeDialog();showDialog('ERROR','Save first!',[{label:'OK',fn:closeDialog}]);return;}navigator.clipboard.writeText(c).then(()=>{closeDialog();showDialog('COPIED!','Paste on any device.',[{label:'OK',fn:closeDialog}]);}).catch(()=>{prompt('Copy this:',c);closeDialog();showDialog('DONE','Share this code.',[{label:'OK',fn:closeDialog}]);});}},
+    {label:'IMPORT CODE',fn:()=>{closeDialog();navigator.clipboard.readText().then(t=>{const ok=importSaveCode(t);closeDialog();if(ok)showDialog('LOADED!','Imported!',[{label:'Play!',fn:closeDialog}]);else showDialog('ERROR','Invalid code.',[{label:'OK',fn:closeDialog}]);}).catch(()=>{const c=prompt('Paste save code:');if(!c)return;const ok=importSaveCode(c);closeDialog();if(ok)showDialog('LOADED!','Imported!',[{label:'Play!',fn:closeDialog}]);else showDialog('ERROR','Invalid.',[{label:'OK',fn:closeDialog}]);});}},
+    {label:'DELETE SAVE',fn:()=>{closeDialog();showDialog('DELETE?','Delete save?',[{label:'DELETE',fn:()=>{localStorage.removeItem(SAVE_KEY);closeDialog();showDialog('DELETED','Save deleted.',[{label:'OK',fn:closeDialog}]);}},{label:'Cancel',fn:()=>{closeDialog();showSaveMenu();}}]);}},
+    {label:'Close',fn:closeDialog},
   ]);
 }
 
@@ -3506,8 +3341,7 @@ function menuDrawGlobe() {
     const perspective=Math.cos(a);
     if(perspective<0) continue;
     c.globalAlpha=perspective*0.5;
-    const rp=r*perspective; if(rp<0.5) continue;
-    c.beginPath(); c.ellipse(cx,cy,rp,r,0,0,Math.PI*2); c.stroke();
+    c.beginPath(); c.ellipse(cx,cy,r*perspective,r,0,0,Math.PI*2); c.stroke();
     c.globalAlpha=1;
   }
   // border
@@ -3664,10 +3498,9 @@ function menuBeginGame() {
   document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
   document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
 
-  resizeCanvas();
   document.getElementById('menu-overlay').style.display='none';
   document.getElementById('world').style.pointerEvents='all';
-  document.getElementById('mob-btns').style.display='flex';
+  const _mb=document.getElementById('mob-btns');if(_mb)_mb.style.display='flex';
   updateHUD();
 }
 
@@ -3680,23 +3513,24 @@ function menuInit() {
 
   // Title → Region select
   // Wire mobile buttons
-  const mobMenuBtn = document.getElementById('mob-menu');
-  const mobActBtn  = document.getElementById('mob-action');
-  if(mobMenuBtn) { mobMenuBtn.onclick = handleEsc; mobMenuBtn.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false}); }
-  if(mobActBtn)  { mobActBtn.onclick  = handleInteract; mobActBtn.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false}); }
+  const mbm = document.getElementById('mob-menu');
+  const mba = document.getElementById('mob-action');
+  if(mbm){mbm.onclick=handleEsc;mbm.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false});}
+  if(mba){mba.onclick=handleInteract;mba.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false});}
+
+  // CONTINUE GAME
+  const loadBtn = document.getElementById('menu-load-btn');
+  if(loadBtn) loadBtn.onclick = () => {
+    const ok = loadGame();
+    if(!ok){alert('No saved game found!');return;}
+    document.getElementById('menu-overlay').style.display='none';
+    document.getElementById('world').style.pointerEvents='all';
+    const mb=document.getElementById('mob-btns');if(mb)mb.style.display='flex';
+    updateHUD();
+  };
 
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
-  };
-
-  // CONTINUE GAME button
-  document.getElementById('menu-load-btn').onclick = () => {
-    const ok = loadGame();
-    if (!ok) { alert('No saved game found! Start a new game first.'); return; }
-    resizeCanvas();
-    document.getElementById('menu-overlay').style.display = 'none';
-    document.getElementById('world').style.pointerEvents = 'all';
-    document.getElementById('mob-btns').style.display = 'flex';
   };
 
   // Region confirmed → Dice
@@ -3762,8 +3596,16 @@ function init() {
 init();
 </script>
 
-<!-- ══════════════════════════════════════════════
-     OPENING MENU — wired entirely in JS after load
-══════════════════════════════════════════════ -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="dice-reroll-btn" id="dice-reroll-btn">↺ REROLL</button>
+      <button class="dice-begin-btn" id="dice-begin-btn">BEGIN ADVENTURE ▶</button>
+    </div>
+  </div>
+</div>
+
+<div id="mob-btns">
+  <button class="mob-btn" id="mob-menu">MENU</button>
+  <button class="mob-btn" id="mob-action">ACTION</button>
+</div>
 </body>
 </html>
