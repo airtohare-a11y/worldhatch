@@ -2203,121 +2203,142 @@ function closeDialog() {
 //  SAVE / LOAD SYSTEM
 // ═══════════════════════════════════════════════════════════
 
-const SAVE_KEY = 'worldhatch_save';
+const SAVE_PREFIX = 'worldhatch_slot_';
 
-function saveGame() {
+function getSaveKey(slot) { return SAVE_PREFIX + slot; }
+
+function saveGame(slot) {
   try {
     const save = {
       version: 1,
-      playerName:       state.playerName,
-      homeRegion:       state.homeRegion,
-      currentRegion:    state.currentRegion,
-      mapSeed:          state.mapSeed,
+      playerName:        state.playerName,
+      playerSex:         state.playerSex,
+      homeRegion:        state.homeRegion,
+      currentRegion:     state.currentRegion,
+      mapSeed:           state.mapSeed,
       px: state.px, py: state.py,
-      playerDir:        state.playerDir,
-      coins:            state.coins,
-      time:             state.time,
-      weather:          state.weather,
-      activeCreatureIdx:state.activeCreatureIdx,
-      creatures:        state.creatures,
-      eggs:             state.eggs,
-      exploredTiles:    [...state.exploredTiles],
-      visitedNests:     [...state.visitedNests],
-      visitedPoI:       [...state.visitedPoI],
-      defeatedBosses:   [...state.defeatedBosses],
-      savedAt:          new Date().toLocaleString(),
+      playerDir:         state.playerDir,
+      coins:             state.coins,
+      time:              state.time,
+      weather:           state.weather,
+      activeCreatureIdx: state.activeCreatureIdx,
+      creatures:         state.creatures,
+      eggs:              state.eggs,
+      exploredTiles:     [...state.exploredTiles],
+      visitedNests:      [...state.visitedNests],
+      visitedPoI:        [...state.visitedPoI],
+      defeatedBosses:    [...state.defeatedBosses],
+      savedAt:           new Date().toLocaleString(),
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    localStorage.setItem(getSaveKey(slot), JSON.stringify(save));
     return true;
-  } catch(e) {
-    return false;
-  }
+  } catch(e) { return false; }
 }
 
-function loadGame() {
+function loadGame(slot) {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(getSaveKey(slot));
     if (!raw) return false;
     const save = JSON.parse(raw);
     if (!save || save.version !== 1) return false;
-
-    state.playerName        = save.playerName       || 'Trainer';
-    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
-    state.px                = save.px                || 64;
-    state.py                = save.py                || 64;
-    state.playerDir         = save.playerDir         || 'down';
-    state.coins             = save.coins             || 0;
-    state.time              = save.time              || 8;
-    state.weather           = save.weather           || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
-    state.creatures         = save.creatures         || [];
-    state.eggs              = save.eggs              || [];
+    state.playerName        = save.playerName        || 'Trainer';
+    state.playerSex         = save.playerSex         || 'male';
+    state.homeRegion        = save.homeRegion         || 'suncrest_expanse';
+    state.currentRegion     = save.currentRegion      || 'suncrest_expanse';
+    state.mapSeed           = save.mapSeed            || (Date.now() % 99991);
+    state.px                = save.px                 || 64;
+    state.py                = save.py                 || 64;
+    state.playerDir         = save.playerDir          || 'down';
+    state.coins             = save.coins              || 0;
+    state.time              = save.time               || 8;
+    state.weather           = save.weather            || 'clear';
+    state.activeCreatureIdx = save.activeCreatureIdx  ?? -1;
+    state.creatures         = save.creatures          || [];
+    state.eggs              = save.eggs               || [];
     state.exploredTiles     = new Set(save.exploredTiles  || []);
     state.visitedNests      = new Set(save.visitedNests   || []);
     state.visitedPoI        = new Set(save.visitedPoI     || []);
     state.defeatedBosses    = new Set(save.defeatedBosses || []);
-
-    // Rebuild map from saved seed + region
     state.map  = generateMap(state.currentRegion, state.mapSeed);
     state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
     state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
-
     document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
     document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[state.currentRegion]?.name||'').toUpperCase()}`;
     updateHUD();
     return save.savedAt || true;
-  } catch(e) {
-    return false;
-  }
+  } catch(e) { return false; }
+}
+
+function getSlotInfo(slot) {
+  try {
+    const raw = localStorage.getItem(getSaveKey(slot));
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || s.version !== 1) return null;
+    const pc = s.creatures && s.creatures[s.activeCreatureIdx];
+    return {
+      name: s.playerName || 'Trainer',
+      region: REGIONS[s.currentRegion]?.name || s.currentRegion || '?',
+      level: pc ? pc.level : 1,
+      savedAt: s.savedAt || '',
+    };
+  } catch(e) { return null; }
 }
 
 function hasSave() {
-  return !!localStorage.getItem(SAVE_KEY);
+  return [1,2,3].some(slot => !!localStorage.getItem(getSaveKey(slot)));
 }
 
-function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
+function deleteSlot(slot) {
+  localStorage.removeItem(getSaveKey(slot));
+}
+
+function showSlotPicker(title, onPick) {
+  const opts = [1,2,3].map(slot => {
+    const info = getSlotInfo(slot);
+    const lbl = info
+      ? `SLOT ${slot}: ${info.name} Lv${info.level} — ${info.region}`
+      : `SLOT ${slot}: EMPTY`;
+    return { label: lbl, fn: () => { closeDialog(); onPick(slot, info); } };
+  });
+  opts.push({ label: 'Cancel', fn: closeDialog });
+  showDialog(title, 'Choose a slot:', opts);
 }
 
 function showSaveMenu() {
   closeDialog();
-  const saved = hasSave();
   const opts = [
     { label: 'SAVE GAME', fn: () => {
-        const ok = saveGame();
         closeDialog();
-        showDialog('GAME SAVED', ok ? 'Your progress has been saved!' : 'Save failed — storage may be full.', [{ label:'OK', fn:closeDialog }]);
+        showSlotPicker('SAVE GAME', (slot) => {
+          const ok = saveGame(slot);
+          showDialog('SAVED', ok ? `Saved to Slot ${slot}!` : 'Save failed.', [{label:'OK',fn:closeDialog}]);
+        });
+    }},
+    { label: 'LOAD GAME', fn: () => {
+        closeDialog();
+        showSlotPicker('LOAD GAME', (slot, info) => {
+          if (!info) { showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]); return; }
+          showDialog('LOAD', `Load Slot ${slot}?`, [
+            { label:'LOAD', fn:()=>{ loadGame(slot); closeDialog(); document.getElementById('world').style.pointerEvents='all'; }},
+            { label:'Cancel', fn:closeDialog },
+          ]);
+        });
+    }},
+    { label: 'DELETE SAVE', fn: () => {
+        closeDialog();
+        showSlotPicker('DELETE SAVE', (slot, info) => {
+          if (!info) { showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]); return; }
+          showDialog('DELETE', `Delete Slot ${slot}?`, [
+            { label:'DELETE', fn:()=>{ deleteSlot(slot); closeDialog(); showDialog('DELETED','Slot deleted.',[{label:'OK',fn:closeDialog}]); }},
+            { label:'Cancel', fn:closeDialog },
+          ]);
+        });
     }},
   ];
-  if (saved) {
-    opts.push({ label: 'LOAD GAME', fn: () => {
-      closeDialog();
-      showDialog('LOAD GAME', 'Load your saved game? Current progress will be lost.', [
-        { label:'LOAD', fn:() => {
-          const savedAt = loadGame();
-          closeDialog();
-          if(savedAt) {
-            showDialog('LOADED', `Game loaded!\nSaved: ${savedAt}`, [{ label:'OK', fn:closeDialog }]);
-          } else {
-            showDialog('ERROR', 'Could not load save file.', [{ label:'OK', fn:closeDialog }]);
-          }
-        }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-    opts.push({ label: 'DELETE SAVE', fn: () => {
-      closeDialog();
-      showDialog('DELETE SAVE', 'Delete your saved game permanently?', [
-        { label:'DELETE', fn:() => { deleteSave(); closeDialog(); showDialog('DELETED','Save file deleted.',[{label:'OK',fn:closeDialog}]); }},
-        { label:'Cancel', fn:closeDialog },
-      ]);
-    }});
-  }
   opts.push({ label:'Cancel', fn:closeDialog });
-  const info = saved ? 'A save file exists.' : 'No save file found.';
-  showDialog('SAVE & LOAD', info, opts);
+  showDialog('SAVE & LOAD', 'What would you like to do?', opts);
+}
 }
 
 function showMainMenu() {
@@ -3727,7 +3748,7 @@ function menuInit() {
 
   // Title → Region select
   if(hasSave())document.getElementById('menu-load-btn').style.display='';
-  document.getElementById('menu-load-btn').onclick=()=>{if(loadGame()){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';}};
+  document.getElementById('menu-load-btn').onclick=()=>{ showSlotPicker('LOAD GAME',(slot,info)=>{ if(!info){showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]);return;} if(loadGame(slot)){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';} }); };
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('profile');
   };
