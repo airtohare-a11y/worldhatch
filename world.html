@@ -194,6 +194,9 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;inset:0;w
 .b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
+#mob-btns{position:fixed;bottom:16px;right:12px;z-index:200;display:none;flex-direction:row;align-items:center;gap:10px;}
+.mob-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:rgba(10,0,30,0.9);color:#cc88ff;border:2px solid #5522aa;padding:14px 18px;border-radius:8px;cursor:pointer;touch-action:manipulation;}
+#mob-action{border-color:#cc8800;color:#ffcc44;}
 #minimap{position:absolute;top:38px;right:8px;background:rgba(8,0,20,0.85);border:1px solid #440088;border-radius:3px;padding:4px;}
 #minimap canvas{display:block;image-rendering:pixelated;}
 
@@ -1157,8 +1160,8 @@ function resizeCanvas() {
   VIEW_H_CUR = Math.max(VIEW_H, Math.ceil(sh / TILE) + 1);
   canvas.width  = VIEW_W_CUR * TILE;
   canvas.height = VIEW_H_CUR * TILE;
-  canvas.style.width  = sw + 'px';
-  canvas.style.height = sh + 'px';
+  canvas.style.width  = '100vw';
+  canvas.style.height = '100vh';
 }
 
 // ── INPUT ─────────────────────────────────────────────────
