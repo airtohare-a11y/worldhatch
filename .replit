@@ -10,5 +10,4 @@ packages = ["git", "python3Full"]
 
 [deployment]
 deploymentTarget = "static"
-publicDir = "/home/runner/workspace"
-
+publicDir = "public"
