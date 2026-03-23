@@ -18,7 +18,7 @@ body{background:#080010;display:flex;flex-direction:column;align-items:center;ju
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:auto;}
 
 /* ── HUD ── */
 #hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
@@ -1138,6 +1138,7 @@ const state = {
 
   // Camera
   camX: 0, camY: 0,
+  tapTarget: null,
 };
 
 // ── CANVAS SETUP ──────────────────────────────────────────
@@ -1158,6 +1159,60 @@ function resizeCanvas() {
   wrap.style.height   = (w * VIEW_H / VIEW_W) + 'px';
 }
 
+
+// ── TAP / CLICK TO MOVE ───────────────────────────────────
+function handleCanvasTap(cx, cy) {
+  if (state.inBattle || state.inDialog) return;
+  const menuEl = document.getElementById('menu-overlay');
+  if (menuEl && menuEl.style.display !== 'none') return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = (VIEW_W * TILE) / rect.width;
+  const scaleY = (VIEW_H * TILE) / rect.height;
+  const tx = Math.floor((cx - rect.left) * scaleX / TILE) + state.camX;
+  const ty = Math.floor((cy - rect.top)  * scaleY / TILE) + state.camY;
+  state.tapTarget = { x: tx, y: ty };
+}
+
+canvas.addEventListener('click', e => {
+  handleCanvasTap(e.clientX, e.clientY);
+});
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  handleCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+// Minimap tap for long-distance travel
+function handleMinimapTap(cx, cy) {
+  if (state.inBattle || state.inDialog) return;
+  const menuEl = document.getElementById('menu-overlay');
+  if (menuEl && menuEl.style.display !== 'none') return;
+  const rect = mmCanvas.getBoundingClientRect();
+  const S = 90;
+  const s = Math.max(1, Math.floor(S / MAP_W));
+  const off = Math.floor((S - MAP_W * s) / 2);
+  const canvasX = (cx - rect.left) * (S / rect.width);
+  const canvasY = (cy - rect.top)  * (S / rect.height);
+  const tx = Math.floor((canvasX - off) / s);
+  const ty = Math.floor((canvasY - off) / s);
+  if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
+    state.tapTarget = { x: tx, y: ty };
+  }
+}
+
+mmCanvas.addEventListener('click', e => {
+  handleMinimapTap(e.clientX, e.clientY);
+  e.stopPropagation();
+});
+mmCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  handleMinimapTap(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
 // ── INPUT ─────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   // Don't swallow events when opening menu is visible
@@ -1165,6 +1220,7 @@ document.addEventListener('keydown', e => {
                    document.getElementById('menu-overlay').style.display !== 'none';
   if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = true;
+  state.tapTarget = null; // cancel tap-to-move on keypress
   if (e.key === 'e' || e.key === 'E') handleInteract();
   if (e.key === 'Escape') handleEsc();
   e.preventDefault();
@@ -1200,6 +1256,20 @@ function handleMovement(dt) {
   if (k['arrowup']    || k['w']) { dy = -1; state.playerDir = 'up';    }
   if (k['arrowdown']  || k['s']) { dy =  1; state.playerDir = 'down';  }
 
+  // Tap-to-move
+  if (dx === 0 && dy === 0 && state.tapTarget) {
+    const tdx = state.tapTarget.x - state.px;
+    const tdy = state.tapTarget.y - state.py;
+    if (Math.abs(tdx) < 1 && Math.abs(tdy) < 1) {
+      state.tapTarget = null;
+    } else if (Math.abs(tdx) >= Math.abs(tdy)) {
+      dx = tdx > 0 ? 1 : -1;
+      state.playerDir = dx > 0 ? 'right' : 'left';
+    } else {
+      dy = tdy > 0 ? 1 : -1;
+      state.playerDir = dy > 0 ? 'down' : 'up';
+    }
+  }
   if (dx === 0 && dy === 0) return;
   moveTimer = 0;
 
@@ -1647,6 +1717,7 @@ async function playerAction(actionId) {
     const spdBonus = Math.floor((battleData.player.speed || 10) / 10);
     const total    = runRoll + spdBonus;
     await showDice(runRoll, 'ESCAPE ROLL');
+    if (!battleData || battleData.over) return;
     blogLog(`Escape roll: ${runRoll} + SPD bonus ${spdBonus} = ${total}`, 'log-info');
 
     if (total >= 10) {
@@ -1679,6 +1750,7 @@ async function playerAction(actionId) {
   if (actionId === 'catch') {
     const catchRoll = rollD20();
     await showDice(catchRoll, 'CATCH ATTEMPT');
+    if (!battleData || battleData.over) return;
     const hpFactor = battleData.enemy.currentHp / battleData.enemy.maxHp;
     const chance   = (1 - hpFactor) * 0.7 + 0.1;
     if (Math.random() < chance) {
@@ -1714,6 +1786,7 @@ async function playerAction(actionId) {
   const moveLabelCut = actionId==='special'?'SPECIAL MOVE!':actionId==='power'?'POWER STRIKE':'BASE ATTACK';
 
   await showDice(roll, 'YOUR ATTACK');
+  if (!battleData || battleData.over) return;
   const outcome = getOutcome(roll);
   blogLog(`Roll: ${roll} — ${outcome.label}`, outcome.cls);
 
@@ -1775,6 +1848,7 @@ async function enemyTurn() {
 
   const roll    = rollD20();
   await showDice(roll, `${e.name} ATTACKS`);
+  if (!battleData || battleData.over) return;
   const outcome = getOutcome(roll);
   blogLog(`${e.name} roll: ${roll} — ${outcome.label}`, outcome.cls);
 
@@ -2045,21 +2119,33 @@ function drawCreatureSprite(canvasId, element, isEnemy) {
 
 
 function endBattle(won, caught) {
+  if (!battleData) return;
   battleData.over = true;
-  state.inBattle  = false;
-  state.inDialog  = false;
 
   setTimeout(() => {
-    document.getElementById('battle-overlay').classList.remove('show');
-    document.getElementById('battle-log').innerHTML = '';
-    document.getElementById('dice-display').textContent = '';
+    // Force-reset all blocking state
+    state.inBattle = false;
+    state.inDialog = false;
     battleData = null;
 
+    const overlay = document.getElementById('battle-overlay');
+    if (overlay) overlay.classList.remove('show');
+    const log = document.getElementById('battle-log');
+    if (log) log.innerHTML = '';
+    const dice = document.getElementById('dice-display');
+    if (dice) dice.textContent = '';
+    // Make sure canvas accepts input again
+    const world = document.getElementById('world');
+    if (world) world.style.pointerEvents = 'all';
+    // Make sure dialog is closed
+    const dlg = document.getElementById('dialog');
+    if (dlg) dlg.style.display = 'none';
+
     if (!won && !caught) {
-      // Heal to 30% if fainted
       if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
         const c = state.creatures[state.activeCreatureIdx];
         c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
+        c.energy = 0;
       }
     }
     updateHUD();
@@ -2467,6 +2553,18 @@ function render() {
     if (animFrame % 120 < 3) {
       ctx.fillStyle = 'rgba(255,255,200,0.15)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // Tap indicator
+  if (state.tapTarget) {
+    const ttx = (state.tapTarget.x - state.camX) * TILE;
+    const tty = (state.tapTarget.y - state.camY) * TILE;
+    if (ttx >= 0 && tty >= 0 && ttx < VIEW_W*TILE && tty < VIEW_H*TILE) {
+      const pulse = Math.sin(animFrame * 0.2) * 0.3 + 0.7;
+      ctx.strokeStyle = `rgba(200,140,255,${pulse})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(ttx+2, tty+2, TILE-4, TILE-4);
     }
   }
 
