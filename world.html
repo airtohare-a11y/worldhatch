@@ -452,6 +452,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
     <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
     <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
     <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+    <button class="menu-start-btn" id="menu-load-btn" style="display:none;background:#0a1a00;border-color:#228844;color:#44ff88;">LOAD GAME</button>
   </div>
 
   <!-- SCREEN 1: REGION SELECT -->
@@ -2318,6 +2319,7 @@ function showMainMenu() {
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
       { label: 'Save / Load',     fn: showSaveMenu },
+      { label: 'Quit Game',       fn: ()=>{ closeDialog(); showDialog('QUIT GAME','Save before quitting?',[{label:'SAVE & QUIT',fn:()=>{saveGame();location.reload();}},{label:'QUIT WITHOUT SAVING',fn:()=>{location.reload();}},{label:'Cancel',fn:closeDialog}]); } },
       { label: 'Close',           fn: closeDialog },
     ]
   );
@@ -3711,6 +3713,8 @@ function menuInit() {
   requestAnimationFrame(menuDrawGlobe);
 
   // Title → Region select
+  if(hasSave())document.getElementById('menu-load-btn').style.display='';
+  document.getElementById('menu-load-btn').onclick=()=>{if(loadGame()){document.getElementById('menu-overlay').style.display='none';}};
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
   };
