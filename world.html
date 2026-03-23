@@ -279,7 +279,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
   cursor:default;
 }
 /* title screen */
-#menu-title, #menu-regions, #menu-dice{
+#menu-title, #menu-regions, #menu-dice, #menu-profile{
   position:relative;z-index:10000;
 }
 #menu-title{
@@ -453,6 +453,17 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
     <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
     <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
     <button class="menu-start-btn" id="menu-load-btn" style="display:none;background:#0a1a00;border-color:#228844;color:#44ff88;">LOAD GAME</button>
+  </div>
+
+  <!-- SCREEN 1b: NAME & SEX -->
+  <div id="menu-profile" style="display:none;flex-direction:column;align-items:center;gap:16px;">
+    <div class="menu-regions-title">YOUR TRAINER</div>
+    <input id="profile-name" type="text" maxlength="12" placeholder="ENTER NAME" style="font-family:'Press Start 2P',monospace;font-size:9px;background:#0a0018;color:#ffcc44;border:2px solid #cc8800;padding:10px 14px;border-radius:4px;text-align:center;width:220px;outline:none;"/>
+    <div style="display:flex;gap:12px;">
+      <button class="menu-start-btn" id="sex-male-btn">MALE</button>
+      <button class="menu-start-btn" id="sex-female-btn">FEMALE</button>
+    </div>
+    <button class="menu-choose-btn ready" id="profile-next-btn">NEXT ▶</button>
   </div>
 
   <!-- SCREEN 1: REGION SELECT -->
@@ -1128,6 +1139,7 @@ function bridge(map, cx, cy, horizontal) {
 const state = {
   // Player
   playerName:  'Trainer',
+  playerSex:   'male',
   homeRegion:  'suncrest_expanse',
   px: 64, py: 64,   // player tile position
   playerDir: 'down',
@@ -3497,6 +3509,7 @@ function menuScreen(show) {
   document.getElementById('menu-title').style.display   = show==='title'   ? 'flex' : 'none';
   document.getElementById('menu-regions').style.display = show==='regions' ? 'flex' : 'none';
   document.getElementById('menu-dice').style.display    = show==='dice'    ? 'flex' : 'none';
+  document.getElementById('menu-profile').style.display = show==='profile' ? 'flex' : 'none';
 }
 
 // ── Stars background ──────────────────────────────────────
@@ -3716,7 +3729,7 @@ function menuInit() {
   if(hasSave())document.getElementById('menu-load-btn').style.display='';
   document.getElementById('menu-load-btn').onclick=()=>{if(loadGame()){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';}};
   document.getElementById('menu-start-btn').onclick = ()=>{
-    menuScreen('regions');
+    menuScreen('profile');
   };
 
   // Region confirmed → Dice
@@ -3742,6 +3755,17 @@ function menuInit() {
   };
 
   // Reroll
+  // Profile screen
+  let selectedSex = 'male';
+  document.getElementById('sex-male-btn').style.borderColor='#ffcc44';
+  document.getElementById('sex-male-btn').onclick=()=>{ selectedSex='male'; document.getElementById('sex-male-btn').style.borderColor='#ffcc44'; document.getElementById('sex-female-btn').style.borderColor='#5522aa'; };
+  document.getElementById('sex-female-btn').onclick=()=>{ selectedSex='female'; document.getElementById('sex-female-btn').style.borderColor='#ffcc44'; document.getElementById('sex-male-btn').style.borderColor='#5522aa'; };
+  document.getElementById('profile-next-btn').onclick=()=>{
+    const n=document.getElementById('profile-name').value.trim();
+    if(n===''){document.getElementById('profile-name').focus();return;}
+    state.playerName=n; state.playerSex=selectedSex;
+    menuScreen('regions');
+  };
   document.getElementById('dice-reroll-btn').onclick = menuRollDice;
 
   // Begin
@@ -3750,7 +3774,8 @@ function menuInit() {
   // Back button on regions (ESC)
   window.addEventListener('keydown', e=>{
     if(e.key==='Escape'&&document.getElementById('menu-overlay').style.display!=='none'){
-      if(document.getElementById('menu-regions').style.display!=='none') menuScreen('title');
+      if(document.getElementById('menu-profile').style.display!=='none') menuScreen('title');
+      else if(document.getElementById('menu-regions').style.display!=='none') menuScreen('profile');
       else if(document.getElementById('menu-dice').style.display!=='none')  menuScreen('regions');
       e.preventDefault();
     }
