@@ -423,14 +423,52 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
 <body>
 
 <div id="game-wrap">
-  <div id="top-bar">
+
+  <div id="game-canvas-wrap">
+    <canvas id="world"></canvas>
+<div id="top-bar">
     <div class="player-info" id="top-player">PLAYER — SUNCREST EXPANSE</div>
     <div class="region-name" id="top-region">Suncrest Expanse</div>
     <div class="time-weather" id="top-time">DAY ☀ CLEAR</div>
   </div>
-
-  <div id="game-canvas-wrap">
-    <canvas id="world"></canvas>
+<div id="hud">
+    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
+      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
+        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
+        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hud-label">ACTIVE CREATURE</div>
+        <div class="hud-val" id="hud-creature">— none —</div>
+        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">ENERGY</div>
+      <div class="hud-val" id="hud-energy">0/100</div>
+      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">EGGS</div>
+      <div class="hud-val" id="hud-eggs">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">CREATURES</div>
+      <div class="hud-val" id="hud-creatures">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">COINS</div>
+      <div class="hud-val" id="hud-coins">200</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">SKILL PTS</div>
+      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
+    </div>
+    <div class="hud-box" style="flex:1;min-width:120px;">
+      <div class="hud-label">CONTROLS</div>
+      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
+    </div>
+  </div>
     <div id="minimap"><canvas id="mm" width="90" height="90"></canvas></div>
     <div id="encounter-flash"></div>
 
@@ -525,44 +563,10 @@ canvas#world{display:block;image-rendering:pixelated;position:absolute;top:0;lef
     </div>
   </div>
 
-  <div id="hud">
-    <div class="hud-box" style="display:flex;gap:6px;align-items:center;">
-      <div id="hud-portrait" style="width:36px;height:36px;flex-shrink:0;border:1px solid #440088;border-radius:3px;overflow:hidden;background:#0a0018;display:flex;align-items:center;justify-content:center;">
-        <img id="hud-portrait-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:none;image-rendering:pixelated;"/>
-        <span id="hud-portrait-icon" style="font-size:20px;">❓</span>
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div class="hud-label">ACTIVE CREATURE</div>
-        <div class="hud-val" id="hud-creature">— none —</div>
-        <div class="hp-bar-wrap"><div class="hp-fill" id="hud-hp" style="width:100%"></div></div>
-      </div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">ENERGY</div>
-      <div class="hud-val" id="hud-energy">0/100</div>
-      <div class="en-bar-wrap"><div class="en-fill" id="hud-en" style="width:0%"></div></div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">EGGS</div>
-      <div class="hud-val" id="hud-eggs">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">CREATURES</div>
-      <div class="hud-val" id="hud-creatures">0</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">COINS</div>
-      <div class="hud-val" id="hud-coins">200</div>
-    </div>
-    <div class="hud-box">
-      <div class="hud-label">SKILL PTS</div>
-      <div class="hud-val" id="hud-sp" style="color:#ffcc44">0</div>
-    </div>
-    <div class="hud-box" style="flex:1;min-width:120px;">
-      <div class="hud-label">CONTROLS</div>
-      <div class="hud-val" style="color:#664488;font-size:5px;line-height:2">WASD/ARROWS move &nbsp; ESC menu &nbsp; E interact</div>
-    </div>
-  </div>
+<div id="mob-btns">
+  <button class="mob-btn" id="mob-menu">MENU</button>
+  <button class="mob-btn" id="mob-action">ACTION</button>
+</div>
 <div id="menu-overlay">
   <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
 
@@ -3680,6 +3684,12 @@ function menuInit() {
   requestAnimationFrame(menuDrawGlobe);
 
   // Title → Region select
+  // Wire mobile buttons
+  const mobMenuBtn = document.getElementById('mob-menu');
+  const mobActBtn  = document.getElementById('mob-action');
+  if(mobMenuBtn) { mobMenuBtn.onclick = handleEsc; mobMenuBtn.addEventListener('touchstart',e=>{handleEsc();e.preventDefault();},{passive:false}); }
+  if(mobActBtn)  { mobActBtn.onclick  = handleInteract; mobActBtn.addEventListener('touchstart',e=>{handleInteract();e.preventDefault();},{passive:false}); }
+
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
   };
@@ -3742,8 +3752,8 @@ function init() {
   // Generate starting map with random seed
   state.mapSeed = Date.now() % 99991;
   state.map  = generateMap(state.currentRegion, state.mapSeed);
-  state.camX = Math.max(0, state.px - Math.floor(VIEW_W / 2));
-  state.camY = Math.max(0, state.py - Math.floor(VIEW_H / 2));
+  state.camX = Math.max(0, state.px - Math.floor(VIEW_W_CUR / 2));
+  state.camY = Math.max(0, state.py - Math.floor(VIEW_H_CUR / 2));
 
   document.getElementById('top-region').textContent = REGIONS[state.currentRegion].name;
   document.getElementById('top-player').textContent = `${state.playerName} — ${REGIONS[state.currentRegion].name.toUpperCase()}`;
