@@ -2122,34 +2122,32 @@ function endBattle(won, caught) {
   if (!battleData) return;
   battleData.over = true;
 
-  setTimeout(() => {
-    // Force-reset all blocking state
-    state.inBattle = false;
-    state.inDialog = false;
-    battleData = null;
+  // Unlock game state immediately so player isn't frozen
+  state.inBattle = false;
+  state.inDialog = false;
 
+  // Handle defeat healing immediately
+  if (!won && !caught) {
+    if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
+      const c = state.creatures[state.activeCreatureIdx];
+      c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
+      c.energy = 0;
+    }
+  }
+
+  // Clean up battle UI after short delay
+  setTimeout(() => {
+    battleData = null;
     const overlay = document.getElementById('battle-overlay');
     if (overlay) overlay.classList.remove('show');
     const log = document.getElementById('battle-log');
     if (log) log.innerHTML = '';
     const dice = document.getElementById('dice-display');
     if (dice) dice.textContent = '';
-    // Make sure canvas accepts input again
-    const world = document.getElementById('world');
-    if (world) world.style.pointerEvents = 'all';
-    // Make sure dialog is closed
     const dlg = document.getElementById('dialog');
     if (dlg) dlg.style.display = 'none';
-
-    if (!won && !caught) {
-      if (state.activeCreatureIdx >= 0 && state.creatures[state.activeCreatureIdx]) {
-        const c = state.creatures[state.activeCreatureIdx];
-        c.currentHp = Math.max(1, Math.floor(c.hp * 0.3));
-        c.energy = 0;
-      }
-    }
     updateHUD();
-  }, 1500);
+  }, 800);
 }
 
 // ── DIALOG SYSTEM ─────────────────────────────────────────
