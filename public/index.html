@@ -3664,6 +3664,8 @@ function menuColorEgg(rarity) {
 
 // ── Dice roll ─────────────────────────────────────────────
 function menuRollDice() {
+  // Preload player sprite during dice spin
+  if (menuSelectedRegion && state.playerSex) getPlayerSprite(menuSelectedRegion, state.playerSex);
   const stage   = document.getElementById('egg-stage');
   const rollEl  = document.getElementById('dice-roll-display');
   const revealEl= document.getElementById('creature-reveal');
