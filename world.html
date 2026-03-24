@@ -2965,7 +2965,7 @@ function drawPlayer(ctx) {
   const sy  = (state.py - state.camY) * TILE;
   if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
   // Use custom sprite if available
-  const customSprite = getPlayerSprite(state.homeRegion, state.playerSex);
+  const customSprite = getPlayerSprite(state.currentRegion, state.playerSex);
   if (customSprite) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
@@ -3665,7 +3665,7 @@ function menuColorEgg(rarity) {
 // ── Dice roll ─────────────────────────────────────────────
 function menuRollDice() {
   // Preload player sprite during dice spin
-  if (menuSelectedRegion && state.playerSex) getPlayerSprite(menuSelectedRegion, state.playerSex);
+  if (menuSelectedRegion && state.playerSex) getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
   const stage   = document.getElementById('egg-stage');
   const rollEl  = document.getElementById('dice-roll-display');
   const revealEl= document.getElementById('creature-reveal');
@@ -3762,7 +3762,7 @@ function menuBeginGame() {
   state.currentRegion     = menuSelectedRegion;
   state.homeRegion        = menuSelectedRegion;
   // Preload player sprite
-  getPlayerSprite(menuSelectedRegion, state.playerSex);
+  getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
   state.mapSeed           = Date.now() % 99991;
   state.map               = generateMap(menuSelectedRegion, state.mapSeed);
 
@@ -3826,7 +3826,7 @@ function menuInit() {
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
     if(!menuSelectedRegion) return;
-    getPlayerSprite(menuSelectedRegion, state.playerSex);
+    getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
     const rn = MENU_REGIONS[menuSelectedRegion]?.name || menuSelectedRegion;
     document.getElementById('dice-region-label').textContent = rn.toUpperCase();
 
