@@ -2946,11 +2946,14 @@ const PLAYER_SPRITES = {
   },
 };
 const _spriteCache = {};
+const _spriteReady = {};
 function getPlayerSprite(region, sex) {
   const key = PLAYER_SPRITES[region]?.[sex];
   if (!key) return null;
-  if (_spriteCache[key]) return _spriteCache[key].complete && _spriteCache[key].naturalWidth > 0 ? _spriteCache[key] : null;
+  if (_spriteReady[key]) return _spriteCache[key];
+  if (_spriteCache[key]) return null;
   const img = new Image();
+  img.onload = () => { _spriteReady[key] = true; };
   img.src = key;
   _spriteCache[key] = img;
   return null;
