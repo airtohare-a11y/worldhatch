@@ -2941,9 +2941,10 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
 
 // ── PLAYER SPRITE IMAGES ─────────────────────────────────
 const PLAYER_SPRITES = {
-  shadowmere_hollows: {
-    male: 'player_dark_male.png',
-  },
+  suncrest_expanse:   { male: 'player_dark_male.png', female: 'player_dark_male.png' },
+  sakurami_highlands: { male: 'player_dark_male.png', female: 'player_dark_male.png' },
+  frostspire_reach:   { male: 'player_dark_male.png', female: 'player_dark_male.png' },
+  shadowmere_hollows: { male: 'player_dark_male.png', female: 'player_dark_male.png' },
 };
 const _spriteCache = {};
 function getPlayerSprite(region, sex) {
