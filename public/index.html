@@ -2938,11 +2938,39 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
   }
 }
 
+
+// ── PLAYER SPRITE IMAGES ─────────────────────────────────
+const PLAYER_SPRITES = {
+  shadowmere_hollows: {
+    male: 'player_dark_male.png',
+  },
+};
+const _spriteCache = {};
+function getPlayerSprite(region, sex) {
+  const key = PLAYER_SPRITES[region]?.[sex];
+  if (!key) return null;
+  if (_spriteCache[key]) return _spriteCache[key].complete && _spriteCache[key].naturalWidth ? _spriteCache[key] : null;
+  const img = new Image();
+  img.src = key;
+  _spriteCache[key] = img;
+  return null;
+}
+
 // ── 16-BIT PLAYER SPRITE ─────────────────────────────────
 function drawPlayer(ctx) {
   const sx  = (state.px - state.camX) * TILE;
   const sy  = (state.py - state.camY) * TILE;
   if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
+  // Use custom sprite if available
+  const customSprite = getPlayerSprite(state.homeRegion, state.playerSex);
+  if (customSprite) {
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(customSprite, sx - 4, sy - 16, 32, 40);
+    return;
+  }
 
   const af    = animFrame;
   const step  = Math.floor(af * 0.14) % 4; // 4-frame walk cycle
