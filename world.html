@@ -2939,44 +2939,11 @@ function drawTileDetail(ctx, tile, px, py, mx, my) {
 }
 
 
-// ── PLAYER SPRITE IMAGES ─────────────────────────────────
-const PLAYER_SPRITES = {
-  suncrest_expanse:   { male: 'player_dark_male.png', female: 'player_dark_male.png' },
-  sakurami_highlands: { male: 'player_dark_male.png', female: 'player_dark_male.png' },
-  frostspire_reach:   { male: 'player_dark_male.png', female: 'player_dark_male.png' },
-  shadowmere_hollows: { male: 'player_dark_male.png', female: 'player_dark_male.png' },
-};
-const _spriteCache = {};
-function getPlayerSprite(region, sex) {
-  const key = PLAYER_SPRITES[region]?.[sex];
-  if (!key) return null;
-  if (!_spriteCache[key]) {
-    const img = new Image();
-    img.src = key;
-    _spriteCache[key] = img;
-  }
-  const img = _spriteCache[key];
-  return (img.complete && img.naturalWidth > 0) ? img : null;
-}
-
 // ── 16-BIT PLAYER SPRITE ─────────────────────────────────
 function drawPlayer(ctx) {
   const sx  = (state.px - state.camX) * TILE;
   const sy  = (state.py - state.camY) * TILE;
   if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
-  // Use custom sprite if available
-  const customSprite = getPlayerSprite(state.currentRegion, state.playerSex);
-  if (!customSprite) { const _k='player_dark_male.png'; if(!_spriteCache[_k]){const _i=new Image();_i.src=_k;_spriteCache[_k]=_i;} }
-  const _forceSprite = _spriteCache['player_dark_male.png'];
-  const _useSprite = (_forceSprite && _forceSprite.complete && _forceSprite.naturalWidth>0) ? _forceSprite : customSprite;
-  if (_useSprite) {
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.drawImage(_useSprite, sx - 4, sy - 16, 32, 40);
-    return;
-  }
 
   const af    = animFrame;
   const step  = Math.floor(af * 0.14) % 4; // 4-frame walk cycle
@@ -3668,7 +3635,6 @@ function menuColorEgg(rarity) {
 // ── Dice roll ─────────────────────────────────────────────
 function menuRollDice() {
   // Preload player sprite during dice spin
-  if (menuSelectedRegion && state.playerSex) getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
   const stage   = document.getElementById('egg-stage');
   const rollEl  = document.getElementById('dice-roll-display');
   const revealEl= document.getElementById('creature-reveal');
@@ -3765,7 +3731,6 @@ function menuBeginGame() {
   state.currentRegion     = menuSelectedRegion;
   state.homeRegion        = menuSelectedRegion;
   // Preload player sprite
-  getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
   state.mapSeed           = Date.now() % 99991;
   state.map               = generateMap(menuSelectedRegion, state.mapSeed);
 
@@ -3829,7 +3794,6 @@ function menuInit() {
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
     if(!menuSelectedRegion) return;
-    getPlayerSprite(menuSelectedRegion, state.playerSex); // preload
     const rn = MENU_REGIONS[menuSelectedRegion]?.name || menuSelectedRegion;
     document.getElementById('dice-region-label').textContent = rn.toUpperCase();
 
