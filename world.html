@@ -2949,7 +2949,7 @@ const _spriteCache = {};
 function getPlayerSprite(region, sex) {
   const key = PLAYER_SPRITES[region]?.[sex];
   if (!key) return null;
-  if (_spriteCache[key]) return _spriteCache[key].complete && _spriteCache[key].naturalWidth ? _spriteCache[key] : null;
+  if (_spriteCache[key]) return _spriteCache[key].complete && _spriteCache[key].naturalWidth > 0 ? _spriteCache[key] : null;
   const img = new Image();
   img.src = key;
   _spriteCache[key] = img;
@@ -3756,6 +3756,8 @@ function menuBeginGame() {
   state.activeCreatureIdx = 0;
   state.currentRegion     = menuSelectedRegion;
   state.homeRegion        = menuSelectedRegion;
+  // Preload player sprite
+  getPlayerSprite(menuSelectedRegion, state.playerSex);
   state.mapSeed           = Date.now() % 99991;
   state.map               = generateMap(menuSelectedRegion, state.mapSeed);
 
