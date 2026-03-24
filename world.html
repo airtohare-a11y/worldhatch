@@ -680,9 +680,9 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 //  All self-contained — no server required.
 // ═══════════════════════════════════════════════════════════
 
-const TILE   = 24;  // 16-bit SNES style — bigger tiles
-const VIEW_W = 13;
-const VIEW_H = 10;
+const TILE   = 48;  // 16-bit SNES style — bigger tiles
+const VIEW_W = 20;
+const VIEW_H = 15;
 
 // ── TILE TYPES ────────────────────────────────────────────
 const T = {
@@ -2603,7 +2603,17 @@ function render() {
     }
   }
   // Player
-  drawPlayer(ctx);
+  if (_playerImg.complete && _playerImg.naturalWidth > 0) {
+    const sx = (state.px - state.camX) * TILE;
+    const sy = (state.py - state.camY) * TILE;
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(sx + 24, sy + 47, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(_playerImg, sx, sy - 48, 48, 96);
+  } else {
+    drawPlayer(ctx);
+  }
 
   // Minimap
   drawMinimap();
