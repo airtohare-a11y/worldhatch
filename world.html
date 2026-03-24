@@ -3821,6 +3821,7 @@ function menuInit() {
   // Region confirmed → Dice
   document.getElementById('menu-choose-btn').onclick = ()=>{
     if(!menuSelectedRegion) return;
+    getPlayerSprite(menuSelectedRegion, state.playerSex);
     const rn = MENU_REGIONS[menuSelectedRegion]?.name || menuSelectedRegion;
     document.getElementById('dice-region-label').textContent = rn.toUpperCase();
 
