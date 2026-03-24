@@ -2946,17 +2946,16 @@ const PLAYER_SPRITES = {
   },
 };
 const _spriteCache = {};
-const _spriteReady = {};
 function getPlayerSprite(region, sex) {
   const key = PLAYER_SPRITES[region]?.[sex];
   if (!key) return null;
-  if (_spriteReady[key]) return _spriteCache[key];
-  if (_spriteCache[key]) return null;
-  const img = new Image();
-  img.onload = () => { _spriteReady[key] = true; };
-  img.src = key;
-  _spriteCache[key] = img;
-  return null;
+  if (!_spriteCache[key]) {
+    const img = new Image();
+    img.src = key;
+    _spriteCache[key] = img;
+  }
+  const img = _spriteCache[key];
+  return (img.complete && img.naturalWidth > 0) ? img : null;
 }
 
 // ── 16-BIT PLAYER SPRITE ─────────────────────────────────
