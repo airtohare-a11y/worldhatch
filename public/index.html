@@ -2966,12 +2966,15 @@ function drawPlayer(ctx) {
   if (sx < -TILE || sy < -TILE || sx > VIEW_W * TILE || sy > VIEW_H * TILE) return;
   // Use custom sprite if available
   const customSprite = getPlayerSprite(state.currentRegion, state.playerSex);
-  if (customSprite) {
+  if (!customSprite) { const _k='player_dark_male.png'; if(!_spriteCache[_k]){const _i=new Image();_i.src=_k;_spriteCache[_k]=_i;} }
+  const _forceSprite = _spriteCache['player_dark_male.png'];
+  const _useSprite = (_forceSprite && _forceSprite.complete && _forceSprite.naturalWidth>0) ? _forceSprite : customSprite;
+  if (_useSprite) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(sx + 12, sy + 23, 7, 3, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.drawImage(customSprite, sx - 4, sy - 16, 32, 40);
+    ctx.drawImage(_useSprite, sx - 4, sy - 16, 32, 40);
     return;
   }
 
