@@ -2629,323 +2629,371 @@ function p(ctx, x, y, w, h, color) {
 
 function drawTile(ctx, tile, px, py, mx, my) {
   const pal = getRegionPal(tile);
-  const T24 = TILE;
-
-  // Base fill with checkerboard variation
+  const T = TILE;
   const alt = (mx + my) % 2;
-  ctx.fillStyle = alt ? pal.base : pal.sh;
-  ctx.fillRect(px, py, T24, T24);
+  const s = (mx*17+my*13)%12;
 
-  // Top highlight edge
-  ctx.fillStyle = pal.hi;
-  ctx.fillRect(px, py, T24, 2);
-  ctx.fillRect(px, py, 2, T24);
-
-  // Bottom shadow edge
-  ctx.fillStyle = pal.sh;
-  ctx.fillRect(px, py + T24 - 2, T24, 2);
-  ctx.fillRect(px + T24 - 2, py, 2, T24);
+  if (tile === T.GROUND || tile === T.FLOWER) {
+    ctx.fillStyle = alt ? pal.base : pal.sh;
+    ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = pal.hi;
+    if(s<4){ ctx.fillRect(px+s*4+2,py+s*3+2,5,3); ctx.fillRect(px+s*2+10,py+s*4+8,4,2); }
+    ctx.fillStyle = pal.sh;
+    if(s>7){ ctx.fillRect(px+T-s*2-4,py+T-s*2-4,4,3); }
+  } else if (tile === T.GRASS) {
+    ctx.fillStyle = pal.base; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = pal.sh; ctx.fillRect(px, py+T-6, T, 6);
+  } else if (tile === T.PATH) {
+    ctx.fillStyle = '#888068'; ctx.fillRect(px, py, T, T);
+    const row = my%2, col = mx%2;
+    const bx = row ? 2 : T/2+1, by = col ? 3 : T/2+2;
+    const bw = T/2-4, bh = T/2-5;
+    ctx.fillStyle = alt ? '#b4a882' : '#a49870';
+    ctx.fillRect(px+bx, py+by, bw, bh);
+    ctx.fillRect(px+(row?T/2+1:2), py+(col?T/2+2:3), bw, bh);
+    ctx.fillStyle = '#cfc0a0';
+    ctx.fillRect(px+bx+1, py+by+1, bw-3, 3);
+    ctx.fillRect(px+(row?T/2+2:3), py+(col?T/2+3:4), bw-3, 3);
+    ctx.fillStyle = '#686048';
+    ctx.fillRect(px, py, T, 2); ctx.fillRect(px, py, 2, T);
+    ctx.fillRect(px+T/2-1, py, 2, T); ctx.fillRect(px, py+T/2-1, T, 2);
+  } else if (tile === T.WALL) {
+    ctx.fillStyle = '#706050'; ctx.fillRect(px, py, T, T);
+    const rw = my%2;
+    ctx.fillStyle = '#8a7860'; ctx.fillRect(px+(rw?1:T/2+1), py+3, T/2-3, T/2-5);
+    ctx.fillStyle = '#8a7860'; ctx.fillRect(px+(rw?T/2+1:1), py+T/2+3, T/2-3, T/2-5);
+    ctx.fillStyle = '#b8a880'; ctx.fillRect(px+(rw?2:T/2+2), py+4, T/2-7, 4);
+    ctx.fillStyle = '#b8a880'; ctx.fillRect(px+(rw?T/2+2:2), py+T/2+4, T/2-7, 4);
+    ctx.fillStyle = '#484030'; ctx.fillRect(px, py+T/2-1, T, 3);
+    ctx.fillStyle = '#484030'; ctx.fillRect(px, py+T-2, T, 2);
+    ctx.fillStyle = '#484030'; ctx.fillRect(px, py, T, 2);
+    if((mx+my)%4===0){ ctx.fillStyle='#4a6030'; ctx.fillRect(px+3,py+T/2+6,4,3); }
+  } else if (tile === T.WATER) {
+    ctx.fillStyle = '#1848a0'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#2060c8'; ctx.fillRect(px, py+4, T, T-8);
+    ctx.fillStyle = '#3878e0'; ctx.fillRect(px, py+8, T, T/2-8);
+  } else if (tile === T.TREE) {
+    ctx.fillStyle = pal.base; ctx.fillRect(px, py, T, T);
+  } else if (tile === T.TOWN) {
+    ctx.fillStyle = '#a09878'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#bab090'; ctx.fillRect(px+1, py+1, T-2, T-2);
+    ctx.fillStyle = '#d0c8a8'; ctx.fillRect(px+2, py+2, T-4, 5);
+    ctx.fillStyle = '#787060'; ctx.fillRect(px, py+T/2-1, T, 3);
+    ctx.fillStyle = '#787060'; ctx.fillRect(px+T/2-1, py, 3, T);
+    ctx.fillStyle = '#d0c8a8'; ctx.fillRect(px+3, py+T/2+2, T-6, 3);
+  } else if (tile === T.SAND) {
+    ctx.fillStyle = alt ? '#d8be78' : '#c8ae68'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#ead898'; ctx.fillRect(px+3, py+3, T-6, 4);
+    ctx.fillStyle = '#b89848'; ctx.fillRect(px, py+T-4, T, 4);
+    if(s<4){ ctx.fillStyle='#a88838'; ctx.fillRect(px+s*5+2,py+s*4+6,4,3); }
+  } else if (tile === T.CAVE) {
+    ctx.fillStyle = '#382030'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#483040'; ctx.fillRect(px+2, py+2, T-4, T-4);
+    ctx.fillStyle = '#281020'; ctx.fillRect(px+6, py+6, T-12, T-12);
+  } else if (tile === T.SHRINE) {
+    ctx.fillStyle = '#706840'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#908850'; ctx.fillRect(px+2, py+2, T-4, T-4);
+    ctx.fillStyle = '#a89858'; ctx.fillRect(px+4, py+2, T-8, 6);
+  } else if (tile === T.RUIN) {
+    ctx.fillStyle = '#585850'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#706860'; ctx.fillRect(px+1, py+1, T-2, T-2);
+    ctx.fillStyle = '#484840'; ctx.fillRect(px+T/2-1, py, 3, T);
+    ctx.fillStyle = '#484840'; ctx.fillRect(px, py+T/2-1, T, 3);
+  } else if (tile === T.NEST) {
+    ctx.fillStyle = pal.base; ctx.fillRect(px, py, T, T);
+  } else if (tile === T.BRIDGE) {
+    ctx.fillStyle = '#6a4820'; ctx.fillRect(px, py, T, T);
+    for(let i=0;i<5;i++){ ctx.fillStyle=i%2?'#8a6030':'#7a5020'; ctx.fillRect(px+i*10,py+5,8,T-10); }
+    ctx.fillStyle = '#aa8840'; ctx.fillRect(px, py+4, T, 3);
+    ctx.fillStyle = '#503810'; ctx.fillRect(px, py+T-7, T, 3);
+    ctx.fillStyle = '#c8a858'; ctx.fillRect(px, py+3, T, 2);
+    ctx.fillStyle = '#c8a858'; ctx.fillRect(px, py+T-4, T, 2);
+  } else if (tile === T.MINIBOSS) {
+    ctx.fillStyle = '#200404'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#300808'; ctx.fillRect(px+2, py+2, T-4, T-4);
+  } else if (tile === T.BOSS) {
+    ctx.fillStyle = '#100008'; ctx.fillRect(px, py, T, T);
+    ctx.fillStyle = '#200018'; ctx.fillRect(px+2, py+2, T-4, T-4);
+  } else {
+    ctx.fillStyle = pal.base; ctx.fillRect(px, py, T, T);
+  }
 }
 
 function drawTileDetail(ctx, tile, px, py, mx, my) {
-  const pal  = getRegionPal(tile);
-  const af   = animFrame;
-  const T24  = TILE;
+  const pal = getRegionPal(tile);
+  const af  = animFrame;
+  const T   = TILE;
+  const s   = (mx*17+my*13)%12;
 
   if (tile === T.GROUND) {
-    // Grass texture patches
-    const seed = (mx * 7 + my * 13) % 6;
-    ctx.fillStyle = pal.hi;
-    if (seed < 2) {
-      p(ctx, px+3,  py+5,  3, 1, pal.hi);
-      p(ctx, px+14, py+9,  3, 1, pal.hi);
-      p(ctx, px+8,  py+16, 3, 1, pal.hi);
-    }
-    if (seed < 4) {
-      p(ctx, px+18, py+4,  2, 1, pal.acc);
-      p(ctx, px+6,  py+19, 2, 1, pal.acc);
-    }
+    // Scattered pebbles and dirt variation
+    if(s===0){ ctx.fillStyle='#00000022'; ctx.fillRect(px+8,py+10,3,2); ctx.fillRect(px+28,py+30,2,2); }
+    if(s===1){ ctx.fillStyle=pal.hi; ctx.fillRect(px+14,py+20,4,2); }
+    if(s===2){ ctx.fillStyle=pal.acc; ctx.fillRect(px+32,py+12,3,3); }
   }
 
   if (tile === T.GRASS) {
-    // Rich layered grass blades with animation
-    const sway = Math.sin(af * 0.04 + mx * 0.7) * 1;
-    const sw2  = Math.sin(af * 0.05 + my * 0.9) * 1;
-    // Blade cluster 1
-    p(ctx, px+2+sway,  py+10, 2, 9,  pal.hi);
-    p(ctx, px+3+sway,  py+8,  2, 4,  pal.acc);
-    // Blade cluster 2
-    p(ctx, px+8+sw2,   py+11, 2, 9,  pal.base);
-    p(ctx, px+9+sw2,   py+8,  2, 5,  pal.hi);
-    // Blade cluster 3
-    p(ctx, px+15+sway, py+9,  2, 9,  pal.hi);
-    p(ctx, px+16+sway, py+7,  2, 5,  pal.acc);
-    // Blade cluster 4
-    p(ctx, px+20+sw2,  py+10, 2, 8,  pal.base);
-    // Dark ground between blades
-    p(ctx, px+5,  py+18, 3, 3,  pal.sh);
-    p(ctx, px+12, py+19, 3, 2,  pal.sh);
+    // Layered bushy grass clusters like the reference image
+    const sw = Math.sin(af*0.03+mx*0.8)*1.5;
+    const sw2= Math.sin(af*0.04+my*0.7)*1.5;
+    // Dark shadow base
+    ctx.fillStyle=pal.sh;
+    ctx.fillRect(px+2,py+28,12,10); ctx.fillRect(px+18,py+30,14,8); ctx.fillRect(px+36,py+26,10,12);
+    // Mid green body
+    ctx.fillStyle=pal.base;
+    ctx.fillRect(px+2+sw,py+18,12,18); ctx.fillRect(px+18+sw2,py+20,14,16); ctx.fillRect(px+36+sw,py+16,10,18);
+    // Bright highlight tops
+    ctx.fillStyle=pal.hi;
+    ctx.fillRect(px+4+sw,py+12,8,10); ctx.fillRect(px+20+sw2,py+14,10,10); ctx.fillRect(px+37+sw,py+10,8,10);
+    // Accent highlight
+    ctx.fillStyle=pal.acc;
+    ctx.fillRect(px+6+sw,py+10,4,5); ctx.fillRect(px+22+sw2,py+12,5,5); ctx.fillRect(px+39+sw,py+8,4,5);
+    // Ground between clusters
+    ctx.fillStyle=pal.sh;
+    ctx.fillRect(px+14,py+34,4,6); ctx.fillRect(px+32,py+36,4,4);
   }
 
   if (tile === T.TREE) {
-    // Trunk
-    p(ctx, px+9,  py+16, 6, 8,  '#5a3a18');
-    p(ctx, px+10, py+16, 4, 8,  '#7a5228');
+    // Thick trunk
+    ctx.fillStyle='#5a3818'; ctx.fillRect(px+17,py+28,14,20);
+    ctx.fillStyle='#7a5028'; ctx.fillRect(px+19,py+28,8,20);
+    ctx.fillStyle='#3a2010'; ctx.fillRect(px+17,py+38,14,6);
     // Root flare
-    p(ctx, px+7,  py+21, 10, 3, '#4a3010');
-    // Canopy — layered circles
-    p(ctx, px+4,  py+6,  16, 12, pal.sh);
-    p(ctx, px+6,  py+4,  12, 14, pal.base);
-    p(ctx, px+8,  py+2,  8,  6,  pal.hi);
-    p(ctx, px+5,  py+8,  14, 8,  pal.base);
-    // Highlight cluster
-    p(ctx, px+9,  py+4,  4,  3,  pal.acc);
-    p(ctx, px+7,  py+7,  5,  4,  pal.hi);
+    ctx.fillStyle='#4a2e10'; ctx.fillRect(px+12,py+42,8,6); ctx.fillRect(px+28,py+42,8,6);
+    // Canopy shadow layer
+    ctx.fillStyle=pal.sh;
+    ctx.fillRect(px+4,py+8,40,24); ctx.fillRect(px+2,py+12,44,16);
+    // Canopy mid
+    ctx.fillStyle=pal.base;
+    ctx.fillRect(px+6,py+4,36,24); ctx.fillRect(px+4,py+8,40,18);
+    // Canopy highlight
+    ctx.fillStyle=pal.hi;
+    ctx.fillRect(px+10,py+2,28,16); ctx.fillRect(px+8,py+6,32,12);
+    // Bright top highlight
+    ctx.fillStyle=pal.acc;
+    ctx.fillRect(px+14,py+2,18,8); ctx.fillRect(px+16,py+1,14,6);
     // Shadow underside
-    p(ctx, px+6,  py+15, 12, 3,  pal.sh);
+    ctx.fillStyle=pal.sh;
+    ctx.fillRect(px+6,py+24,36,6);
+  }
+
+  if (tile === T.FLOWER) {
+    // Ground base
+    ctx.fillStyle=pal.base; ctx.fillRect(px,py,T,T);
+    ctx.fillStyle=pal.hi; if(s<4){ ctx.fillRect(px+s*4+2,py+s*3+2,5,3); }
+    // Flower stems
+    ctx.fillStyle='#2a8010';
+    ctx.fillRect(px+8,py+28,2,12); ctx.fillRect(px+22,py+26,2,14); ctx.fillRect(px+36,py+30,2,10);
+    // Flower heads — alternate colors per tile
+    const fc1 = (mx+my)%3===0?'#ffcc00':(mx+my)%3===1?'#ff6688':'#ffffff';
+    const fc2 = (mx+my)%3===0?'#ff8800':(mx+my)%3===1?'#ff88aa':'#ddddff';
+    ctx.fillStyle=fc1;
+    ctx.fillRect(px+5,py+22,8,7); ctx.fillRect(px+19,py+20,8,7);
+    ctx.fillStyle=fc2;
+    ctx.fillRect(px+33,py+24,8,7);
+    // White centers
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(px+8,py+24,2,2); ctx.fillRect(px+22,py+22,2,2); ctx.fillRect(px+36,py+26,2,2);
   }
 
   if (tile === T.WATER) {
-    // Animated water layers
-    const wv1 = Math.floor(af * 0.06 + mx * 0.5) % 3;
-    const wv2 = Math.floor(af * 0.04 + my * 0.4) % 4;
-    // Deep layer
-    p(ctx, px, py+4,  T24, 8, pal.sh);
-    p(ctx, px, py+12, T24, 8, pal.base);
-    // Wave highlights
-    const wx1 = ((mx*4 + af/4) % (T24-6));
-    const ww1 = 4 + wv1;
-    p(ctx, px+wx1, py+5,  ww1, 2, pal.acc);
-    p(ctx, px+wx1, py+13, ww1, 2, pal.hi);
-    const wfx = ((my*5 + af/3 + 8) % (T24-4));
-    p(ctx, px+wfx, py+9, 6, 2, '#88bbff');
-    // Foam edge
-    if (wv2 === 0) p(ctx, px+2, py+3, 8, 1, '#aaccff');
-    if (wv2 === 1) p(ctx, px+10, py+3, 8, 1, '#aaccff');
-    // Sparkle
-    if ((af + mx*3 + my*5) % 40 < 3)
-      p(ctx, px+T24/2, py+T24/3, 2, 2, '#ffffff');
-  }
-
-  if (tile === T.WALL) {
-    // Stone wall with mortar lines
-    const row = my % 2;
-    p(ctx, px+1,        py+2,  10, 9, pal.hi);
-    p(ctx, px+12,       py+2,  10, 9, row ? pal.base : pal.hi);
-    p(ctx, px+(row?6:0),py+12, 10, 9, pal.base);
-    p(ctx, px+(row?0:6),py+12, 10, 9, pal.sh);
-    // Mortar
-    p(ctx, px, py+11, T24, 2, '#2a1808');
-    p(ctx, px+(row?5:11), py+2, 2, 9, '#2a1808');
-    // Lichen
-    if ((mx*11+my*7)%5===0) p(ctx, px+4, py+4, 3, 2, '#3a5a20');
+    // Deep water layers
+    const w1 = Math.floor(af*0.05+mx*0.6)%T;
+    const w2 = Math.floor(af*0.03+my*0.5)%T;
+    // Mid water
+    ctx.fillStyle='#2468d8'; ctx.fillRect(px,py+6,T,T-12);
+    // Surface shimmer bands
+    ctx.fillStyle='#4888f0';
+    ctx.fillRect(px,py+10,T,4); ctx.fillRect(px,py+22,T,3); ctx.fillRect(px,py+34,T,3);
+    // Bright sparkle highlights
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    const sparkX = (w1+mx*7)%38+4;
+    const sparkX2= (w2+my*11)%32+8;
+    ctx.fillRect(px+sparkX, py+12, 4, 2);
+    ctx.fillRect(px+sparkX2,py+28, 3, 2);
+    // Lily pads (occasional)
+    if((mx*7+my*11)%8===0){
+      ctx.fillStyle='#2a8830'; ctx.fillRect(px+8,py+20,14,10);
+      ctx.fillStyle='#38aa3c'; ctx.fillRect(px+9,py+21,12,8);
+      ctx.fillStyle='#ff8888'; ctx.fillRect(px+14,py+22,3,3);
+    }
+    if((mx*5+my*9)%10===0){
+      ctx.fillStyle='#2a8830'; ctx.fillRect(px+28,py+30,12,8);
+      ctx.fillStyle='#38aa3c'; ctx.fillRect(px+29,py+31,10,6);
+    }
+    // Sparkle pixel
+    if((af+mx*3+my*7)%30<3){ ctx.fillStyle='#ffffff'; ctx.fillRect(px+T/3,py+T/4,2,2); }
   }
 
   if (tile === T.PATH) {
-    // Dirt path with pebbles
-    const seed = (mx*5+my*11)%8;
-    p(ctx, px+2, py+2, T24-4, T24-4, pal.hi);
-    // Pebbles
-    if (seed<4) { p(ctx,px+4, py+6, 3, 2, pal.sh); }
-    if (seed<6) { p(ctx,px+14,py+14,2, 2, pal.sh); }
-    if (seed<3) { p(ctx,px+8, py+18,4, 2, pal.acc); }
-    // Worn tracks
-    p(ctx, px+9, py, 6, T24, pal.base);
-    p(ctx, px+10,py, 4, T24, pal.hi);
+    // Pebble accents on cobblestones
+    if(s<3){ ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillRect(px+s*8+4,py+s*6+4,3,2); }
+    // Worn center groove
+    ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fillRect(px+T/2-8,py+4,16,T-8);
+  }
+
+  if (tile === T.WALL) {
+    // Lichen patches
+    if((mx*11+my*7)%6===0){ ctx.fillStyle='#4a6828'; ctx.fillRect(px+4,py+8,6,3); }
+    if((mx*9+my*13)%7===0){ ctx.fillStyle='#3a5820'; ctx.fillRect(px+T-10,py+T/2+4,5,3); }
+    // Top edge shadow
+    ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.fillRect(px,py,T,3);
   }
 
   if (tile === T.CAVE) {
-    // Outer rock face
-    p(ctx, px,    py,    T24, T24, pal.sh);
-    p(ctx, px+1,  py+1,  T24-2, T24-2, pal.base);
-    // Wide cave mouth — dark void
-    p(ctx, px+3,  py+10, 18, 14, '#000000');
-    p(ctx, px+4,  py+8,  16, 14, '#05000a');
-    p(ctx, px+5,  py+6,  14, 12, '#08000f');
-    // Arched entrance top
-    p(ctx, px+3,  py+8,  4,  4,  pal.acc);
-    p(ctx, px+17, py+8,  4,  4,  pal.acc);
-    p(ctx, px+4,  py+6,  16, 4,  pal.acc);
-    p(ctx, px+5,  py+4,  14, 4,  pal.hi);
-    p(ctx, px+6,  py+3,  12, 3,  '#ffffff');
-    // Rock texture sides
-    p(ctx, px+1,  py+10, 3,  8,  pal.hi);
-    p(ctx, px+20, py+10, 3,  8,  pal.sh);
-    // Lichen on rocks
-    p(ctx, px+2,  py+6,  3, 2, '#2a5018');
-    p(ctx, px+19, py+8,  3, 2, '#2a5018');
-    // Pulsing inner glow
-    const cglow = Math.sin(af*0.04)*0.2+0.25;
-    const gcols = ['rgba(80,0,120,','rgba(0,60,160,','rgba(120,0,80,','rgba(0,120,60,'];
-    const gi = Object.keys(REGIONS).indexOf(state.currentRegion)%gcols.length;
-    ctx.fillStyle = gcols[gi]+cglow+')';
-    ctx.fillRect(px+6, py+8, 12, 12);
-    // Stalactites hanging from arch
-    p(ctx, px+7,  py+8,  2, 5, '#1a0828');
-    p(ctx, px+11, py+8,  2, 4, '#221133');
-    p(ctx, px+15, py+8,  2, 6, '#1a0828');
-    p(ctx, px+19, py+8,  1, 3, '#221133');
-    // Sign / marker stone
-    p(ctx, px+10, py+2,  4,  4, pal.acc);
-    p(ctx, px+11, py+3,  2,  2, '#ffffff');
-    // Ground at entrance
-    p(ctx, px+4,  py+22, 16, 2, '#1a1020');
-    p(ctx, px+3,  py+22, 18, 1, '#2a1830');
+    // Arch entrance
+    ctx.fillStyle='#5a4048'; ctx.fillRect(px+6,py+4,T-12,6);
+    ctx.fillStyle='#6a5058'; ctx.fillRect(px+4,py+6,T-8,8);
+    // Dark void
+    ctx.fillStyle='#080008'; ctx.fillRect(px+8,py+12,T-16,T-16);
+    // Glowing inner
+    const cg=Math.sin(af*0.04)*0.2+0.3;
+    ctx.fillStyle=`rgba(100,0,160,${cg})`; ctx.fillRect(px+10,py+14,T-20,T-20);
+    // Stalactites
+    ctx.fillStyle='#4a3848';
+    ctx.fillRect(px+10,py+12,3,6); ctx.fillRect(px+18,py+12,2,4); ctx.fillRect(px+28,py+12,3,7); ctx.fillRect(px+36,py+12,2,5);
+    // Rocky sides
+    ctx.fillStyle='#6a5060'; ctx.fillRect(px+2,py+14,4,T-18); ctx.fillRect(px+T-6,py+14,4,T-18);
+    // Rock highlights
+    ctx.fillStyle='#8a7080'; ctx.fillRect(px+3,py+15,2,6); ctx.fillRect(px+T-5,py+15,2,6);
   }
 
   if (tile === T.SHRINE) {
     // Stone base
-    p(ctx, px+3,  py+18, 18, 5, '#553300');
-    p(ctx, px+4,  py+17, 16, 3, '#664400');
+    ctx.fillStyle='#604820'; ctx.fillRect(px+4,py+32,T-8,10);
+    ctx.fillStyle='#806030'; ctx.fillRect(px+6,py+30,T-12,6);
     // Pillar
-    p(ctx, px+9,  py+6,  6, 14, '#7a5c00');
-    p(ctx, px+10, py+6,  4, 14, '#9a7800');
+    ctx.fillStyle='#908040'; ctx.fillRect(px+18,py+10,12,22);
+    ctx.fillStyle='#b0a050'; ctx.fillRect(px+20,py+10,8,22);
     // Top ornament
-    p(ctx, px+6,  py+4,  12, 4,  '#aa8800');
-    p(ctx, px+8,  py+2,  8,  4,  '#cc9900');
-    p(ctx, px+10, py+1,  4,  3,  '#ffcc00');
-    // Pulsing glow
-    const shrine_glow = Math.sin(af*0.06)*0.35+0.55;
-    ctx.fillStyle = `rgba(255,180,0,${shrine_glow*0.5})`;
-    ctx.fillRect(px+7, py+2, 10, 14);
-    p(ctx, px+11, py+8, 2, 6, `rgba(255,220,100,${shrine_glow})`);
+    ctx.fillStyle='#c09838'; ctx.fillRect(px+12,py+6,T-24,8);
+    ctx.fillStyle='#e0b840'; ctx.fillRect(px+14,py+2,T-28,8);
+    ctx.fillStyle='#ffd050'; ctx.fillRect(px+18,py+1,12,5);
+    // Glow
+    const sg=Math.sin(af*0.05)*0.3+0.5;
+    ctx.fillStyle=`rgba(255,200,50,${sg*0.4})`; ctx.fillRect(px+10,py+2,T-20,26);
+    // Lanterns
+    ctx.fillStyle='#cc8820'; ctx.fillRect(px+6,py+18,6,8); ctx.fillRect(px+T-12,py+18,6,8);
+    ctx.fillStyle=`rgba(255,180,0,${sg*0.8})`; ctx.fillRect(px+7,py+19,4,5); ctx.fillRect(px+T-11,py+19,4,5);
   }
 
   if (tile === T.RUIN) {
-    // Crumbled stone blocks
-    p(ctx, px+1,  py+12, 8,  11, pal.hi);
-    p(ctx, px+2,  py+11, 6,  2,  pal.acc);
-    p(ctx, px+13, py+8,  9,  15, pal.base);
-    p(ctx, px+14, py+7,  7,  3,  pal.acc);
+    // Broken walls
+    ctx.fillStyle='#686858'; ctx.fillRect(px+2,py+18,16,T-18);
+    ctx.fillStyle='#787868'; ctx.fillRect(px+3,py+16,12,4);
+    ctx.fillStyle='#585848'; ctx.fillRect(px+T-18,py+10,16,T-10);
+    ctx.fillStyle='#686858'; ctx.fillRect(px+T-17,py+8,12,4);
     // Rubble
-    p(ctx, px+9,  py+18, 4,  3,  pal.sh);
-    p(ctx, px+5,  py+20, 5,  2,  pal.sh);
+    ctx.fillStyle='#585848'; ctx.fillRect(px+18,py+34,8,6); ctx.fillRect(px+10,py+40,10,4);
+    ctx.fillStyle='#484838'; ctx.fillRect(px+20,py+38,6,4);
     // Cracks
-    p(ctx, px+3,  py+14, 1,  6,  '#1a1a1a');
-    p(ctx, px+15, py+10, 1,  5,  '#1a1a1a');
+    ctx.fillStyle='#282818'; ctx.fillRect(px+4,py+22,2,10); ctx.fillRect(px+T-6,py+14,2,8);
     // Moss
-    p(ctx, px+1,  py+13, 4,  2,  '#2a5010');
-    p(ctx, px+14, py+8,  3,  2,  '#2a5010');
+    ctx.fillStyle='#3a6020'; ctx.fillRect(px+3,py+20,6,3); ctx.fillRect(px+T-15,py+10,5,3);
   }
 
   if (tile === T.NEST) {
-    // Egg nest — twigs and golden egg
-    const pulse = Math.sin(af*0.08)*0.4+0.7;
-    // Nest twigs
-    p(ctx, px+4,  py+14, 16, 5,  '#6a4020');
-    p(ctx, px+6,  py+12, 12, 5,  '#7a4c28');
-    p(ctx, px+3,  py+15, 4,  3,  '#5a3418');
-    p(ctx, px+17, py+15, 4,  3,  '#5a3418');
-    // Egg
-    ctx.fillStyle = `rgba(255,200,0,${pulse})`;
-    ctx.fillRect(px+8, py+6, 8, 10);
-    p(ctx, px+9,  py+5,  6, 10, `rgba(255,220,50,${pulse})`);
-    p(ctx, px+10, py+4,  4, 10, '#ffe050');
-    // Egg highlight
-    p(ctx, px+10, py+6,  2, 3,  '#ffffff');
-    // Glow halo
-    ctx.fillStyle = `rgba(255,180,0,${pulse*0.3})`;
-    ctx.fillRect(px+4, py+2, 16, 18);
-  }
-
-  if (tile === T.FLOWER) {
-    // Flower patch — multiple blooms
-    const fswap = Math.floor(af*0.02+mx) % 2;
-    const fcol  = fswap ? '#ff66aa' : '#ffaa22';
-    const fcol2 = fswap ? '#cc3388' : '#cc8800';
-    p(ctx, px+3,  py+8,  3, 3, fcol);
-    p(ctx, px+4,  py+7,  1, 1, '#ffffff');
-    p(ctx, px+12, py+10, 3, 3, fcol2);
-    p(ctx, px+13, py+9,  1, 1, '#ffffff');
-    p(ctx, px+7,  py+14, 3, 3, fcol);
-    p(ctx, px+8,  py+13, 1, 1, '#ffffff');
-    p(ctx, px+18, py+7,  3, 3, fcol2);
-    // Stems
-    p(ctx, px+4,  py+11, 1, 4, '#2a7010');
-    p(ctx, px+13, py+13, 1, 3, '#2a7010');
-    p(ctx, px+8,  py+17, 1, 4, '#2a7010');
-    p(ctx, px+19, py+10, 1, 5, '#2a7010');
+    // Nest twigs ring
+    ctx.fillStyle='#6a3e18'; ctx.fillRect(px+4,py+22,T-8,8);
+    ctx.fillStyle='#7a4e20'; ctx.fillRect(px+6,py+18,T-12,8);
+    ctx.fillStyle='#5a3010'; ctx.fillRect(px+4,py+26,6,4); ctx.fillRect(px+T-10,py+26,6,4);
+    // Inner nest
+    ctx.fillStyle='#4a2808'; ctx.fillRect(px+10,py+22,T-20,8);
+    // Glowing egg
+    const np=Math.sin(af*0.07)*0.4+0.7;
+    ctx.fillStyle=`rgba(255,200,0,${np*0.3})`; ctx.fillRect(px+6,py+4,T-12,20);
+    ctx.fillStyle=`rgba(255,220,50,${np*0.5})`; ctx.fillRect(px+12,py+6,T-24,16);
+    ctx.fillStyle='#ffe060'; ctx.fillRect(px+16,py+8,T-32,12);
+    ctx.fillStyle='#fff080'; ctx.fillRect(px+18,py+10,T-36,6);
+    ctx.fillStyle='#ffffff'; ctx.fillRect(px+20,py+11,6,3);
   }
 
   if (tile === T.TOWN) {
-    // Cobblestone plaza
-    const row2 = my % 2, col2 = mx % 2;
-    p(ctx, px, py, T24, T24, row2===col2 ? '#8a7858' : '#9a8868');
-    p(ctx, px, py, T24, 2, '#aa9878');
-    p(ctx, px, py, 2, T24, '#aa9878');
-    p(ctx, px+T24-2, py, 2, T24, '#6a5838');
-    p(ctx, px, py+T24-2, T24, 2, '#6a5838');
-    // Cobble joints
-    p(ctx, px+11, py, 2, T24, '#6a5030');
-    p(ctx, px, py+11, T24, 2, '#6a5030');
-  }
-
-  if (tile === T.BRIDGE) {
-    // Wooden bridge planks
-    p(ctx, px, py+4, T24, T24-8, '#8a6030');
-    for(let i=0;i<4;i++) p(ctx,px+i*6,py+4,4,T24-8,'#9a7040');
-    p(ctx, px, py+4, T24, 3, '#aa8848');
-    p(ctx, px, py+T24-7, T24, 3, '#6a4820');
-    // Rope rails
-    p(ctx, px, py+2, T24, 2, '#cc9944');
-    p(ctx, px, py+T24-4, T24, 2, '#cc9944');
-  }
-
-  if (tile === T.SIGN) {
-    p(ctx, px+10, py+8, 4, 14, '#6a4820');
-    p(ctx, px+6, py+4, 12, 10, '#aa8030');
-    p(ctx, px+7, py+5, 10, 8, '#cc9a40');
-    const a = (af*0.02)%1;
-    p(ctx, px+8, py+6, 8, 2, `rgba(255,220,100,${0.3+a*0.2})`);
-    p(ctx, px+8, py+9, 6, 1, `rgba(180,140,60,0.4)`);
-  }
-
-  if (tile === T.MINIBOSS) {
-    // Red danger floor
-    p(ctx, px, py, T24, T24, '#200404');
-    const pulse = Math.sin(af*0.08)*0.3+0.5;
-    ctx.fillStyle=`rgba(255,50,20,${pulse*0.4})`;
-    ctx.fillRect(px,py,T24,T24);
-    // Skull marks
-    p(ctx, px+8, py+6, 8, 6, `rgba(255,80,40,${pulse})`);
-    p(ctx, px+10, py+8, 4, 3, '#000000');
-    // Warning border
-    ctx.strokeStyle=`rgba(255,80,20,${pulse})`;
-    ctx.lineWidth=2;
-    ctx.strokeRect(px+1,py+1,T24-2,T24-2);
-    // Pulsing exclamation
-    p(ctx, px+11, py+3, 2, 8, `rgba(255,200,0,${pulse})`);
-    p(ctx, px+11, py+13, 2, 3, `rgba(255,200,0,${pulse})`);
-  }
-
-  if (tile === T.BOSS) {
-    // Dark menacing floor
-    p(ctx, px, py, T24, T24, '#100008');
-    const pulse = Math.sin(af*0.06)*0.4+0.6;
-    ctx.fillStyle=`rgba(220,0,60,${pulse*0.5})`;
-    ctx.fillRect(px,py,T24,T24);
-    // Concentric rings
-    for(let r=2;r<12;r+=3){
-      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/14)})`;
-      ctx.lineWidth=1;
-      ctx.strokeRect(px+r,py+r,T24-r*2,T24-r*2);
-    }
-    // Boss crown symbol
-    p(ctx, px+6, py+14, 12, 6, `rgba(255,0,80,${pulse})`);
-    p(ctx, px+6, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
-    p(ctx, px+11, py+6, 2, 10, `rgba(255,100,0,${pulse})`);
-    p(ctx, px+16, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+    // Cobble detail
+    if(s<4){ ctx.fillStyle='rgba(0,0,0,0.1)'; ctx.fillRect(px+s*6+3,py+s*4+3,4,2); }
+    // Subtle worn marks
+    ctx.fillStyle='rgba(0,0,0,0.06)'; ctx.fillRect(px+T/4,py+4,T/2,T-8);
   }
 
   if (tile === T.SAND) {
-    // Desert sand with ripples
-    const rip  = Math.floor(af*0.02+mx+my) % T24;
-    p(ctx, px+0,  py+rip%8,     T24, 2, pal.hi);
-    p(ctx, px+0,  py+(rip%8)+10,T24, 2, pal.acc);
+    // Ripple marks
+    const rip=(af*0.015+mx*0.3+my*0.2)%1;
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    ctx.fillRect(px+2,py+Math.floor(rip*T*0.6)+4,T-4,2);
+    ctx.fillRect(px+4,py+Math.floor(rip*T*0.6)+14,T-8,2);
     // Small rocks
-    const sr = (mx*9+my*7)%7;
-    if (sr<3) p(ctx, px+4, py+10, 4, 3, pal.sh);
-    if (sr<5) p(ctx, px+16,py+16, 3, 2, pal.sh);
+    if(s<3){ ctx.fillStyle='#9a7830'; ctx.fillRect(px+s*8+4,py+s*6+8,5,4); ctx.fillStyle='#b89040'; ctx.fillRect(px+s*8+5,py+s*6+8,3,2); }
+  }
+
+  if (tile === T.CHEST) {
+    // Chest body
+    ctx.fillStyle='#8a6020'; ctx.fillRect(px+8,py+20,T-16,T-24);
+    ctx.fillStyle='#aa8030'; ctx.fillRect(px+10,py+18,T-20,8);
+    ctx.fillStyle='#6a4810'; ctx.fillRect(px+8,py+20,T-16,4);
+    // Lid
+    ctx.fillStyle='#cc9a38'; ctx.fillRect(px+8,py+12,T-16,10);
+    ctx.fillStyle='#e8b840'; ctx.fillRect(px+10,py+13,T-20,4);
+    // Lock
+    ctx.fillStyle='#ffd040'; ctx.fillRect(px+T/2-4,py+22,8,6);
+    ctx.fillStyle='#ffea80'; ctx.fillRect(px+T/2-2,py+23,4,3);
+    // Metal corners
+    ctx.fillStyle='#c8a030';
+    ctx.fillRect(px+8,py+12,4,4); ctx.fillRect(px+T-12,py+12,4,4);
+    ctx.fillRect(px+8,py+T-8,4,4); ctx.fillRect(px+T-12,py+T-8,4,4);
+  }
+
+  if (tile === T.MINIBOSS) {
+    const pulse=Math.sin(af*0.08)*0.35+0.55;
+    ctx.fillStyle=`rgba(255,40,20,${pulse*0.4})`; ctx.fillRect(px,py,T,T);
+    // Warning marks
+    ctx.fillStyle=`rgba(255,100,0,${pulse})`;
+    ctx.fillRect(px+T/2-2,py+4,4,16); ctx.fillRect(px+4,py+T/2-2,16,4);
+    ctx.fillRect(px+T-8,py+T/2-2,4,4);
+    // Border flash
+    ctx.strokeStyle=`rgba(255,60,0,${pulse})`; ctx.lineWidth=2;
+    ctx.strokeRect(px+2,py+2,T-4,T-4);
+  }
+
+  if (tile === T.BOSS) {
+    const pulse=Math.sin(af*0.05)*0.4+0.6;
+    ctx.fillStyle=`rgba(200,0,60,${pulse*0.5})`; ctx.fillRect(px,py,T,T);
+    // Concentric rings
+    for(let r=3;r<18;r+=4){
+      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/20)})`;
+      ctx.lineWidth=1.5; ctx.strokeRect(px+r,py+r,T-r*2,T-r*2);
+    }
+    // Crown symbol
+    ctx.fillStyle=`rgba(255,20,80,${pulse})`;
+    ctx.fillRect(px+8,py+20,T-16,8);
+    ctx.fillRect(px+8,py+12,4,10); ctx.fillRect(px+T/2-2,py+8,4,14); ctx.fillRect(px+T-12,py+12,4,10);
+    ctx.fillRect(px+6,py+28,T-12,6);
+  }
+
+  if (tile === T.SIGN) {
+    // Post
+    ctx.fillStyle='#6a4820'; ctx.fillRect(px+T/2-3,py+16,6,T-16);
+    ctx.fillStyle='#7a5830'; ctx.fillRect(px+T/2-2,py+16,4,T-16);
+    // Board
+    ctx.fillStyle='#aa8030'; ctx.fillRect(px+6,py+6,T-12,14);
+    ctx.fillStyle='#c89840'; ctx.fillRect(px+7,py+7,T-14,10);
+    ctx.fillStyle='#ddb050'; ctx.fillRect(px+8,py+8,T-16,4);
+    // Text lines
+    ctx.fillStyle='#6a4010';
+    ctx.fillRect(px+10,py+9,T-20,2); ctx.fillRect(px+12,py+13,T-24,2);
+    // Nails
+    ctx.fillStyle='#888060';
+    ctx.fillRect(px+7,py+7,3,3); ctx.fillRect(px+T-10,py+7,3,3);
+  }
+
+  if (tile === T.BRIDGE) {
+    // Wood grain on planks
+    if(s<6){
+      ctx.fillStyle='rgba(0,0,0,0.1)';
+      ctx.fillRect(px+s*8,py+8,1,T-16);
+    }
+    // Rope detail
+    ctx.fillStyle='#c8a040'; ctx.fillRect(px,py+4,T,2);
+    ctx.fillStyle='#a88030'; ctx.fillRect(px,py+T-6,T,2);
   }
 }
 
