@@ -1819,7 +1819,17 @@ async function playerAction(actionId) {
     if (typeMult < 1) blogLog('Not very effective...', 'log-info');
 
     const powerBoost = actionId === 'power' ? 1.5 : actionId === 'special' ? 2.5 : 1.0;
-    const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost));
+    // Apply skill attack multipliers
+    let skillAtkMult = 1.0;
+    const pcSkills = state.creatures[state.activeCreatureIdx];
+    if (pcSkills && pcSkills.skills) {
+      const tree2 = SKILL_TREES[p.element] || SKILL_TREES.default;
+      tree2.forEach(sk => {
+        const rank = pcSkills.skills[sk.id] || 0;
+        if (rank > 0 && sk.effect.atkMult) skillAtkMult += sk.effect.atkMult * rank;
+      });
+    }
+    const dmg = Math.max(1, Math.round((p.attack / e.defense) * 15 * outcome.mult * typeMult * powerBoost * skillAtkMult));
 
     e.currentHp = Math.max(0, e.currentHp - dmg);
     flashHit('enemy');
@@ -1885,6 +1895,29 @@ async function enemyTurn() {
       state.creatures[state.activeCreatureIdx].energy = p.energy;
     }
     blogLog(`${e.name} deals ${dmg} damage! (+${hitEnergyGain} energy)`, 'log-hit');
+    // Apply thorn/reflect skill effects on the player creature
+    const pc = state.creatures[state.activeCreatureIdx];
+    if (pc && pc.skills) {
+      const tree = SKILL_TREES[pc.element] || SKILL_TREES.default;
+      let thornTotal = 0;
+      tree.forEach(sk => {
+        const rank = pc.skills[sk.id] || 0;
+        if (rank > 0 && sk.effect.thornDmg) thornTotal += sk.effect.thornDmg * rank;
+      });
+      if (thornTotal > 0 && e.currentHp > 0) {
+        e.currentHp = Math.max(0, e.currentHp - thornTotal);
+        blogLog(`${pc.name} thorns reflect ${thornTotal} damage back!`, 'log-crit');
+      }
+      // dmgReduce (Void Mantle etc) - already applied via defense but log it
+      tree.forEach(sk => {
+        const rank = pc.skills[sk.id] || 0;
+        if (rank > 0 && sk.effect.regenHp) {
+          pc.currentHp = Math.min(pc.hp, pc.currentHp + sk.effect.regenHp * rank);
+          p.currentHp = pc.currentHp;
+          blogLog(`${pc.name} regenerates ${sk.effect.regenHp * rank} HP!`, 'log-heal');
+        }
+      });
+    }
   }
 
   updateBattleUI();
