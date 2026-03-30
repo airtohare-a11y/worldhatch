@@ -269,6 +269,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 /* ══════════════════════════════════════════════
    OPENING MENU
 ══════════════════════════════════════════════ */
+.hidden{display:none !important;}
 #menu-overlay{
   position:fixed;inset:0;z-index:9999;
   background:#080010;
@@ -1269,7 +1270,7 @@ function resizeCanvas() {
 document.addEventListener('keydown', e => {
   // Don't swallow events when opening menu is visible
   const menuOpen = document.getElementById('menu-overlay') &&
-                   document.getElementById('menu-overlay').style.display !== 'none';
+                   !document.getElementById('menu-overlay').classList.contains('hidden');
   if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = true;
   if (e.key === 'e' || e.key === 'E') handleInteract();
@@ -1278,7 +1279,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => {
   const menuOpen = document.getElementById('menu-overlay') &&
-                   document.getElementById('menu-overlay').style.display !== 'none';
+                   !document.getElementById('menu-overlay').classList.contains('hidden');
   if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = false;
 });
@@ -3699,7 +3700,7 @@ function menuDrawGlobe() {
   c.strokeStyle='#c8960c'; c.lineWidth=2;
   c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
   globeFrame++;
-  if(document.getElementById('menu-overlay').style.display!=='none')
+  if(!document.getElementById('menu-overlay').classList.contains('hidden'))
     requestAnimationFrame(menuDrawGlobe);
 }
 
@@ -3851,7 +3852,7 @@ function menuBeginGame() {
   document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
   document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
 
-  document.getElementById('menu-overlay').style.display='none';
+  document.getElementById('menu-overlay').classList.add('hidden');
   document.getElementById('world').style.pointerEvents='all';
   updateHUD();
 }
@@ -3894,7 +3895,7 @@ function menuInit() {
 
   // Title → Region select
   if(hasSave())document.getElementById('menu-load-btn').style.display='';
-  document.getElementById('menu-load-btn').onclick=()=>{ showMenuSlotPicker('LOAD GAME',(slot,info)=>{ if(!info){showMenuDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeMenuDialog}]);return;} if(loadGame(slot)){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';} }); };
+  document.getElementById('menu-load-btn').onclick=()=>{ showMenuSlotPicker('LOAD GAME',(slot,info)=>{ if(!info){showMenuDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeMenuDialog}]);return;} if(loadGame(slot)){document.getElementById('menu-overlay').classList.add('hidden');document.getElementById('world').style.pointerEvents='all';} }); };
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('profile');
   };
@@ -3940,7 +3941,7 @@ function menuInit() {
 
   // Back button on regions (ESC)
   window.addEventListener('keydown', e=>{
-    if(e.key==='Escape'&&document.getElementById('menu-overlay').style.display!=='none'){
+    if(e.key==='Escape'&&!document.getElementById('menu-overlay').classList.contains('hidden')){
       if(document.getElementById('menu-profile').style.display!=='none') menuScreen('title');
       else if(document.getElementById('menu-regions').style.display!=='none') menuScreen('profile');
       else if(document.getElementById('menu-dice').style.display!=='none')  menuScreen('regions');
