@@ -446,6 +446,8 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 <div id="menu-overlay">
   <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
 
+  <div id="menu-dialog" style="display:none;position:absolute;inset:0;z-index:10001;background:rgba(8,0,20,0.97);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;"></div>
+
   <!-- SCREEN 0: TITLE -->
   <div id="menu-title">
     <div class="menu-logo">WORLDHATCH</div>
@@ -3751,6 +3753,34 @@ function menuBeginGame() {
 }
 
 // ── Wire everything — called at bottom of init() ──────────
+function showMenuDialog(title, opts) {
+  const d = document.getElementById('menu-dialog');
+  d.innerHTML = '';
+  const t = document.createElement('div');
+  t.style.cssText = "font-family:'Press Start 2P',monospace;font-size:9px;color:#ffcc44;margin-bottom:12px;";
+  t.textContent = title;
+  d.appendChild(t);
+  opts.forEach(o => {
+    const btn = document.createElement('button');
+    btn.style.cssText = "font-family:'Press Start 2P',monospace;font-size:7px;background:#0a0018;color:#cc88ff;border:1px solid #660099;padding:8px 12px;cursor:pointer;border-radius:3px;width:100%;max-width:320px;touch-action:manipulation;margin:2px 0;";
+    btn.textContent = o.label;
+    btn.onclick = o.fn;
+    d.appendChild(btn);
+  });
+  d.style.display = 'flex';
+}
+function closeMenuDialog() {
+  document.getElementById('menu-dialog').style.display = 'none';
+}
+function showMenuSlotPicker(onPick) {
+  const opts = [1,2,3].map(slot => {
+    const info = getSlotInfo(slot);
+    const lbl = info ? 'SLOT ' + slot + ': ' + info.name + ' Lv' + info.level + ' — ' + info.region : 'SLOT ' + slot + ': EMPTY';
+    return { label: lbl, fn: () => { closeMenuDialog(); onPick(slot, info); } };
+  });
+  opts.push({ label: 'Cancel', fn: closeMenuDialog });
+  showMenuDialog('LOAD GAME', opts);
+}
 function menuInit() {
   menuDrawStars();
   menuBuildRegions();
@@ -3760,8 +3790,8 @@ function menuInit() {
   // Title → Region select
   if(hasSave())document.getElementById('menu-load-btn').style.display='';
   document.getElementById('menu-load-btn').onclick=()=>{
-    showSlotPicker('LOAD GAME',(slot,info)=>{
-      if(!info){showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]);return;}
+    showMenuSlotPicker((slot,info)=>{
+      if(!info){showMenuDialog('EMPTY',[{label:'OK',fn:closeMenuDialog}]);return;}
       if(loadGame(slot)){document.getElementById('menu-overlay').style.display='none';document.getElementById('world').style.pointerEvents='all';}
     });
   };
