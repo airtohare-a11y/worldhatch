@@ -18,7 +18,7 @@ body{background:#080010;display:flex;flex-direction:column;align-items:center;ju
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:all;}
 
 /* ── HUD ── */
 #hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
@@ -3700,8 +3700,7 @@ function menuDrawGlobe() {
   c.strokeStyle='#c8960c'; c.lineWidth=2;
   c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
   globeFrame++;
-  if(!document.getElementById('menu-overlay').classList.contains('hidden'))
-    requestAnimationFrame(menuDrawGlobe);
+  requestAnimationFrame(menuDrawGlobe);
 }
 
 // ── Build region grid ─────────────────────────────────────
