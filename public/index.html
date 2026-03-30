@@ -452,6 +452,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
     <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
     <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
     <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
+    <button class="menu-start-btn" id="menu-load-btn" style="display:none;background:#0a1a00;border:3px solid #228844;color:#44ff88;">LOAD GAME</button>
   </div>
 
   <!-- SCREEN 1: REGION SELECT -->
@@ -3548,8 +3549,7 @@ function menuDrawGlobe() {
   c.strokeStyle='#c8960c'; c.lineWidth=2;
   c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
   globeFrame++;
-  if(document.getElementById('menu-overlay').style.display!=='none')
-    requestAnimationFrame(menuDrawGlobe);
+  requestAnimationFrame(menuDrawGlobe);
 }
 
 // ── Build region grid ─────────────────────────────────────
@@ -3711,6 +3711,13 @@ function menuInit() {
   requestAnimationFrame(menuDrawGlobe);
 
   // Title → Region select
+  if(hasSave())document.getElementById('menu-load-btn').style.display='';
+  document.getElementById('menu-load-btn').onclick=()=>{
+    if(loadGame()){
+      document.getElementById('menu-overlay').style.display='none';
+      document.getElementById('world').style.pointerEvents='all';
+    }
+  };
   document.getElementById('menu-start-btn').onclick = ()=>{
     menuScreen('regions');
   };
