@@ -181,17 +181,17 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 }
 .player-plate{border-color:rgba(50,100,200,0.5);}
 .enemy-plate{border-color:rgba(200,50,50,0.5);}
-.b-name{font-size:6px;color:#eeccff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;}
-.b-level{font-size:5px;color:#8866aa;}
+.b-name{display:none;}
+.b-level{display:none;}
 .b-elem{font-size:6px;color:#cc88ff;}
-.b-bars{width:100%;display:flex;flex-direction:column;gap:3px;}
+.b-bars{width:100%;display:flex;flex-direction:column;gap:6px;}
 .b-bar-row{display:flex;align-items:center;gap:3px;}
-.b-bar-label{font-size:5px;color:#664488;width:12px;flex-shrink:0;}
-.b-bar-track{flex:1;height:7px;background:#0a0018;border:1px solid #220044;border-radius:2px;overflow:hidden;}
+.b-bar-label{font-size:8px;color:#9966bb;width:18px;flex-shrink:0;}
+.b-bar-track{flex:1;height:16px;background:#0a0018;border:2px solid #220044;border-radius:4px;overflow:hidden;}
 .b-bar-fill{height:100%;border-radius:1px;transition:width 0.3s;}
 .b-hp{background:linear-gradient(90deg,#22cc44,#44ff88);}
 .b-en{background:linear-gradient(90deg,#cc8800,#ffcc00);}
-.b-bar-val{font-size:5px;color:#886699;width:28px;text-align:right;flex-shrink:0;}
+.b-bar-val{font-size:9px;color:#cc88ff;width:52px;text-align:right;flex-shrink:0;}
 
 /* ── MINIMAP ── */
 #minimap{position:absolute;top:8px;right:8px;background:rgba(8,0,20,0.85);border:2px solid #6622aa;border-radius:3px;padding:4px;cursor:crosshair;}
