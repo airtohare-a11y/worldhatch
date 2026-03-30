@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;}body{background:#080010;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;height:100vh;width:100vw;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;margin:0;padding:0;}
+html,body{height:100%;width:100%;margin:0;padding:0;}body{background:#080010;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;height:100vh;width:100vw;font-family:'Press Start 2P',monospace;overflow:hidden;position:relative;margin:0;padding:0;}
 
 
 
@@ -17,7 +17,7 @@ html{height:100%;}body{background:#080010;display:flex;flex-direction:column;ali
 #top-bar .player-info{font-size:7px;color:#cc88ff;}
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
-#game-canvas-wrap{position:relative;overflow:hidden;background:#000;flex:1;min-height:0;}
+#game-canvas-wrap{position:relative;overflow:hidden;background:#000;flex:1;width:100%;display:block;}
 canvas#world{display:block;image-rendering:pixelated;width:100%;height:100%;cursor:none;pointer-events:none;position:absolute;inset:0;}
 
 /* ── HUD ── */
