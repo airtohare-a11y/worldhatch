@@ -855,6 +855,9 @@ const CREATURE_ART = {
 function getArt(creatureId) {
   return CREATURE_ART[creatureId] || null;
 }
+function getArtForCreature(creature) {
+  return CREATURE_ART[creature.speciesId] || CREATURE_ART[creature.id] || null;
+}
 
 // ── MAP GENERATOR ────────────────────────────────────────
 const MAP_W = 128;
@@ -1408,6 +1411,7 @@ function triggerEncounter() {
   const wildMult   = 1 + (wildLevel - 1) * 0.08;
   const wild = {
     ...wildTemplate,
+    speciesId:  wildTemplate.id,
     level:      wildLevel,
     currentHp:  Math.round(wildTemplate.hp * wildMult),
     maxHp:      Math.round(wildTemplate.hp * wildMult),
@@ -1959,7 +1963,7 @@ function disableMoveButtons(disabled) {
 
 // ── BATTLE ART LOADER ────────────────────────────────────
 function loadBattleArt(side, creature) {
-  const artPath = getArt(creature.id);
+  const artPath = getArtForCreature(creature);
   const imgEl   = document.getElementById(`${side}-art-img`);
   const canvas  = document.getElementById(`${side}-sprite-fallback`);
 
@@ -2408,7 +2412,7 @@ function showCreatureMenu() {
     return;
   }
   const opts = state.creatures.map((c, i) => ({
-    label: `${getArt(c.id)?'[ART] ':''}${c.name} Lv${c.level || 1} [${c.element.toUpperCase()}] HP:${c.currentHp||c.hp}/${c.hp}`,
+    label: `${getArtForCreature(c)?'[ART] ':''}${c.name} Lv${c.level || 1} [${c.element.toUpperCase()}] HP:${c.currentHp||c.hp}/${c.hp}`,
     fn: () => { state.activeCreatureIdx = i; closeDialog(); updateHUD(); }
   }));
   opts.push({ label: 'Cancel', fn: closeDialog });
@@ -2515,7 +2519,7 @@ function updateHUD() {
   const portImg  = document.getElementById('hud-portrait-img');
   const portIcon = document.getElementById('hud-portrait-icon');
   if (pc && portImg && portIcon) {
-    const art = getArt(pc.id);
+    const art = getArtForCreature(pc);
     if (art) {
       portImg.src = art;
       portImg.style.display = 'block';
