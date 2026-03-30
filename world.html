@@ -140,7 +140,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
   image-rendering:pixelated;
   display:block;
 }
-.enemy-img{transform:scaleX(-1);}
+.enemy-img{transform:scaleX(1);}
 .battle-sprite-canvas{
   image-rendering:pixelated;
   width:96px;height:96px;
@@ -2455,6 +2455,7 @@ function hatchEgg(idx) {
 
   const creature = {
     ...species,
+    speciesId: species.id,
     hp:        hpRoll.final,
     atk:       atkRoll.final,
     attack:    atkRoll.final,
@@ -3727,6 +3728,7 @@ function menuBeginGame() {
   const c0 = menuRolledCreature;
   const starter={
     ...c0,
+    speciesId: c0.id,
     hp:      c0.hp,
     currentHp:c0.hp,
     maxHp:   c0.hp,
