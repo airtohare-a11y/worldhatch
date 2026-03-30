@@ -75,16 +75,16 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 .en-color{background:linear-gradient(90deg,#cc8800,#ffcc00);}
 .stat-label{font-size:6px;color:#553377;margin-bottom:2px;}
 .battle-log{
-  width:100%;max-width:700px;
+  width:100%;max-width:100%;
   background:#060010;border:2px solid #2a0044;border-radius:3px;
-  padding:8px;height:70px;overflow-y:auto;
+  padding:8px;height:80px;overflow-y:auto;
   font-size:6px;color:#997acc;line-height:2.2;
 }
 .log-hit{color:#ffcc44;}
 .log-crit{color:#44ff88;text-shadow:0 0 4px #00cc44;}
 .log-miss{color:#ff6644;}
 .log-info{color:#7755aa;}
-.battle-moves{display:flex;gap:6px;flex-wrap:wrap;width:100%;max-width:700px;justify-content:center;}
+.battle-moves{display:flex;gap:8px;flex-wrap:wrap;width:100%;max-width:100%;justify-content:center;}
 .move-btn{
   font-family:'Press Start 2P',monospace;font-size:6px;
   background:#0e0022;color:#cc88ff;
@@ -116,7 +116,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 
 /* ── BATTLE SCENE ── */
 #battle-scene{
-  width:100%;max-width:700px;height:420px;flex-shrink:0;
+  width:100%;max-width:100%;height:60vh;flex-shrink:0;
   position:relative;display:flex;
   align-items:stretch;gap:0;
   border:2px solid #440088;border-radius:6px;overflow:hidden;
