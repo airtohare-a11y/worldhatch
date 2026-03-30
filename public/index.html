@@ -856,7 +856,17 @@ function getArt(creatureId) {
   return CREATURE_ART[creatureId] || null;
 }
 function getArtForCreature(creature) {
-  return CREATURE_ART[creature.speciesId] || CREATURE_ART[creature.id] || null;
+  if (CREATURE_ART[creature.speciesId]) return CREATURE_ART[creature.speciesId];
+  if (CREATURE_ART[creature.id]) return CREATURE_ART[creature.id];
+  // Match by name for saved games without speciesId
+  const nameKey = creature.name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  if (CREATURE_ART[nameKey]) return CREATURE_ART[nameKey];
+  // Match against all keys by checking creature name against region creatures
+  for (const [rid, region] of Object.entries(REGIONS)) {
+    const match = region.creatures.find(c => c.name === creature.name);
+    if (match && CREATURE_ART[match.id]) return CREATURE_ART[match.id];
+  }
+  return null;
 }
 
 // ── MAP GENERATOR ────────────────────────────────────────
