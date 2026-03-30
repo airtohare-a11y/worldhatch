@@ -18,7 +18,7 @@ body{background:#080010;display:flex;flex-direction:column;align-items:center;ju
 #top-bar .region-name{font-size:8px;color:#ffcc44;text-shadow:0 0 8px #ffaa00;}
 #top-bar .time-weather{font-size:7px;color:#8855aa;text-align:right;}
 #game-canvas-wrap{position:relative;overflow:hidden;background:#000;}
-canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:all;}
+canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;pointer-events:none;}
 
 /* ── HUD ── */
 #hud{display:flex;gap:8px;padding:6px 10px;background:#0d001a;border-top:2px solid #440088;flex-wrap:wrap;}
@@ -269,7 +269,6 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 /* ══════════════════════════════════════════════
    OPENING MENU
 ══════════════════════════════════════════════ */
-.hidden{display:none !important;}
 #menu-overlay{
   position:fixed;inset:0;z-index:9999;
   background:#080010;
@@ -280,7 +279,7 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
   cursor:default;
 }
 /* title screen */
-#menu-title, #menu-regions, #menu-dice, #menu-profile{
+#menu-title, #menu-regions, #menu-dice{
   position:relative;z-index:10000;
 }
 #menu-title{
@@ -447,31 +446,12 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 <div id="menu-overlay">
   <canvas id="menu-stars" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
 
-  <!-- MENU DIALOG -->
-  <div id="menu-dialog" style="display:none;position:absolute;inset:0;z-index:10001;background:rgba(8,0,20,0.97);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;">
-    <div id="menu-dlg-title" style="font-family:'Press Start 2P',monospace;font-size:10px;color:#ffcc44;margin-bottom:8px;"></div>
-    <div id="menu-dlg-text" style="font-family:'Press Start 2P',monospace;font-size:7px;color:#cc88ff;margin-bottom:8px;text-align:center;line-height:1.8;"></div>
-    <div id="menu-dlg-opts" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px;"></div>
-  </div>
-
   <!-- SCREEN 0: TITLE -->
   <div id="menu-title">
     <div class="menu-logo">WORLDHATCH</div>
     <div class="menu-sub">HATCH  ·  BATTLE  ·  EXPLORE</div>
     <canvas id="menu-globe" width="200" height="200" style="image-rendering:pixelated;"></canvas>
     <button class="menu-start-btn" id="menu-start-btn">PRESS START</button>
-    <button class="menu-start-btn" id="menu-load-btn" style="display:none;background:#0a1a00;border-color:#228844;color:#44ff88;">LOAD GAME</button>
-  </div>
-
-  <!-- SCREEN 1b: NAME & SEX -->
-  <div id="menu-profile" style="display:none;flex-direction:column;align-items:center;gap:16px;">
-    <div class="menu-regions-title">YOUR TRAINER</div>
-    <input id="profile-name" type="text" maxlength="12" placeholder="ENTER NAME" style="font-family:'Press Start 2P',monospace;font-size:9px;background:#0a0018;color:#ffcc44;border:2px solid #cc8800;padding:10px 14px;border-radius:4px;text-align:center;width:220px;outline:none;"/>
-    <div style="display:flex;gap:12px;">
-      <button class="menu-start-btn" id="sex-male-btn" style="border:3px solid #ffcc44;">MALE</button>
-      <button class="menu-start-btn" id="sex-female-btn" style="border:3px solid #5522aa;">FEMALE</button>
-    </div>
-    <button class="menu-choose-btn ready" id="profile-next-btn">NEXT ▶</button>
   </div>
 
   <!-- SCREEN 1: REGION SELECT -->
@@ -675,16 +655,15 @@ canvas#world{display:block;image-rendering:pixelated;width:100%;cursor:none;poin
 </div>
 
 <script>
-const _playerImg = new Image(); _playerImg.src = 'Darkart.png';
 // ═══════════════════════════════════════════════════════════
 //  WORLDHATCH — Browser Top-Down Explorer
 //  Pixel art tile engine, encounter system, battle engine
 //  All self-contained — no server required.
 // ═══════════════════════════════════════════════════════════
 
-const TILE   = 48;  // 16-bit SNES style — bigger tiles
-const VIEW_W = 20;
-const VIEW_H = 15;
+const TILE   = 24;  // 16-bit SNES style — bigger tiles
+const VIEW_W = 13;
+const VIEW_H = 10;
 
 // ── TILE TYPES ────────────────────────────────────────────
 const T = {
@@ -1148,7 +1127,6 @@ function bridge(map, cx, cy, horizontal) {
 const state = {
   // Player
   playerName:  'Trainer',
-  playerSex:   'male',
   homeRegion:  'suncrest_expanse',
   px: 64, py: 64,   // player tile position
   playerDir: 'down',
@@ -1270,7 +1248,7 @@ function resizeCanvas() {
 document.addEventListener('keydown', e => {
   // Don't swallow events when opening menu is visible
   const menuOpen = document.getElementById('menu-overlay') &&
-                   !document.getElementById('menu-overlay').classList.contains('hidden');
+                   document.getElementById('menu-overlay').style.display !== 'none';
   if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = true;
   if (e.key === 'e' || e.key === 'E') handleInteract();
@@ -1279,7 +1257,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => {
   const menuOpen = document.getElementById('menu-overlay') &&
-                   !document.getElementById('menu-overlay').classList.contains('hidden');
+                   document.getElementById('menu-overlay').style.display !== 'none';
   if (menuOpen) return;
   state.keys[e.key.toLowerCase()] = false;
 });
@@ -2212,141 +2190,121 @@ function closeDialog() {
 //  SAVE / LOAD SYSTEM
 // ═══════════════════════════════════════════════════════════
 
-const SAVE_PREFIX = 'worldhatch_slot_';
+const SAVE_KEY = 'worldhatch_save';
 
-function getSaveKey(slot) { return SAVE_PREFIX + slot; }
-
-function saveGame(slot) {
+function saveGame() {
   try {
     const save = {
       version: 1,
-      playerName:        state.playerName,
-      playerSex:         state.playerSex,
-      homeRegion:        state.homeRegion,
-      currentRegion:     state.currentRegion,
-      mapSeed:           state.mapSeed,
+      playerName:       state.playerName,
+      homeRegion:       state.homeRegion,
+      currentRegion:    state.currentRegion,
+      mapSeed:          state.mapSeed,
       px: state.px, py: state.py,
-      playerDir:         state.playerDir,
-      coins:             state.coins,
-      time:              state.time,
-      weather:           state.weather,
-      activeCreatureIdx: state.activeCreatureIdx,
-      creatures:         state.creatures,
-      eggs:              state.eggs,
-      exploredTiles:     [...state.exploredTiles],
-      visitedNests:      [...state.visitedNests],
-      visitedPoI:        [...state.visitedPoI],
-      defeatedBosses:    [...state.defeatedBosses],
-      savedAt:           new Date().toLocaleString(),
+      playerDir:        state.playerDir,
+      coins:            state.coins,
+      time:             state.time,
+      weather:          state.weather,
+      activeCreatureIdx:state.activeCreatureIdx,
+      creatures:        state.creatures,
+      eggs:             state.eggs,
+      exploredTiles:    [...state.exploredTiles],
+      visitedNests:     [...state.visitedNests],
+      visitedPoI:       [...state.visitedPoI],
+      defeatedBosses:   [...state.defeatedBosses],
+      savedAt:          new Date().toLocaleString(),
     };
-    localStorage.setItem(getSaveKey(slot), JSON.stringify(save));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
     return true;
-  } catch(e) { return false; }
+  } catch(e) {
+    return false;
+  }
 }
 
-function loadGame(slot) {
+function loadGame() {
   try {
-    const raw = localStorage.getItem(getSaveKey(slot));
+    const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const save = JSON.parse(raw);
     if (!save || save.version !== 1) return false;
-    state.playerName        = save.playerName        || 'Trainer';
-    state.playerSex         = save.playerSex         || 'male';
-    state.homeRegion        = save.homeRegion         || 'suncrest_expanse';
-    state.currentRegion     = save.currentRegion      || 'suncrest_expanse';
-    state.mapSeed           = save.mapSeed            || (Date.now() % 99991);
-    state.px                = save.px                 || 64;
-    state.py                = save.py                 || 64;
-    state.playerDir         = save.playerDir          || 'down';
-    state.coins             = save.coins              || 0;
-    state.time              = save.time               || 8;
-    state.weather           = save.weather            || 'clear';
-    state.activeCreatureIdx = save.activeCreatureIdx  ?? -1;
-    state.creatures         = save.creatures          || [];
-    state.eggs              = save.eggs               || [];
+
+    state.playerName        = save.playerName       || 'Trainer';
+    state.homeRegion        = save.homeRegion        || 'suncrest_expanse';
+    state.currentRegion     = save.currentRegion     || 'suncrest_expanse';
+    state.mapSeed           = save.mapSeed           || (Date.now() % 99991);
+    state.px                = save.px                || 64;
+    state.py                = save.py                || 64;
+    state.playerDir         = save.playerDir         || 'down';
+    state.coins             = save.coins             || 0;
+    state.time              = save.time              || 8;
+    state.weather           = save.weather           || 'clear';
+    state.activeCreatureIdx = save.activeCreatureIdx ?? -1;
+    state.creatures         = save.creatures         || [];
+    state.eggs              = save.eggs              || [];
     state.exploredTiles     = new Set(save.exploredTiles  || []);
     state.visitedNests      = new Set(save.visitedNests   || []);
     state.visitedPoI        = new Set(save.visitedPoI     || []);
     state.defeatedBosses    = new Set(save.defeatedBosses || []);
+
+    // Rebuild map from saved seed + region
     state.map  = generateMap(state.currentRegion, state.mapSeed);
     state.camX = Math.max(0, Math.min(MAP_W - VIEW_W, state.px - Math.floor(VIEW_W/2)));
     state.camY = Math.max(0, Math.min(MAP_H - VIEW_H, state.py - Math.floor(VIEW_H/2)));
+
     document.getElementById('top-region').textContent = REGIONS[state.currentRegion]?.name || state.currentRegion;
     document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[state.currentRegion]?.name||'').toUpperCase()}`;
     updateHUD();
     return save.savedAt || true;
-  } catch(e) { return false; }
-}
-
-function getSlotInfo(slot) {
-  try {
-    const raw = localStorage.getItem(getSaveKey(slot));
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    if (!s || s.version !== 1) return null;
-    const pc = s.creatures && s.creatures[s.activeCreatureIdx];
-    return {
-      name: s.playerName || 'Trainer',
-      region: REGIONS[s.currentRegion]?.name || s.currentRegion || '?',
-      level: pc ? pc.level : 1,
-      savedAt: s.savedAt || '',
-    };
-  } catch(e) { return null; }
+  } catch(e) {
+    return false;
+  }
 }
 
 function hasSave() {
-  return [1,2,3].some(slot => !!localStorage.getItem(getSaveKey(slot)));
+  return !!localStorage.getItem(SAVE_KEY);
 }
 
-function deleteSlot(slot) {
-  localStorage.removeItem(getSaveKey(slot));
-}
-
-function showSlotPicker(title, onPick) {
-  const opts = [1,2,3].map(slot => {
-    const info = getSlotInfo(slot);
-    const lbl = info
-      ? `SLOT ${slot}: ${info.name} Lv${info.level} — ${info.region}`
-      : `SLOT ${slot}: EMPTY`;
-    return { label: lbl, fn: () => { closeDialog(); onPick(slot, info); } };
-  });
-  opts.push({ label: 'Cancel', fn: closeDialog });
-  showDialog(title, 'Choose a slot:', opts);
+function deleteSave() {
+  localStorage.removeItem(SAVE_KEY);
 }
 
 function showSaveMenu() {
   closeDialog();
+  const saved = hasSave();
   const opts = [
     { label: 'SAVE GAME', fn: () => {
+        const ok = saveGame();
         closeDialog();
-        showSlotPicker('SAVE GAME', (slot) => {
-          const ok = saveGame(slot);
-          showDialog('SAVED', ok ? `Saved to Slot ${slot}!` : 'Save failed.', [{label:'OK',fn:closeDialog}]);
-        });
-    }},
-    { label: 'LOAD GAME', fn: () => {
-        closeDialog();
-        showSlotPicker('LOAD GAME', (slot, info) => {
-          if (!info) { showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]); return; }
-          showDialog('LOAD', `Load Slot ${slot}?`, [
-            { label:'LOAD', fn:()=>{ loadGame(slot); closeDialog(); document.getElementById('world').style.pointerEvents='all'; }},
-            { label:'Cancel', fn:closeDialog },
-          ]);
-        });
-    }},
-    { label: 'DELETE SAVE', fn: () => {
-        closeDialog();
-        showSlotPicker('DELETE SAVE', (slot, info) => {
-          if (!info) { showDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeDialog}]); return; }
-          showDialog('DELETE', `Delete Slot ${slot}?`, [
-            { label:'DELETE', fn:()=>{ deleteSlot(slot); closeDialog(); showDialog('DELETED','Slot deleted.',[{label:'OK',fn:closeDialog}]); }},
-            { label:'Cancel', fn:closeDialog },
-          ]);
-        });
+        showDialog('GAME SAVED', ok ? 'Your progress has been saved!' : 'Save failed — storage may be full.', [{ label:'OK', fn:closeDialog }]);
     }},
   ];
+  if (saved) {
+    opts.push({ label: 'LOAD GAME', fn: () => {
+      closeDialog();
+      showDialog('LOAD GAME', 'Load your saved game? Current progress will be lost.', [
+        { label:'LOAD', fn:() => {
+          const savedAt = loadGame();
+          closeDialog();
+          if(savedAt) {
+            showDialog('LOADED', `Game loaded!\nSaved: ${savedAt}`, [{ label:'OK', fn:closeDialog }]);
+          } else {
+            showDialog('ERROR', 'Could not load save file.', [{ label:'OK', fn:closeDialog }]);
+          }
+        }},
+        { label:'Cancel', fn:closeDialog },
+      ]);
+    }});
+    opts.push({ label: 'DELETE SAVE', fn: () => {
+      closeDialog();
+      showDialog('DELETE SAVE', 'Delete your saved game permanently?', [
+        { label:'DELETE', fn:() => { deleteSave(); closeDialog(); showDialog('DELETED','Save file deleted.',[{label:'OK',fn:closeDialog}]); }},
+        { label:'Cancel', fn:closeDialog },
+      ]);
+    }});
+  }
   opts.push({ label:'Cancel', fn:closeDialog });
-  showDialog('SAVE & LOAD', 'What would you like to do?', opts);
+  const info = saved ? 'A save file exists.' : 'No save file found.';
+  showDialog('SAVE & LOAD', info, opts);
 }
 
 function showMainMenu() {
@@ -2360,7 +2318,6 @@ function showMainMenu() {
       { label: 'Switch Creature', fn: showCreatureMenu },
       { label: 'Hatch Egg',       fn: showHatchMenu },
       { label: 'Save / Load',     fn: showSaveMenu },
-      { label: 'Quit Game',       fn: ()=>{ closeDialog(); showDialog('QUIT GAME','Save before quitting?',[{label:'SAVE & QUIT',fn:()=>{saveGame();location.reload();}},{label:'QUIT WITHOUT SAVING',fn:()=>{location.reload();}},{label:'Cancel',fn:closeDialog}]); } },
       { label: 'Close',           fn: closeDialog },
     ]
   );
@@ -2605,17 +2562,7 @@ function render() {
     }
   }
   // Player
-  if (_playerImg.complete && _playerImg.naturalWidth > 0) {
-    const sx = (state.px - state.camX) * TILE;
-    const sy = (state.py - state.camY) * TILE;
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.beginPath();
-    ctx.ellipse(sx + 24, sy + 47, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.drawImage(_playerImg, sx, sy - 48, 48, 96);
-  } else {
-    drawPlayer(ctx);
-  }
+  drawPlayer(ctx);
 
   // Minimap
   drawMinimap();
@@ -2630,423 +2577,325 @@ function p(ctx, x, y, w, h, color) {
 
 function drawTile(ctx, tile, px, py, mx, my) {
   const pal = getRegionPal(tile);
-  const T = TILE;
-  const alt = (mx + my) % 2;
-  const s = (mx*17+my*13)%12;
+  const T24 = TILE;
 
-  // Always fill base
-  ctx.fillStyle = pal.base;
-  ctx.fillRect(px, py, T, T);
+  // Base fill with checkerboard variation
+  const alt = (mx + my) % 2;
+  ctx.fillStyle = alt ? pal.base : pal.sh;
+  ctx.fillRect(px, py, T24, T24);
+
+  // Top highlight edge
+  ctx.fillStyle = pal.hi;
+  ctx.fillRect(px, py, T24, 2);
+  ctx.fillRect(px, py, 2, T24);
+
+  // Bottom shadow edge
+  ctx.fillStyle = pal.sh;
+  ctx.fillRect(px, py + T24 - 2, T24, 2);
+  ctx.fillRect(px + T24 - 2, py, 2, T24);
 }
 
 function drawTileDetail(ctx, tile, px, py, mx, my) {
-  const pal = getRegionPal(tile);
-  const af  = animFrame;
-  const T   = TILE;
-  const s   = (mx*17+my*13)%12;
-  const alt = (mx+my)%2;
+  const pal  = getRegionPal(tile);
+  const af   = animFrame;
+  const T24  = TILE;
 
-  // ── GROUND ──
   if (tile === T.GROUND) {
-    ctx.fillStyle = alt ? pal.base : pal.sh;
-    ctx.fillRect(px, py, T, T);
-    // Organic dirt patches
+    // Grass texture patches
+    const seed = (mx * 7 + my * 13) % 6;
     ctx.fillStyle = pal.hi;
-    if(s<3){ ctx.beginPath(); ctx.ellipse(px+s*8+6,py+s*6+8,5,3,0,0,Math.PI*2); ctx.fill(); }
-    if(s>8){ ctx.beginPath(); ctx.ellipse(px+T-s*2-4,py+T-s*2-6,4,2,0.3,0,Math.PI*2); ctx.fill(); }
-    ctx.fillStyle = pal.sh;
-    if(s===4||s===7){ ctx.beginPath(); ctx.ellipse(px+T/2+s,py+T/2-s+4,6,3,0.2,0,Math.PI*2); ctx.fill(); }
+    if (seed < 2) {
+      p(ctx, px+3,  py+5,  3, 1, pal.hi);
+      p(ctx, px+14, py+9,  3, 1, pal.hi);
+      p(ctx, px+8,  py+16, 3, 1, pal.hi);
+    }
+    if (seed < 4) {
+      p(ctx, px+18, py+4,  2, 1, pal.acc);
+      p(ctx, px+6,  py+19, 2, 1, pal.acc);
+    }
   }
 
-  // ── GRASS ──
-  else if (tile === T.GRASS) {
-    ctx.fillStyle = pal.base; ctx.fillRect(px,py,T,T);
-    const sw  = Math.sin(af*0.03+mx*0.8)*2;
-    const sw2 = Math.sin(af*0.04+my*0.7)*2;
-    // Shadow base blobs
-    ctx.fillStyle = pal.sh;
-    ctx.beginPath(); ctx.ellipse(px+10,py+36,10,7,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+28,py+38,12,7,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+42,py+34,8,6,0,0,Math.PI*2); ctx.fill();
-    // Mid body blobs
-    ctx.fillStyle = pal.base;
-    ctx.beginPath(); ctx.ellipse(px+10+sw,py+28,10,10,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+28+sw2,py+26,13,11,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+42+sw,py+24,9,10,0,0,Math.PI*2); ctx.fill();
-    // Highlight tops
-    ctx.fillStyle = pal.hi;
-    ctx.beginPath(); ctx.ellipse(px+9+sw,py+20,8,8,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+27+sw2,py+17,11,9,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+41+sw,py+16,7,8,0,0,Math.PI*2); ctx.fill();
-    // Bright accent
-    ctx.fillStyle = pal.acc;
-    ctx.beginPath(); ctx.ellipse(px+9+sw,py+16,5,5,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+27+sw2,py+12,7,6,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+41+sw,py+11,4,5,0,0,Math.PI*2); ctx.fill();
+  if (tile === T.GRASS) {
+    // Rich layered grass blades with animation
+    const sway = Math.sin(af * 0.04 + mx * 0.7) * 1;
+    const sw2  = Math.sin(af * 0.05 + my * 0.9) * 1;
+    // Blade cluster 1
+    p(ctx, px+2+sway,  py+10, 2, 9,  pal.hi);
+    p(ctx, px+3+sway,  py+8,  2, 4,  pal.acc);
+    // Blade cluster 2
+    p(ctx, px+8+sw2,   py+11, 2, 9,  pal.base);
+    p(ctx, px+9+sw2,   py+8,  2, 5,  pal.hi);
+    // Blade cluster 3
+    p(ctx, px+15+sway, py+9,  2, 9,  pal.hi);
+    p(ctx, px+16+sway, py+7,  2, 5,  pal.acc);
+    // Blade cluster 4
+    p(ctx, px+20+sw2,  py+10, 2, 8,  pal.base);
+    // Dark ground between blades
+    p(ctx, px+5,  py+18, 3, 3,  pal.sh);
+    p(ctx, px+12, py+19, 3, 2,  pal.sh);
   }
 
-  // ── TREE ──
-  else if (tile === T.TREE) {
-    ctx.fillStyle = pal.base; ctx.fillRect(px,py,T,T);
+  if (tile === T.TREE) {
     // Trunk
-    ctx.fillStyle='#4a3010';
-    ctx.beginPath(); ctx.roundRect(px+18,py+30,12,18,2); ctx.fill();
-    ctx.fillStyle='#6a4820';
-    ctx.beginPath(); ctx.roundRect(px+20,py+30,7,18,2); ctx.fill();
+    p(ctx, px+9,  py+16, 6, 8,  '#5a3a18');
+    p(ctx, px+10, py+16, 4, 8,  '#7a5228');
     // Root flare
-    ctx.fillStyle='#3a2008';
-    ctx.beginPath(); ctx.ellipse(px+24,py+46,14,5,0,0,Math.PI*2); ctx.fill();
-    // Canopy layers - shadow
-    ctx.fillStyle=pal.sh;
-    ctx.beginPath(); ctx.ellipse(px+24,py+22,20,16,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+16,py+18,12,10,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+33,py+20,11,9,0,0,Math.PI*2); ctx.fill();
-    // Canopy mid
-    ctx.fillStyle=pal.base;
-    ctx.beginPath(); ctx.ellipse(px+24,py+18,18,14,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+15,py+14,11,9,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+34,py+16,10,8,0,0,Math.PI*2); ctx.fill();
-    // Canopy highlight
-    ctx.fillStyle=pal.hi;
-    ctx.beginPath(); ctx.ellipse(px+24,py+13,13,10,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+16,py+10,8,7,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+33,py+11,7,6,0,0,Math.PI*2); ctx.fill();
-    // Bright top
-    ctx.fillStyle=pal.acc;
-    ctx.beginPath(); ctx.ellipse(px+23,py+8,8,6,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+16,py+6,5,4,0,0,Math.PI*2); ctx.fill();
+    p(ctx, px+7,  py+21, 10, 3, '#4a3010');
+    // Canopy — layered circles
+    p(ctx, px+4,  py+6,  16, 12, pal.sh);
+    p(ctx, px+6,  py+4,  12, 14, pal.base);
+    p(ctx, px+8,  py+2,  8,  6,  pal.hi);
+    p(ctx, px+5,  py+8,  14, 8,  pal.base);
+    // Highlight cluster
+    p(ctx, px+9,  py+4,  4,  3,  pal.acc);
+    p(ctx, px+7,  py+7,  5,  4,  pal.hi);
+    // Shadow underside
+    p(ctx, px+6,  py+15, 12, 3,  pal.sh);
   }
 
-  // ── WATER ──
-  else if (tile === T.WATER) {
-    const w1 = (af*0.8+mx*14)%T;
-    const w2 = (af*0.6+my*11+8)%T;
-    ctx.fillStyle='#1040a0'; ctx.fillRect(px,py,T,T);
-    ctx.fillStyle='#1858c0'; ctx.fillRect(px,py+4,T,T-8);
-    ctx.fillStyle='#2070d8'; ctx.fillRect(px,py+8,T,T/2);
-    // Animated wave bands
-    ctx.fillStyle='#3888ee';
-    ctx.fillRect(px,py+Math.floor(w1*0.4)+4,T,3);
-    ctx.fillRect(px,py+Math.floor(w2*0.35)+16,T,2);
-    ctx.fillRect(px,py+Math.floor(w1*0.25)+28,T,2);
-    // Sparkles
-    ctx.fillStyle='rgba(255,255,255,0.7)';
-    const sx1=(w1+mx*9)%40+3, sx2=(w2+my*7)%36+6;
-    ctx.beginPath(); ctx.ellipse(px+sx1,py+14,3,2,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+sx2,py+30,2,1.5,0,0,Math.PI*2); ctx.fill();
-    // Lily pads
-    if((mx*7+my*11)%8===0){
-      ctx.fillStyle='#206a28';
-      ctx.beginPath(); ctx.ellipse(px+12,py+26,9,6,0.3,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#2a8a34';
-      ctx.beginPath(); ctx.ellipse(px+12,py+25,7,5,0.3,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#ff8899';
-      ctx.beginPath(); ctx.ellipse(px+13,py+23,2,2,0,0,Math.PI*2); ctx.fill();
-    }
-    if((mx*5+my*9)%10===0){
-      ctx.fillStyle='#206a28';
-      ctx.beginPath(); ctx.ellipse(px+34,py+34,8,5,0.5,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#2a8a34';
-      ctx.beginPath(); ctx.ellipse(px+34,py+33,6,4,0.5,0,Math.PI*2); ctx.fill();
-    }
-    // Bright sparkle flash
-    if((af+mx*3+my*7)%40<3){
-      ctx.fillStyle='#ffffff';
-      ctx.beginPath(); ctx.ellipse(px+T/3,py+T/4,2,2,0,0,Math.PI*2); ctx.fill();
-    }
+  if (tile === T.WATER) {
+    // Animated water layers
+    const wv1 = Math.floor(af * 0.06 + mx * 0.5) % 3;
+    const wv2 = Math.floor(af * 0.04 + my * 0.4) % 4;
+    // Deep layer
+    p(ctx, px, py+4,  T24, 8, pal.sh);
+    p(ctx, px, py+12, T24, 8, pal.base);
+    // Wave highlights
+    const wx1 = ((mx*4 + af/4) % (T24-6));
+    const ww1 = 4 + wv1;
+    p(ctx, px+wx1, py+5,  ww1, 2, pal.acc);
+    p(ctx, px+wx1, py+13, ww1, 2, pal.hi);
+    const wfx = ((my*5 + af/3 + 8) % (T24-4));
+    p(ctx, px+wfx, py+9, 6, 2, '#88bbff');
+    // Foam edge
+    if (wv2 === 0) p(ctx, px+2, py+3, 8, 1, '#aaccff');
+    if (wv2 === 1) p(ctx, px+10, py+3, 8, 1, '#aaccff');
+    // Sparkle
+    if ((af + mx*3 + my*5) % 40 < 3)
+      p(ctx, px+T24/2, py+T24/3, 2, 2, '#ffffff');
   }
 
-  // ── PATH ──
-  else if (tile === T.PATH) {
-    // Sandy mortar base
-    ctx.fillStyle='#888060'; ctx.fillRect(px,py,T,T);
-    // Cobblestones as rounded rects
-    const row=my%2, col=mx%2;
-    const stones = row ? [
-      {x:2,y:3,w:20,h:19}, {x:25,y:3,w:20,h:19},
-      {x:2,y:25,w:20,h:19}, {x:25,y:25,w:20,h:19}
-    ] : [
-      {x:2,y:3,w:20,h:19}, {x:25,y:3,w:20,h:19},
-      {x:13,y:25,w:20,h:19}, {x:2,y:25,w:9,h:19}, {x+36:py,w:9,h:19}
-    ];
-    // Simple 4-stone layout
-    const ox = row?0:11;
-    ctx.fillStyle = (mx+my)%2 ? '#b0a888':'#a89870';
-    ctx.beginPath(); ctx.roundRect(px+2,py+3,20,19,3); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+25,py+3,20,19,3); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+2+ox,py+25,20,19,3); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+25+ox,py+25,20,19,3); ctx.fill();
-    // Stone highlight
-    ctx.fillStyle='#ccc0a0';
-    ctx.fillRect(px+4,py+5,16,4); ctx.fillRect(px+27,py+5,16,4);
-    ctx.fillRect(px+4+ox,py+27,16,4); ctx.fillRect(px+27+ox,py+27,16,4);
-    // Stone shadow
-    ctx.fillStyle='#706850';
-    ctx.fillRect(px+2,py+21,20,2); ctx.fillRect(px+25,py+21,20,2);
-  }
-
-  // ── WALL ──
-  else if (tile === T.WALL) {
-    ctx.fillStyle='#6a5840'; ctx.fillRect(px,py,T,T);
-    const rw=my%2;
-    // Stone blocks
-    ctx.fillStyle=(mx+my)%2?'#8a7858':'#7a6848';
-    ctx.beginPath(); ctx.roundRect(px+(rw?1:T/2+1),py+2,T/2-3,T/2-4,2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+(rw?T/2+1:1),py+T/2+2,T/2-3,T/2-4,2); ctx.fill();
-    // Highlights
-    ctx.fillStyle='#b0988070';
-    ctx.fillRect(px+(rw?2:T/2+2),py+3,T/2-7,4);
-    ctx.fillRect(px+(rw?T/2+2:2),py+T/2+3,T/2-7,4);
-    // Mortar lines
-    ctx.fillStyle='#403828';
-    ctx.fillRect(px,py+T/2-1,T,3);
-    ctx.fillRect(px+(rw?T/2-1:0),py,2,T/2);
-    ctx.fillRect(px+(rw?0:T/2-1),py+T/2+2,2,T/2);
+  if (tile === T.WALL) {
+    // Stone wall with mortar lines
+    const row = my % 2;
+    p(ctx, px+1,        py+2,  10, 9, pal.hi);
+    p(ctx, px+12,       py+2,  10, 9, row ? pal.base : pal.hi);
+    p(ctx, px+(row?6:0),py+12, 10, 9, pal.base);
+    p(ctx, px+(row?0:6),py+12, 10, 9, pal.sh);
+    // Mortar
+    p(ctx, px, py+11, T24, 2, '#2a1808');
+    p(ctx, px+(row?5:11), py+2, 2, 9, '#2a1808');
     // Lichen
-    if((mx*11+my*7)%6===0){ ctx.fillStyle='#4a6828'; ctx.beginPath(); ctx.ellipse(px+6,py+10,4,2,0,0,Math.PI*2); ctx.fill(); }
-    if((mx*9+my*13)%7===0){ ctx.fillStyle='#3a5018'; ctx.beginPath(); ctx.ellipse(px+T-8,py+T/2+6,3,2,0,0,Math.PI*2); ctx.fill(); }
+    if ((mx*11+my*7)%5===0) p(ctx, px+4, py+4, 3, 2, '#3a5a20');
   }
 
-  // ── FLOWER ──
-  else if (tile === T.FLOWER) {
-    ctx.fillStyle=pal.base; ctx.fillRect(px,py,T,T);
-    ctx.fillStyle=pal.hi;
-    if(s<4){ ctx.beginPath(); ctx.ellipse(px+s*6+4,py+s*4+4,4,2,0,0,Math.PI*2); ctx.fill(); }
-    // Stems
-    ctx.fillStyle='#2a8814'; ctx.fillRect(px+8,py+28,2,14); ctx.fillRect(px+24,py+26,2,16); ctx.fillRect(px+38,py+30,2,12);
-    // Petals
-    const fc=(mx+my)%3===0?'#ffdd00':(mx+my)%3===1?'#ff5577':'#eeeeff';
-    const fc2=(mx+my)%3===0?'#ffa000':(mx+my)%3===1?'#ff88aa':'#aaaaff';
-    ctx.fillStyle=fc;
-    ctx.beginPath(); ctx.ellipse(px+9,py+24,7,6,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+25,py+21,7,6,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle=fc2;
-    ctx.beginPath(); ctx.ellipse(px+39,py+25,6,5,0,0,Math.PI*2); ctx.fill();
-    // Centers
-    ctx.fillStyle='#ffffaa';
-    ctx.beginPath(); ctx.ellipse(px+9,py+24,2,2,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+25,py+21,2,2,0,0,Math.PI*2); ctx.fill();
-  }
-
-  // ── TOWN ──
-  else if (tile === T.TOWN) {
-    ctx.fillStyle='#a09878'; ctx.fillRect(px,py,T,T);
-    // Cobblestone plaza
-    ctx.fillStyle=(mx+my)%2?'#b8b090':'#a8a080';
-    ctx.beginPath(); ctx.roundRect(px+1,py+1,T/2-2,T/2-2,2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+T/2+1,py+1,T/2-2,T/2-2,2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+1,py+T/2+1,T/2-2,T/2-2,2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+T/2+1,py+T/2+1,T/2-2,T/2-2,2); ctx.fill();
-    ctx.fillStyle='#d0c8a8';
-    ctx.fillRect(px+3,py+3,T/2-6,4); ctx.fillRect(px+T/2+3,py+3,T/2-6,4);
-    ctx.fillStyle='#686050';
-    ctx.fillRect(px,py+T/2-1,T,3); ctx.fillRect(px+T/2-1,py,3,T);
-  }
-
-  // ── CAVE ──
-  else if (tile === T.CAVE) {
-    ctx.fillStyle='#3a2830'; ctx.fillRect(px,py,T,T);
-    // Rock face
-    ctx.fillStyle='#5a4048';
-    ctx.beginPath(); ctx.roundRect(px+2,py+2,T-4,T-4,4); ctx.fill();
-    // Arch
-    ctx.fillStyle='#080008';
-    ctx.beginPath(); ctx.arc(px+T/2,py+T/2+4,T/3,Math.PI,0); ctx.lineTo(px+T/2+T/3,py+T-4); ctx.lineTo(px+T/2-T/3,py+T-4); ctx.fill();
-    // Glow
-    const cg=Math.sin(af*0.04)*0.2+0.3;
-    ctx.fillStyle=`rgba(120,0,180,${cg})`;
-    ctx.beginPath(); ctx.arc(px+T/2,py+T/2+4,T/4,Math.PI,0); ctx.lineTo(px+T/2+T/4,py+T-4); ctx.lineTo(px+T/2-T/4,py+T-4); ctx.fill();
-    // Rocky highlights
-    ctx.fillStyle='#7a6068';
-    ctx.beginPath(); ctx.ellipse(px+6,py+8,5,4,0.3,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+T-8,py+10,4,4,0.5,0,Math.PI*2); ctx.fill();
-    // Stalactites
-    ctx.fillStyle='#4a3848';
-    [[10,4,3,8],[18,4,2,6],[28,4,3,9],[38,4,2,6]].forEach(([x,y,w,h])=>{
-      ctx.beginPath(); ctx.moveTo(px+x,py+y); ctx.lineTo(px+x+w,py+y); ctx.lineTo(px+x+w/2,py+y+h); ctx.fill();
-    });
-  }
-
-  // ── SHRINE ──
-  else if (tile === T.SHRINE) {
-    ctx.fillStyle='#706840'; ctx.fillRect(px,py,T,T);
-    // Stone base
-    ctx.fillStyle='#806030';
-    ctx.beginPath(); ctx.roundRect(px+4,py+32,T-8,12,3); ctx.fill();
-    ctx.fillStyle='#a07840';
-    ctx.beginPath(); ctx.roundRect(px+7,py+30,T-14,6,2); ctx.fill();
-    // Pillar
-    ctx.fillStyle='#908040';
-    ctx.beginPath(); ctx.roundRect(px+18,py+8,12,24,2); ctx.fill();
-    ctx.fillStyle='#b0a050';
-    ctx.beginPath(); ctx.roundRect(px+20,py+8,7,24,2); ctx.fill();
-    // Roof
-    ctx.fillStyle='#c09838';
-    ctx.beginPath(); ctx.moveTo(px+8,py+10); ctx.lineTo(px+T-8,py+10); ctx.lineTo(px+T-4,py+16); ctx.lineTo(px+4,py+16); ctx.fill();
-    ctx.fillStyle='#e0b840';
-    ctx.beginPath(); ctx.moveTo(px+10,py+4); ctx.lineTo(px+T-10,py+4); ctx.lineTo(px+T-6,py+10); ctx.lineTo(px+6,py+10); ctx.fill();
-    ctx.fillStyle='#ffd050';
-    ctx.beginPath(); ctx.moveTo(px+14,py+1); ctx.lineTo(px+T-14,py+1); ctx.lineTo(px+T-10,py+5); ctx.lineTo(px+10,py+5); ctx.fill();
-    // Glow
-    const sg=Math.sin(af*0.05)*0.3+0.5;
-    ctx.fillStyle=`rgba(255,200,50,${sg*0.35})`;
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+16,18,20,0,0,Math.PI*2); ctx.fill();
-  }
-
-  // ── RUIN ──
-  else if (tile === T.RUIN) {
-    ctx.fillStyle='#585850'; ctx.fillRect(px,py,T,T);
-    // Broken wall pieces
-    ctx.fillStyle='#706860';
-    ctx.beginPath(); ctx.roundRect(px+2,py+16,14,T-16,2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px+T-16,py+8,14,T-10,2); ctx.fill();
-    // Rubble rocks
-    ctx.fillStyle='#606058';
-    [[18,34,8,6],[10,40,10,5],[28,38,7,5],[6,28,5,4]].forEach(([x,y,w,h])=>{
-      ctx.beginPath(); ctx.ellipse(px+x,py+y,w/2,h/2,s*0.3,0,Math.PI*2); ctx.fill();
-    });
-    // Highlights
-    ctx.fillStyle='#888878';
-    ctx.fillRect(px+3,py+17,8,3); ctx.fillRect(px+T-15,py+9,8,3);
-    // Moss
-    ctx.fillStyle='#3a6020';
-    if(s<4){ ctx.beginPath(); ctx.ellipse(px+5,py+22,5,3,0.2,0,Math.PI*2); ctx.fill(); }
-    if(s>7){ ctx.beginPath(); ctx.ellipse(px+T-12,py+12,4,2,0.5,0,Math.PI*2); ctx.fill(); }
-    // Cracks
-    ctx.strokeStyle='#282818'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(px+4,py+20); ctx.lineTo(px+6,py+28); ctx.lineTo(px+5,py+34); ctx.stroke();
-  }
-
-  // ── NEST ──
-  else if (tile === T.NEST) {
-    ctx.fillStyle=pal.base; ctx.fillRect(px,py,T,T);
-    // Outer twig ring
-    ctx.fillStyle='#6a3e18';
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+30,18,8,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#7a4e24';
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+28,16,7,0,0,Math.PI*2); ctx.fill();
-    // Inner nest bowl
-    ctx.fillStyle='#4a2808';
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+26,12,5,0,0,Math.PI*2); ctx.fill();
-    // Glowing egg
-    const np=Math.sin(af*0.07)*0.4+0.7;
-    ctx.fillStyle=`rgba(255,190,0,${np*0.35})`;
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+14,14,16,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#ffe050';
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+14,10,12,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#fff888';
-    ctx.beginPath(); ctx.ellipse(px+T/2-2,py+10,4,5,0.3,0,Math.PI*2); ctx.fill();
-  }
-
-  // ── CHEST ──
-  else if (tile === T.CHEST) {
-    ctx.fillStyle=pal.base; ctx.fillRect(px,py,T,T);
-    // Body
-    ctx.fillStyle='#7a5018';
-    ctx.beginPath(); ctx.roundRect(px+8,py+22,T-16,T-26,3); ctx.fill();
-    ctx.fillStyle='#9a6828';
-    ctx.beginPath(); ctx.roundRect(px+10,py+24,T-20,T-30,2); ctx.fill();
-    // Lid
-    ctx.fillStyle='#c09030';
-    ctx.beginPath(); ctx.roundRect(px+8,py+12,T-16,12,3); ctx.fill();
-    ctx.fillStyle='#e0b040';
-    ctx.beginPath(); ctx.roundRect(px+10,py+13,T-20,6,2); ctx.fill();
-    // Lock hasp
-    ctx.fillStyle='#ffd840';
-    ctx.beginPath(); ctx.roundRect(px+T/2-5,py+22,10,8,2); ctx.fill();
-    ctx.fillStyle='#fff080';
-    ctx.beginPath(); ctx.ellipse(px+T/2,py+25,3,3,0,0,Math.PI*2); ctx.fill();
-    // Corner studs
-    ctx.fillStyle='#d0a030';
-    [[8,12],[T-12,12],[8,T-10],[T-12,T-10]].forEach(([x,y])=>{
-      ctx.beginPath(); ctx.ellipse(px+x,py+y,3,3,0,0,Math.PI*2); ctx.fill();
-    });
-  }
-
-  // ── SAND ──
-  else if (tile === T.SAND) {
-    ctx.fillStyle=(mx+my)%2?'#d8c078':'#c8b068'; ctx.fillRect(px,py,T,T);
-    const rip=(af*0.012+mx*0.25+my*0.18)%1;
-    // Ripple curves
-    ctx.strokeStyle='rgba(255,255,200,0.2)'; ctx.lineWidth=2;
-    const ry1=py+Math.floor(rip*T*0.5)+4;
-    const ry2=py+Math.floor(rip*T*0.5)+16;
-    ctx.beginPath(); ctx.moveTo(px,ry1); ctx.quadraticCurveTo(px+T/2,ry1-3,px+T,ry1); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(px,ry2); ctx.quadraticCurveTo(px+T/2,ry2+3,px+T,ry2); ctx.stroke();
+  if (tile === T.PATH) {
+    // Dirt path with pebbles
+    const seed = (mx*5+my*11)%8;
+    p(ctx, px+2, py+2, T24-4, T24-4, pal.hi);
     // Pebbles
-    if(s<4){
-      ctx.fillStyle='#9a7830';
-      ctx.beginPath(); ctx.ellipse(px+s*9+5,py+s*7+10,4,3,s*0.3,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#c09848';
-      ctx.beginPath(); ctx.ellipse(px+s*9+6,py+s*7+9,2,1.5,s*0.3,0,Math.PI*2); ctx.fill();
+    if (seed<4) { p(ctx,px+4, py+6, 3, 2, pal.sh); }
+    if (seed<6) { p(ctx,px+14,py+14,2, 2, pal.sh); }
+    if (seed<3) { p(ctx,px+8, py+18,4, 2, pal.acc); }
+    // Worn tracks
+    p(ctx, px+9, py, 6, T24, pal.base);
+    p(ctx, px+10,py, 4, T24, pal.hi);
+  }
+
+  if (tile === T.CAVE) {
+    // Outer rock face
+    p(ctx, px,    py,    T24, T24, pal.sh);
+    p(ctx, px+1,  py+1,  T24-2, T24-2, pal.base);
+    // Wide cave mouth — dark void
+    p(ctx, px+3,  py+10, 18, 14, '#000000');
+    p(ctx, px+4,  py+8,  16, 14, '#05000a');
+    p(ctx, px+5,  py+6,  14, 12, '#08000f');
+    // Arched entrance top
+    p(ctx, px+3,  py+8,  4,  4,  pal.acc);
+    p(ctx, px+17, py+8,  4,  4,  pal.acc);
+    p(ctx, px+4,  py+6,  16, 4,  pal.acc);
+    p(ctx, px+5,  py+4,  14, 4,  pal.hi);
+    p(ctx, px+6,  py+3,  12, 3,  '#ffffff');
+    // Rock texture sides
+    p(ctx, px+1,  py+10, 3,  8,  pal.hi);
+    p(ctx, px+20, py+10, 3,  8,  pal.sh);
+    // Lichen on rocks
+    p(ctx, px+2,  py+6,  3, 2, '#2a5018');
+    p(ctx, px+19, py+8,  3, 2, '#2a5018');
+    // Pulsing inner glow
+    const cglow = Math.sin(af*0.04)*0.2+0.25;
+    const gcols = ['rgba(80,0,120,','rgba(0,60,160,','rgba(120,0,80,','rgba(0,120,60,'];
+    const gi = Object.keys(REGIONS).indexOf(state.currentRegion)%gcols.length;
+    ctx.fillStyle = gcols[gi]+cglow+')';
+    ctx.fillRect(px+6, py+8, 12, 12);
+    // Stalactites hanging from arch
+    p(ctx, px+7,  py+8,  2, 5, '#1a0828');
+    p(ctx, px+11, py+8,  2, 4, '#221133');
+    p(ctx, px+15, py+8,  2, 6, '#1a0828');
+    p(ctx, px+19, py+8,  1, 3, '#221133');
+    // Sign / marker stone
+    p(ctx, px+10, py+2,  4,  4, pal.acc);
+    p(ctx, px+11, py+3,  2,  2, '#ffffff');
+    // Ground at entrance
+    p(ctx, px+4,  py+22, 16, 2, '#1a1020');
+    p(ctx, px+3,  py+22, 18, 1, '#2a1830');
+  }
+
+  if (tile === T.SHRINE) {
+    // Stone base
+    p(ctx, px+3,  py+18, 18, 5, '#553300');
+    p(ctx, px+4,  py+17, 16, 3, '#664400');
+    // Pillar
+    p(ctx, px+9,  py+6,  6, 14, '#7a5c00');
+    p(ctx, px+10, py+6,  4, 14, '#9a7800');
+    // Top ornament
+    p(ctx, px+6,  py+4,  12, 4,  '#aa8800');
+    p(ctx, px+8,  py+2,  8,  4,  '#cc9900');
+    p(ctx, px+10, py+1,  4,  3,  '#ffcc00');
+    // Pulsing glow
+    const shrine_glow = Math.sin(af*0.06)*0.35+0.55;
+    ctx.fillStyle = `rgba(255,180,0,${shrine_glow*0.5})`;
+    ctx.fillRect(px+7, py+2, 10, 14);
+    p(ctx, px+11, py+8, 2, 6, `rgba(255,220,100,${shrine_glow})`);
+  }
+
+  if (tile === T.RUIN) {
+    // Crumbled stone blocks
+    p(ctx, px+1,  py+12, 8,  11, pal.hi);
+    p(ctx, px+2,  py+11, 6,  2,  pal.acc);
+    p(ctx, px+13, py+8,  9,  15, pal.base);
+    p(ctx, px+14, py+7,  7,  3,  pal.acc);
+    // Rubble
+    p(ctx, px+9,  py+18, 4,  3,  pal.sh);
+    p(ctx, px+5,  py+20, 5,  2,  pal.sh);
+    // Cracks
+    p(ctx, px+3,  py+14, 1,  6,  '#1a1a1a');
+    p(ctx, px+15, py+10, 1,  5,  '#1a1a1a');
+    // Moss
+    p(ctx, px+1,  py+13, 4,  2,  '#2a5010');
+    p(ctx, px+14, py+8,  3,  2,  '#2a5010');
+  }
+
+  if (tile === T.NEST) {
+    // Egg nest — twigs and golden egg
+    const pulse = Math.sin(af*0.08)*0.4+0.7;
+    // Nest twigs
+    p(ctx, px+4,  py+14, 16, 5,  '#6a4020');
+    p(ctx, px+6,  py+12, 12, 5,  '#7a4c28');
+    p(ctx, px+3,  py+15, 4,  3,  '#5a3418');
+    p(ctx, px+17, py+15, 4,  3,  '#5a3418');
+    // Egg
+    ctx.fillStyle = `rgba(255,200,0,${pulse})`;
+    ctx.fillRect(px+8, py+6, 8, 10);
+    p(ctx, px+9,  py+5,  6, 10, `rgba(255,220,50,${pulse})`);
+    p(ctx, px+10, py+4,  4, 10, '#ffe050');
+    // Egg highlight
+    p(ctx, px+10, py+6,  2, 3,  '#ffffff');
+    // Glow halo
+    ctx.fillStyle = `rgba(255,180,0,${pulse*0.3})`;
+    ctx.fillRect(px+4, py+2, 16, 18);
+  }
+
+  if (tile === T.FLOWER) {
+    // Flower patch — multiple blooms
+    const fswap = Math.floor(af*0.02+mx) % 2;
+    const fcol  = fswap ? '#ff66aa' : '#ffaa22';
+    const fcol2 = fswap ? '#cc3388' : '#cc8800';
+    p(ctx, px+3,  py+8,  3, 3, fcol);
+    p(ctx, px+4,  py+7,  1, 1, '#ffffff');
+    p(ctx, px+12, py+10, 3, 3, fcol2);
+    p(ctx, px+13, py+9,  1, 1, '#ffffff');
+    p(ctx, px+7,  py+14, 3, 3, fcol);
+    p(ctx, px+8,  py+13, 1, 1, '#ffffff');
+    p(ctx, px+18, py+7,  3, 3, fcol2);
+    // Stems
+    p(ctx, px+4,  py+11, 1, 4, '#2a7010');
+    p(ctx, px+13, py+13, 1, 3, '#2a7010');
+    p(ctx, px+8,  py+17, 1, 4, '#2a7010');
+    p(ctx, px+19, py+10, 1, 5, '#2a7010');
+  }
+
+  if (tile === T.TOWN) {
+    // Cobblestone plaza
+    const row2 = my % 2, col2 = mx % 2;
+    p(ctx, px, py, T24, T24, row2===col2 ? '#8a7858' : '#9a8868');
+    p(ctx, px, py, T24, 2, '#aa9878');
+    p(ctx, px, py, 2, T24, '#aa9878');
+    p(ctx, px+T24-2, py, 2, T24, '#6a5838');
+    p(ctx, px, py+T24-2, T24, 2, '#6a5838');
+    // Cobble joints
+    p(ctx, px+11, py, 2, T24, '#6a5030');
+    p(ctx, px, py+11, T24, 2, '#6a5030');
+  }
+
+  if (tile === T.BRIDGE) {
+    // Wooden bridge planks
+    p(ctx, px, py+4, T24, T24-8, '#8a6030');
+    for(let i=0;i<4;i++) p(ctx,px+i*6,py+4,4,T24-8,'#9a7040');
+    p(ctx, px, py+4, T24, 3, '#aa8848');
+    p(ctx, px, py+T24-7, T24, 3, '#6a4820');
+    // Rope rails
+    p(ctx, px, py+2, T24, 2, '#cc9944');
+    p(ctx, px, py+T24-4, T24, 2, '#cc9944');
+  }
+
+  if (tile === T.SIGN) {
+    p(ctx, px+10, py+8, 4, 14, '#6a4820');
+    p(ctx, px+6, py+4, 12, 10, '#aa8030');
+    p(ctx, px+7, py+5, 10, 8, '#cc9a40');
+    const a = (af*0.02)%1;
+    p(ctx, px+8, py+6, 8, 2, `rgba(255,220,100,${0.3+a*0.2})`);
+    p(ctx, px+8, py+9, 6, 1, `rgba(180,140,60,0.4)`);
+  }
+
+  if (tile === T.MINIBOSS) {
+    // Red danger floor
+    p(ctx, px, py, T24, T24, '#200404');
+    const pulse = Math.sin(af*0.08)*0.3+0.5;
+    ctx.fillStyle=`rgba(255,50,20,${pulse*0.4})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Skull marks
+    p(ctx, px+8, py+6, 8, 6, `rgba(255,80,40,${pulse})`);
+    p(ctx, px+10, py+8, 4, 3, '#000000');
+    // Warning border
+    ctx.strokeStyle=`rgba(255,80,20,${pulse})`;
+    ctx.lineWidth=2;
+    ctx.strokeRect(px+1,py+1,T24-2,T24-2);
+    // Pulsing exclamation
+    p(ctx, px+11, py+3, 2, 8, `rgba(255,200,0,${pulse})`);
+    p(ctx, px+11, py+13, 2, 3, `rgba(255,200,0,${pulse})`);
+  }
+
+  if (tile === T.BOSS) {
+    // Dark menacing floor
+    p(ctx, px, py, T24, T24, '#100008');
+    const pulse = Math.sin(af*0.06)*0.4+0.6;
+    ctx.fillStyle=`rgba(220,0,60,${pulse*0.5})`;
+    ctx.fillRect(px,py,T24,T24);
+    // Concentric rings
+    for(let r=2;r<12;r+=3){
+      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/14)})`;
+      ctx.lineWidth=1;
+      ctx.strokeRect(px+r,py+r,T24-r*2,T24-r*2);
     }
+    // Boss crown symbol
+    p(ctx, px+6, py+14, 12, 6, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+6, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
+    p(ctx, px+11, py+6, 2, 10, `rgba(255,100,0,${pulse})`);
+    p(ctx, px+16, py+8, 2, 8, `rgba(255,0,80,${pulse})`);
   }
 
-  // ── BRIDGE ──
-  else if (tile === T.BRIDGE) {
-    ctx.fillStyle='#6a4820'; ctx.fillRect(px,py,T,T);
-    // Planks
-    for(let i=0;i<5;i++){
-      ctx.fillStyle=i%2?'#8a6030':'#7a5020';
-      ctx.beginPath(); ctx.roundRect(px+i*10+1,py+5,9,T-10,1); ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.08)';
-      ctx.fillRect(px+i*10+2,py+6,5,3);
-    }
-    // Rails
-    ctx.fillStyle='#c8a040';
-    ctx.beginPath(); ctx.roundRect(px,py+3,T,3,1); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(px,py+T-6,T,3,1); ctx.fill();
-    ctx.fillStyle='#a08030';
-    ctx.fillRect(px,py+5,T,1); ctx.fillRect(px,py+T-4,T,1);
-  }
-
-  // ── MINIBOSS ──
-  else if (tile === T.MINIBOSS) {
-    const pulse=Math.sin(af*0.08)*0.35+0.55;
-    ctx.fillStyle='#200404'; ctx.fillRect(px,py,T,T);
-    ctx.fillStyle=`rgba(255,40,20,${pulse*0.4})`; ctx.fillRect(px,py,T,T);
-    ctx.strokeStyle=`rgba(255,60,0,${pulse})`; ctx.lineWidth=2;
-    ctx.strokeRect(px+2,py+2,T-4,T-4);
-    ctx.fillStyle=`rgba(255,120,0,${pulse})`;
-    ctx.beginPath(); ctx.moveTo(px+T/2,py+6); ctx.lineTo(px+T/2+10,py+28); ctx.lineTo(px+T/2-10,py+28); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(px+T/2,py+T-6); ctx.lineTo(px+T/2+10,py+T-28); ctx.lineTo(px+T/2-10,py+T-28); ctx.fill();
-  }
-
-  // ── BOSS ──
-  else if (tile === T.BOSS) {
-    const pulse=Math.sin(af*0.05)*0.4+0.6;
-    ctx.fillStyle='#100008'; ctx.fillRect(px,py,T,T);
-    ctx.fillStyle=`rgba(200,0,60,${pulse*0.5})`; ctx.fillRect(px,py,T,T);
-    for(let r=3;r<18;r+=4){
-      ctx.strokeStyle=`rgba(255,0,80,${pulse*(1-r/20)})`; ctx.lineWidth=1.5;
-      ctx.strokeRect(px+r,py+r,T-r*2,T-r*2);
-    }
-    ctx.fillStyle=`rgba(255,20,80,${pulse})`;
-    ctx.beginPath(); ctx.moveTo(px+T/2,py+4); ctx.lineTo(px+T-8,py+20); ctx.lineTo(px+T-4,py+T-6); ctx.lineTo(px+4,py+T-6); ctx.lineTo(px+8,py+20); ctx.fill();
-  }
-
-  // ── SIGN ──
-  else if (tile === T.SIGN) {
-    ctx.fillStyle=pal.base; ctx.fillRect(px,py,T,T);
-    ctx.fillStyle='#6a4820';
-    ctx.beginPath(); ctx.roundRect(px+T/2-3,py+18,6,T-18,2); ctx.fill();
-    ctx.fillStyle='#aa8030';
-    ctx.beginPath(); ctx.roundRect(px+6,py+5,T-12,16,3); ctx.fill();
-    ctx.fillStyle='#ccA040';
-    ctx.beginPath(); ctx.roundRect(px+8,py+7,T-16,10,2); ctx.fill();
-    ctx.fillStyle='#5a3808';
-    ctx.fillRect(px+10,py+9,T-20,2); ctx.fillRect(px+12,py+13,T-24,2);
-    ctx.fillStyle='#888060';
-    ctx.beginPath(); ctx.ellipse(px+8,py+8,3,3,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(px+T-8,py+8,3,3,0,0,Math.PI*2); ctx.fill();
-  }
-
-  // ── TOWN detail ──
-  else if (tile === T.TOWN) {
-    if(s<4){ ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.beginPath(); ctx.ellipse(px+s*8+6,py+s*6+6,4,3,0,0,Math.PI*2); ctx.fill(); }
+  if (tile === T.SAND) {
+    // Desert sand with ripples
+    const rip  = Math.floor(af*0.02+mx+my) % T24;
+    p(ctx, px+0,  py+rip%8,     T24, 2, pal.hi);
+    p(ctx, px+0,  py+(rip%8)+10,T24, 2, pal.acc);
+    // Small rocks
+    const sr = (mx*9+my*7)%7;
+    if (sr<3) p(ctx, px+4, py+10, 4, 3, pal.sh);
+    if (sr<5) p(ctx, px+16,py+16, 3, 2, pal.sh);
   }
 }
-
 
 // ── 16-BIT PLAYER SPRITE ─────────────────────────────────
 function drawPlayer(ctx) {
@@ -3646,7 +3495,6 @@ function menuScreen(show) {
   document.getElementById('menu-title').style.display   = show==='title'   ? 'flex' : 'none';
   document.getElementById('menu-regions').style.display = show==='regions' ? 'flex' : 'none';
   document.getElementById('menu-dice').style.display    = show==='dice'    ? 'flex' : 'none';
-  document.getElementById('menu-profile').style.display = show==='profile' ? 'flex' : 'none';
 }
 
 // ── Stars background ──────────────────────────────────────
@@ -3700,7 +3548,8 @@ function menuDrawGlobe() {
   c.strokeStyle='#c8960c'; c.lineWidth=2;
   c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.stroke();
   globeFrame++;
-  requestAnimationFrame(menuDrawGlobe);
+  if(document.getElementById('menu-overlay').style.display!=='none')
+    requestAnimationFrame(menuDrawGlobe);
 }
 
 // ── Build region grid ─────────────────────────────────────
@@ -3742,7 +3591,6 @@ function menuColorEgg(rarity) {
 
 // ── Dice roll ─────────────────────────────────────────────
 function menuRollDice() {
-  // Preload player sprite during dice spin
   const stage   = document.getElementById('egg-stage');
   const rollEl  = document.getElementById('dice-roll-display');
   const revealEl= document.getElementById('creature-reveal');
@@ -3838,7 +3686,6 @@ function menuBeginGame() {
   state.activeCreatureIdx = 0;
   state.currentRegion     = menuSelectedRegion;
   state.homeRegion        = menuSelectedRegion;
-  // Preload player sprite
   state.mapSeed           = Date.now() % 99991;
   state.map               = generateMap(menuSelectedRegion, state.mapSeed);
 
@@ -3849,43 +3696,14 @@ function menuBeginGame() {
         state.exploredTiles.add(`${state.px+ex},${state.py+ey}`);
 
   document.getElementById('top-region').textContent = REGIONS[menuSelectedRegion]?.name||menuSelectedRegion;
-  document.getElementById('top-player').textContent = `${state.playerName} — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
+  document.getElementById('top-player').textContent = `TRAINER — ${(REGIONS[menuSelectedRegion]?.name||'').toUpperCase()}`;
 
-  document.getElementById('menu-overlay').classList.add('hidden');
+  document.getElementById('menu-overlay').style.display='none';
   document.getElementById('world').style.pointerEvents='all';
   updateHUD();
 }
 
 // ── Wire everything — called at bottom of init() ──────────
-function showMenuDialog(title, text, opts) {
-  const d = document.getElementById('menu-dialog');
-  document.getElementById('menu-dlg-title').textContent = title;
-  document.getElementById('menu-dlg-text').textContent = text;
-  const wrap = document.getElementById('menu-dlg-opts');
-  wrap.innerHTML = '';
-  opts.forEach(o => {
-    const btn = document.createElement('button');
-    btn.style.cssText = "font-family:'Press Start 2P',monospace;font-size:7px;background:#0a0018;color:#cc88ff;border:1px solid #660099;padding:8px 12px;cursor:pointer;border-radius:3px;width:100%;touch-action:manipulation;";
-    btn.textContent = o.label;
-    btn.onclick = o.fn;
-    wrap.appendChild(btn);
-  });
-  d.style.display = 'flex';
-}
-function closeMenuDialog() {
-  document.getElementById('menu-dialog').style.display = 'none';
-}
-function showMenuSlotPicker(title, onPick) {
-  const opts = [1,2,3].map(slot => {
-    const info = getSlotInfo(slot);
-    const lbl = info
-      ? `SLOT ${slot}: ${info.name} Lv${info.level} - ${info.region}`
-      : `SLOT ${slot}: EMPTY`;
-    return { label: lbl, fn: () => { closeMenuDialog(); onPick(slot, info); } };
-  });
-  opts.push({ label: 'Cancel', fn: closeMenuDialog });
-  showMenuDialog(title, 'Choose a slot:', opts);
-}
 function menuInit() {
   menuDrawStars();
   menuBuildRegions();
@@ -3893,10 +3711,8 @@ function menuInit() {
   requestAnimationFrame(menuDrawGlobe);
 
   // Title → Region select
-  if(hasSave())document.getElementById('menu-load-btn').style.display='';
-  document.getElementById('menu-load-btn').onclick=()=>{ showMenuSlotPicker('LOAD GAME',(slot,info)=>{ if(!info){showMenuDialog('EMPTY','That slot is empty.',[{label:'OK',fn:closeMenuDialog}]);return;} if(loadGame(slot)){document.getElementById('menu-overlay').classList.add('hidden');document.getElementById('world').style.pointerEvents='all';} }); };
   document.getElementById('menu-start-btn').onclick = ()=>{
-    menuScreen('profile');
+    menuScreen('regions');
   };
 
   // Region confirmed → Dice
@@ -3922,17 +3738,6 @@ function menuInit() {
   };
 
   // Reroll
-  // Profile screen
-  let selectedSex = 'male';
-  document.getElementById('sex-male-btn').style.borderColor='#ffcc44';
-  document.getElementById('sex-male-btn').onclick=()=>{ selectedSex='male'; document.getElementById('sex-male-btn').style.borderColor='#ffcc44'; document.getElementById('sex-female-btn').style.borderColor='#5522aa'; };
-  document.getElementById('sex-female-btn').onclick=()=>{ selectedSex='female'; document.getElementById('sex-female-btn').style.borderColor='#ffcc44'; document.getElementById('sex-male-btn').style.borderColor='#5522aa'; };
-  document.getElementById('profile-next-btn').onclick=()=>{
-    const n=document.getElementById('profile-name').value.trim();
-    if(n===''){document.getElementById('profile-name').focus();return;}
-    state.playerName=n; state.playerSex=selectedSex;
-    menuScreen('regions');
-  };
   document.getElementById('dice-reroll-btn').onclick = menuRollDice;
 
   // Begin
@@ -3940,9 +3745,8 @@ function menuInit() {
 
   // Back button on regions (ESC)
   window.addEventListener('keydown', e=>{
-    if(e.key==='Escape'&&!document.getElementById('menu-overlay').classList.contains('hidden')){
-      if(document.getElementById('menu-profile').style.display!=='none') menuScreen('title');
-      else if(document.getElementById('menu-regions').style.display!=='none') menuScreen('profile');
+    if(e.key==='Escape'&&document.getElementById('menu-overlay').style.display!=='none'){
+      if(document.getElementById('menu-regions').style.display!=='none') menuScreen('title');
       else if(document.getElementById('menu-dice').style.display!=='none')  menuScreen('regions');
       e.preventDefault();
     }
